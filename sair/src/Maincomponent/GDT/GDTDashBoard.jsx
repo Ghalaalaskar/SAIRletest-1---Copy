@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { ResponsiveLine } from "@nivo/line";
 import { db } from "../../firebase"; // Import Firebase
 import { collection, getDocs } from "firebase/firestore";
+import StaffChart from "./DashboardCharts/StaffChart";
 
 const GDTDashboard = () => {
   const navigate = useNavigate();
@@ -72,7 +73,16 @@ const GDTDashboard = () => {
         </a>
       </div>
 
-      <div className="charts">
+      
+      <main>
+      <div>
+        <GridItem title="Staff Response Chart">
+            <StaffChart />
+        </GridItem>
+      </div>
+    </main>
+
+      {/* <div className="charts">
       <div className={s.chart} style={{ height: "400px", width: "100%" }}>
       {console.log("Formatted Data:", violationData)}{
       violationData.length > 0 && violationData[0].data.length > 0 ? (
@@ -148,9 +158,18 @@ const GDTDashboard = () => {
             <p>No violation data available.</p>
           )}
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };
 
 export default GDTDashboard;
+
+function GridItem({title, children}){
+  return (
+      <div>
+          <h3>{title}</h3>
+          {children}
+      </div>
+  )
+}

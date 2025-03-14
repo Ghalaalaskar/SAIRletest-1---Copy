@@ -22,6 +22,7 @@
     "lucide-react": "^0.475.0",
     "react-pro-sidebar": "^1.1.0",
     "react-router-dom": "^6.30.0",
+    "recharts": "^2.15.1",
     "shadcn-ui": "^0.9.4",
     "uuid": "^11.0.5",
     "xlsx": "^0.18.5",
