@@ -3,10 +3,10 @@ import Header from "./GDTHeader";
 import s from "../../css/Dashboard.module.css";
 import "../../css/CustomModal.css";
 import { useNavigate } from "react-router-dom";
-import { ResponsiveLine } from "@nivo/line";
 import { db } from "../../firebase"; // Import Firebase
 import { collection, getDocs } from "firebase/firestore";
 import StaffChart from "./DashboardCharts/StaffChart";
+import NumberOfViolations from "./DashboardCharts/NumberOfViolations";
 
 const GDTDashboard = () => {
   const navigate = useNavigate();
@@ -78,6 +78,9 @@ const GDTDashboard = () => {
       <div>
         <GridItem title="Staff Response Chart">
             <StaffChart />
+        </GridItem>
+        <GridItem title="Number of Violation LineChart">
+            <NumberOfViolations/>
         </GridItem>
       </div>
     </main>
