@@ -36,10 +36,10 @@ const GDTDashboard = () => {
               gap: "20px",
             }}
           >
-            <GridItem title="Number of Violations Chart">
+            <GridItem title="Number of Violations">
               <NumberOfViolations />
             </GridItem>
-            <GridItem title="Number of Crashes Chart">
+            <GridItem title="Number of Crashes">
               <NumberofCrashes />
             </GridItem>
           </div>
