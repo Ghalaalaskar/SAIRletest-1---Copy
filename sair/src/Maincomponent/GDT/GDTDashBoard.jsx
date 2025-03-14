@@ -10,169 +10,41 @@ import NumberOfViolations from "./DashboardCharts/NumberOfViolations";
 
 const GDTDashboard = () => {
   const navigate = useNavigate();
-  const [violationData, setViolationData] = useState([]);
 
-  useEffect(() => {
-    const fetchViolations = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, "Violation"));
-        const counts = {};
-  
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          if (!data.time) return;
-  
-          // Convert Unix timestamp to Date
-          const timestamp = new Date(data.time);
-          const time = timestamp.getHours() + ":" + String(timestamp.getMinutes()).padStart(2, "0");
-  
-          counts[time] = (counts[time] || 0) + 1;
-        });
-  
-        // Convert counts object to array and sort it
-        const formattedData = Object.entries(counts)
-          .map(([time, count]) => ({ x: time, y: count }))
-          .sort((a, b) => a.x.localeCompare(b.x));
-  
-        if (formattedData.length === 0) {
-          console.warn("No violation data available.");
-        }
-  
-        setViolationData([
-          {
-            id: "Violations",
-            color: "hsl(330, 70%, 50%)",
-            data: formattedData.length ? formattedData : [{ x: "00:00", y: 0 }],
-          },
-        ]);
-        
-  
-      } catch (error) {
-        console.error("Error fetching violations:", error);
-      }
-    };
-  
-    fetchViolations();
-  }, []);
-  
   return (
-    <div
-      style={{ backgroundColor: "#80808054", height: "100vh", width: "100%" }}
-    >
+    <div style={{ backgroundColor: "#FAFAFA", height: "100vh", width: "100%" }}>
       <Header active="gdtdashboard" />
       <div className="breadcrumb">
         <a onClick={() => navigate("/gdthome")} style={{ cursor: "pointer" }}>
           Home
         </a>
         <span> / </span>
-        <a
-          onClick={() => navigate("/GDTDashBoard")}
-          style={{ cursor: "pointer" }}
-        >
+        <a onClick={() => navigate("/GDTDashBoard")} style={{ cursor: "pointer" }}>
           Dashboard
         </a>
       </div>
 
-      
       <main>
-      <div>
-        <GridItem title="Staff Response Chart">
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "20px", padding: "20px" }}>
+          <GridItem title="Number of Violation LineChart" style={{ flex: 1 }}>
+            <NumberOfViolations />
+          </GridItem>
+          <GridItem title="Staff Response Chart" style={{ flex: 1 }}>
             <StaffChart />
-        </GridItem>
-        <GridItem title="Number of Violation LineChart">
-            <NumberOfViolations/>
-        </GridItem>
-      </div>
-    </main>
-
-      {/* <div className="charts">
-      <div className={s.chart} style={{ height: "400px", width: "100%" }}>
-      {console.log("Formatted Data:", violationData)}{
-      violationData.length > 0 && violationData[0].data.length > 0 ? (
-            <ResponsiveLine
-              data={violationData}
-              margin={{ top: 50, right: 110, bottom: 50, left: 60 }}
-              xScale={{ type: "point" }}
-              yScale={{
-                type: "linear",
-                min: "auto",
-                max: "auto",
-                stacked: true,
-                reverse: false,
-              }}
-              yFormat=" >-.2f"
-              axisTop={null}
-              axisRight={null}
-              axisBottom={{
-                tickSize: 5,
-                tickPadding: 5,
-                tickRotation: 0,
-                legend: "transportation",
-                legendOffset: 36,
-                legendPosition: "middle",
-                truncateTickAt: 0,
-              }}
-              axisLeft={{
-                tickSize: 5,
-                tickPadding: 5,
-                tickRotation: 0,
-                legend: "count",
-                legendOffset: -40,
-                legendPosition: "middle",
-                truncateTickAt: 0,
-              }}
-              colors={{ scheme: "greens" }}
-              pointSize={10}
-              pointColor={{ theme: "background" }}
-              pointBorderWidth={2}
-              pointBorderColor={{ from: "serieColor" }}
-              pointLabel="data.yFormatted"
-              pointLabelYOffset={-12}
-              enableTouchCrosshair={true}
-              useMesh={true}
-              legends={[
-                {
-                  anchor: "bottom-right",
-                  direction: "column",
-                  justify: false,
-                  translateX: 100,
-                  translateY: 0,
-                  itemsSpacing: 0,
-                  itemDirection: "left-to-right",
-                  itemWidth: 80,
-                  itemHeight: 20,
-                  itemOpacity: 0.75,
-                  symbolSize: 12,
-                  symbolShape: "circle",
-                  symbolBorderColor: "rgba(0, 0, 0, .5)",
-                  effects: [
-                    {
-                      on: "hover",
-                      style: {
-                        itemBackground: "rgba(0, 0, 0, .03)",
-                        itemOpacity: 1,
-                      },
-                    },
-                  ],
-                },
-              ]}
-            />
-          ) : (
-            <p>No violation data available.</p>
-          )}
+          </GridItem>
         </div>
-      </div> */}
+      </main>
     </div>
   );
 };
 
 export default GDTDashboard;
 
-function GridItem({title, children}){
+function GridItem({ title, children, style }) {
   return (
-      <div>
-          <h3>{title}</h3>
-          {children}
-      </div>
-  )
+    <div style={{ backgroundColor: "#FFFFFF", padding: "20px", borderRadius: "8px", boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)", ...style }}>
+      <h3 style={{ marginBottom: "15px", textAlign: "center" }}>{title}</h3>
+      {children}
+    </div>
+  );
 }
