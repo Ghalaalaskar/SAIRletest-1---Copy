@@ -13,13 +13,13 @@ import {
   Tooltip,
 } from "recharts";
 
-const NumberofViolations = () => {
+const NumberofCrashes = () => {
   const [data, setData] = useState([]);
 
   useEffect(() => {
-    const fetchViolations = async () => {
+    const fetchCrashes = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "Violation"));
+        const querySnapshot = await getDocs(collection(db, "Crash"));
         const violationsMap = new Map();
         const oneWeekAgo = new Date();
         oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
@@ -71,7 +71,7 @@ const NumberofViolations = () => {
       }
     };
 
-    fetchViolations();
+    fetchCrashes();
   }, []);
 
   return (
@@ -96,7 +96,7 @@ const NumberofViolations = () => {
           <YAxis
             allowDecimals={false}
             label={{
-              value: "Number of Violations",
+              value: "Number of Crashes",
               angle: -90,
               position: "middle",
               dx: -20,
@@ -112,4 +112,4 @@ const NumberofViolations = () => {
   );
 };
 
-export default NumberofViolations;
+export default NumberofCrashes;
