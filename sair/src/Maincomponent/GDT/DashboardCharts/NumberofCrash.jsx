@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { db } from "../../../firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs } from "firebase/firestore";
 import {
   LineChart,
   Line,
@@ -19,8 +19,10 @@ const NumberofCrashes = () => {
   useEffect(() => {
     const fetchCrashes = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "Crash"));
-        const violationsMap = new Map();
+        const q = query(collection(db, "Crash"), where("Status", "==", "Emergency SOS"));
+        const querySnapshot = await getDocs(q);
+
+        const crashesMap = new Map();
         const oneWeekAgo = new Date();
         oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
@@ -37,37 +39,37 @@ const NumberofCrashes = () => {
             day: "2-digit",
             month: "long",
           });
-          violationsMap.set(formattedDate, 0);
+          crashesMap.set(formattedDate, 0);
         }
 
         querySnapshot.forEach((doc) => {
           const { time } = doc.data();
           if (!time) return; // Ensure time exists
 
-          const violationDate = new Date(time * 1000); // Convert Unix timestamp
-          violationDate.setHours(0, 0, 0, 0); // Normalize to start of day
+          const crashDate = new Date(time * 1000); // Convert Unix timestamp
+          crashDate.setHours(0, 0, 0, 0); // Normalize to start of day
 
-          if (violationDate >= oneWeekAgo) {
-            const formattedDate = violationDate.toLocaleDateString("en-GB", {
+          if (crashDate >= oneWeekAgo) {
+            const formattedDate = crashDate.toLocaleDateString("en-GB", {
               day: "2-digit",
               month: "long",
             });
-            violationsMap.set(
+            crashesMap.set(
               formattedDate,
-              (violationsMap.get(formattedDate) || 0) + 1
+              (crashesMap.get(formattedDate) || 0) + 1
             );
           }
         });
 
         // Convert Map to an array and sort by date
-        const chartData = Array.from(violationsMap, ([date, count]) => ({
+        const chartData = Array.from(crashesMap, ([date, count]) => ({
           date,
           count,
         }));
 
         setData(chartData);
       } catch (error) {
-        console.error("Error fetching violations:", error);
+        console.error("Error fetching crash:", error);
       }
     };
 
