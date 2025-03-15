@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback  } from 'react';
 import { GoogleMap, InfoWindowF, MarkerF ,HeatmapLayer} from '@react-google-maps/api';
 import motorcycle from '../../images/motorcycle.png';
+import motorcycle2 from '../../images/delivery-bike (1).png';
 import '../../css/CustomModal.css';
 import { useNavigate } from 'react-router-dom'; 
 import { db } from '../../firebase'; 
