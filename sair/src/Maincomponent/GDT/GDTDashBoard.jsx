@@ -199,7 +199,7 @@ const GDTDashboard = () => {
               }}
             >
               <div style={{ fontWeight: "bold" }}>
-                Violation and Crash Statistics
+                Violation Statistics
               </div>
               <div
                 className="searchContainer"
