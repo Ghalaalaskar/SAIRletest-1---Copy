@@ -44,7 +44,10 @@ const GDTDashboard = () => {
 
       for (let i = 0; i < driverIDList.length; i += 10) {
         const batch = driverIDList.slice(i, i + 10);
-        const q = query(collection(db, "Driver"), where("DriverID", "in", batch));
+        const q = query(
+          collection(db, "Driver"),
+          where("DriverID", "in", batch)
+        );
         const driverSnapshot = await getDocs(q);
 
         driverSnapshot.forEach((doc) => {
@@ -90,7 +93,10 @@ const GDTDashboard = () => {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (typeDropdownRef.current && !typeDropdownRef.current.contains(event.target)) {
+      if (
+        typeDropdownRef.current &&
+        !typeDropdownRef.current.contains(event.target)
+      ) {
         setIsTypeOpen(false);
       }
     };
@@ -102,25 +108,51 @@ const GDTDashboard = () => {
     <div style={{ backgroundColor: "#FAFAFA", height: "100vh", width: "100%" }}>
       <Header active="gdtdashboard" />
       <div className="breadcrumb" style={{ padding: "10px 20px" }}>
-        <a onClick={() => navigate("/gdthome")} style={{ cursor: "pointer" }}>Home</a>
+        <a onClick={() => navigate("/gdthome")} style={{ cursor: "pointer" }}>
+          Home
+        </a>
         <span> / </span>
-        <a onClick={() => navigate("/GDTDashBoard")} style={{ cursor: "pointer" }}>Dashboard</a>
+        <a
+          onClick={() => navigate("/GDTDashBoard")}
+          style={{ cursor: "pointer" }}
+        >
+          Dashboard
+        </a>
       </div>
-      <main style={{ padding: "20px", width: "100%" }}>
-        <div style={{ display: "flex", gap: "20px", width: "100%" }}>
-          {[{ title: "Total Drivers", component: <TotalDrivers /> }, { title: "Total Violation", component: <TotalViolation /> }, { title: "Total Crash", component: <TotalCrash /> }].map((item, index) => (
-            <GridItem key={index} title={item.title}>{item.component}</GridItem>
+      <main style={{ padding: "20px", width: "100%", overflow: "hidden" }}>
+        {/* Top Section: Title and Dropdown */}
+        <div
+          style={{
+            display: "flex",
+            gap: "20px",
+            flexWrap: "wrap",
+            justifyContent: "space-between",
+          }}
+        >
+          {[
+            { title: "Total Drivers", component: <TotalDrivers /> },
+            { title: "Total Violation", component: <TotalViolation /> },
+            { title: "Total Crash", component: <TotalCrash /> },
+          ].map((item, index) => (
+            <GridItem key={index} title={item.title}>
+              {item.component}
+            </GridItem>
           ))}
         </div>
-        <div style={{ display: "flex", gap: "20px", marginTop: "20px", width: "100%" }}>
-     
-        </div>
-          {/* Labels in the Same Row */}
-          <div style={{ display: "flex", gap: "20px", marginTop: "20px", width: "100%" }}>
+
+        {/* Labels in the Same Row */}
+        <div
+          style={{
+            display: "flex",
+            gap: "20px",
+            marginTop: "20px",
+            justifyContent: "space-between",
+          }}
+        >
           <div
             style={{
               backgroundColor: "#FFFFFF",
-              padding: "20px",
+              padding: "10px",
               borderRadius: "8px",
               boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
               flex: 1,
@@ -130,17 +162,19 @@ const GDTDashboard = () => {
           >
             Violation and Crash Statistics
           </div>
-          <div  ref={typeDropdownRef}>
-            <select  onChange={(e) => setFilterType(e.target.value)}>
+          <div ref={typeDropdownRef}>
+            <select onChange={(e) => setFilterType(e.target.value)}>
               {companyOptions.map((option, index) => (
-                <option key={index} value={option}>{option}</option>
+                <option key={index} value={option}>
+                  {option}
+                </option>
               ))}
             </select>
           </div>
           <div
             style={{
               backgroundColor: "#FFFFFF",
-              padding: "20px",
+              padding: "10px",
               borderRadius: "8px",
               boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
               flex: 1,
@@ -152,8 +186,22 @@ const GDTDashboard = () => {
           </div>
         </div>
         {/* Bottom Section: Charts */}
-        <div style={{ display: "flex", gap: "20px", marginTop: "20px", width: "100%" }}>
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "20px" }}>
+        <div
+          style={{
+            display: "flex",
+            gap: "20px",
+            marginTop: "20px",
+            flexWrap: "wrap",
+          }}
+        >
+          <div
+            style={{
+              flex: "1 1 calc(50% - 20px)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "20px",
+            }}
+          >
             <GridItem title="Number of Violations">
               <NumberOfViolations />
             </GridItem>
@@ -162,7 +210,14 @@ const GDTDashboard = () => {
             </GridItem>
           </div>
 
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "20px" }}>
+          <div
+            style={{
+              flex: "1 1 calc(50% - 20px)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "20px",
+            }}
+          >
             <GridItem title="Staff Response Chart">
               <StaffChart />
             </GridItem>
@@ -179,8 +234,25 @@ const GDTDashboard = () => {
 export default GDTDashboard;
 
 const GridItem = ({ title, children }) => (
-  <div style={{ backgroundColor: "#FFFFFF", padding: "20px", borderRadius: "8px", boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)", flex: 1, minWidth: "300px" }}>
-    <h3 style={{ marginBottom: "15px", textAlign: "center", color: "#059855" }}>{title}</h3>
+  <div
+    style={{
+      backgroundColor: "#FFFFFF",
+      padding: "10px",
+      borderRadius: "8px",
+      boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+      flex: "1 1 calc(33% - 20px)", // Ensures that each item takes up 1/3 of the available space, with 20px gap
+      minWidth: "250px", // Prevents items from shrinking too small
+      maxWidth: "400px", // Limits the width to avoid over-expansion
+      height: "100%", // Makes sure the height fits well
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "center",
+      alignItems: "center",
+    }}
+  >
+    <h3 style={{ marginBottom: "15px", textAlign: "center", color: "#059855" }}>
+      {title}
+    </h3>
     {children}
   </div>
 );
