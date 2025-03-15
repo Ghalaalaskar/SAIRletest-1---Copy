@@ -119,16 +119,8 @@ const GDTDashboard = () => {
           Dashboard
         </a>
       </div>
-      <main style={{ padding: "20px", width: "100%", overflow: "hidden" }}>
-        {/* Top Section: Title and Dropdown */}
-        <div
-          style={{
-            display: "flex",
-            gap: "20px",
-            flexWrap: "wrap",
-            justifyContent: "space-between",
-          }}
-        >
+      <main style={{ padding: "20px", width: "100%" }}>
+        <div style={{ display: "flex", gap: "20px", width: "100%" }}>
           {[
             { title: "Total Drivers", component: <TotalDrivers /> },
             { title: "Total Violation", component: <TotalViolation /> },
@@ -139,20 +131,27 @@ const GDTDashboard = () => {
             </GridItem>
           ))}
         </div>
-
+        <div
+          style={{
+            display: "flex",
+            gap: "20px",
+            marginTop: "20px",
+            width: "100%",
+          }}
+        ></div>
         {/* Labels in the Same Row */}
         <div
           style={{
             display: "flex",
             gap: "20px",
             marginTop: "20px",
-            justifyContent: "space-between",
+            width: "100%",
           }}
         >
           <div
             style={{
               backgroundColor: "#FFFFFF",
-              padding: "10px",
+              padding: "20px",
               borderRadius: "8px",
               boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
               flex: 1,
@@ -162,19 +161,17 @@ const GDTDashboard = () => {
           >
             Violation and Crash Statistics
           </div>
-          <div ref={typeDropdownRef}>
-            <select onChange={(e) => setFilterType(e.target.value)}>
+          {/* <div  ref={typeDropdownRef}>
+            <select  onChange={(e) => setFilterType(e.target.value)}>
               {companyOptions.map((option, index) => (
-                <option key={index} value={option}>
-                  {option}
-                </option>
+                <option key={index} value={option}>{option}</option>
               ))}
             </select>
-          </div>
+          </div> */}
           <div
             style={{
               backgroundColor: "#FFFFFF",
-              padding: "10px",
+              padding: "20px",
               borderRadius: "8px",
               boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
               flex: 1,
@@ -191,12 +188,12 @@ const GDTDashboard = () => {
             display: "flex",
             gap: "20px",
             marginTop: "20px",
-            flexWrap: "wrap",
+            width: "100%",
           }}
         >
           <div
             style={{
-              flex: "1 1 calc(50% - 20px)",
+              flex: 1,
               display: "flex",
               flexDirection: "column",
               gap: "20px",
@@ -212,7 +209,7 @@ const GDTDashboard = () => {
 
           <div
             style={{
-              flex: "1 1 calc(50% - 20px)",
+              flex: 1,
               display: "flex",
               flexDirection: "column",
               gap: "20px",
@@ -237,17 +234,11 @@ const GridItem = ({ title, children }) => (
   <div
     style={{
       backgroundColor: "#FFFFFF",
-      padding: "10px",
+      padding: "20px",
       borderRadius: "8px",
       boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-      flex: "1 1 calc(33% - 20px)", // Ensures that each item takes up 1/3 of the available space, with 20px gap
-      minWidth: "250px", // Prevents items from shrinking too small
-      maxWidth: "400px", // Limits the width to avoid over-expansion
-      height: "100%", // Makes sure the height fits well
-      display: "flex",
-      flexDirection: "column",
-      justifyContent: "center",
-      alignItems: "center",
+      flex: 1,
+      minWidth: "300px",
     }}
   >
     <h3 style={{ marginBottom: "15px", textAlign: "center", color: "#059855" }}>
