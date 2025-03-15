@@ -10,7 +10,14 @@ import TotalDrivers from "./DashboardCharts/TotalDrivers";
 import RecklessViolation from "./DashboardCharts/RecklessViolation";
 import TotalViolation from "./DashboardCharts/TotalViolation";
 import TotalCrash from "./DashboardCharts/TotalCrashes";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  query,
+  where,
+  orderBy,
+  limit,
+} from "firebase/firestore";
 import { db } from "../../firebase";
 import { FaArrowUp, FaArrowDown } from "react-icons/fa";
 const GDTDashboard = () => {
@@ -30,6 +37,8 @@ const GDTDashboard = () => {
   const [lastWeekViolations, setLastWeekViolations] = useState(0);
   const [percentageChange, setPercentageChange] = useState(null);
   const [percentageChangeCrash, setPercentageChangeCrash] = useState(null);
+  const [lastCrashTime, setLastCrashTime] = useState(null);
+  const [responseBy, setResponseBy] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -220,6 +229,7 @@ const GDTDashboard = () => {
       console.error("Error fetching violation data:", error);
     }
   };
+
   //To calculate the percentage
   const fetchCrashData = async () => {
     try {
@@ -275,6 +285,36 @@ const GDTDashboard = () => {
       console.error("Error fetching Crash data:", error);
     }
   };
+
+  useEffect(() => {
+    const fetchLastCrash = async () => {
+      try {
+        const crashQuery = query(
+          collection(db, "Crash"),
+          orderBy("time", "desc"),
+          limit(1)
+        );
+
+        const querySnapshot = await getDocs(crashQuery);
+        querySnapshot.forEach((doc) => {
+          console.log("Crash Document:", doc.id, "=>", doc.data());
+        });
+        if (!querySnapshot.empty) {
+          const lastCrash = querySnapshot.docs[0].data();
+          setLastCrashTime(new Date(lastCrash.time * 1000).toLocaleString());
+          setResponseBy(lastCrash.RespondedBy);
+        } else {
+          console.log("No crashes detected.");
+        }
+      } catch (error) {
+        console.error("Error fetching last crash:", error);
+      }
+    };
+
+    fetchLastCrash();
+    console.log("Last Crash Time:", lastCrashTime);
+    console.log("Response By:", responseBy);
+  }, []);
   return (
     <div style={{ height: "100vh", width: "100%" }}>
       <Header active="gdtdashboard" />
@@ -291,27 +331,69 @@ const GDTDashboard = () => {
         </a>
       </div>
       <main style={{ padding: "20px", width: "100%" }}>
-        <div
-          style={{
-            backgroundColor: "#FFFFFF",
-            padding: "20px",
-            borderRadius: "8px",
-            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-            flex: 1,
-            textAlign: "left",
-            fontWeight: "bold",
-            marginBottom: "20px",
-          }}
-        >
-          <div style={{ fontWeight: "bold" }}>
-            Started Streaming at: {getLastSundayDateTime()}
-          </div>
-        </div>
+      <div
+  style={{
+    display: "flex",
+    justifyContent: "space-between",
+    gap: "20px",
+    marginBottom: "20px",
+  }}
+>
+  <div
+    style={{
+      backgroundColor: "#FFFFFF",
+      padding: "20px",
+      borderRadius: "8px",
+      boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+      flex: 1,
+      textAlign: "center",
+      fontWeight: "bold",
+    }}
+  >
+    <div style={{ fontWeight: "bold", paddingTop:"15px" }}>
+      Started Streaming at: {getLastSundayDateTime()}
+    </div>
+  </div>
+  
+  <div
+  style={{
+    backgroundColor: "#FFFFFF",
+    padding: "20px",
+    borderRadius: "8px",
+    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+    flex: 1,
+    textAlign: "left",
+    fontWeight: "bold",
+  }}
+>
+  <div style={{ fontWeight: "bold", textAlign: "left" }}>
+    <div style={{ marginBottom: "10px" }}>
+      Last Crash Detected: <strong>{lastCrashTime || "No data available"}</strong>
+    </div>
+    <div
+      style={{
+        display: "flex",
+        justifyContent: responseBy ? "flex-start" : "center", // Center if no response
+        alignItems: "center",
+        color: responseBy ? "black" : "red",
+        marginTop: responseBy ? "0" : "10px" // Add margin for spacing when centered
+      }}
+    >
+      {responseBy ? (
+        <span>Response By: <strong>{responseBy}</strong></span>
+      ) : (
+        <span style={{ color: "red" }}>Needs Response</span>
+      )}
+    </div>
+  </div>
+</div>
+</div>
         <div
           style={{
             display: "flex",
             justifyContent: "center",
             gap: "20px",
+            flexWrap: "wrap",
             width: "100%",
           }}
         >
@@ -388,6 +470,7 @@ const GDTDashboard = () => {
               {item.component}
             </GridItem>
           ))}
+        
         </div>
         <div
           style={{
