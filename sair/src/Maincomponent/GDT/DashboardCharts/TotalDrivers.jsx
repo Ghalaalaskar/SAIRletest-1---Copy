@@ -11,7 +11,11 @@ import {
   Cell,
 } from "recharts";
 
-const COLORS = ["#2E7D32", "#4CAF50", "#FFC107", "#FF5722", "#03A9F4", "#9C27B0"]; // Different colors for companies
+const COLORS = ["#2E7D32", "#4CAF50", "#FFC107", "#FF5722", "#03A9F4", "#9C27B0"]; // Colors for companies
+
+const capitalizeFirstLetter = (string) => {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+};
 
 const NumberofDrivers = () => {
   const [data, setData] = useState([]);
@@ -19,19 +23,34 @@ const NumberofDrivers = () => {
   useEffect(() => {
     const fetchDrivers = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "Driver"));
+        // Fetch drivers
+        const driverSnapshot = await getDocs(collection(db, "Driver"));
         const companyMap = new Map();
 
-        // Count the number of drivers per CompanyName
-        querySnapshot.forEach((doc) => {
+        // Count drivers per CompanyName
+        driverSnapshot.forEach((doc) => {
           const { CompanyName } = doc.data();
           if (CompanyName) {
             companyMap.set(CompanyName, (companyMap.get(CompanyName) || 0) + 1);
           }
         });
 
-        // Convert to array format for Pie Chart
-        const chartData = Array.from(companyMap, ([name, value]) => ({ name, value }));
+        // Fetch employers to map CompanyName to ShortCompanyName
+        const employerSnapshot = await getDocs(collection(db, "Employer"));
+        const employerMap = new Map();
+
+        employerSnapshot.forEach((doc) => {
+          const { CompanyName, ShortCompanyName } = doc.data();
+          if (CompanyName && ShortCompanyName) {
+            employerMap.set(CompanyName, ShortCompanyName);
+          }
+        });
+
+        // Convert to array format for Pie Chart with capitalized ShortCompanyName
+        const chartData = Array.from(companyMap, ([companyName, value]) => ({
+          name: capitalizeFirstLetter(employerMap.get(companyName) || companyName), // Capitalize ShortCompanyName
+          value,
+        }));
 
         setData(chartData);
       } catch (error) {
@@ -50,7 +69,7 @@ const NumberofDrivers = () => {
             data={data}
             dataKey="value"
             nameKey="name"
-            cx="50%"
+            cx="40%" // Moves pie to the left for space for legend
             cy="50%"
             outerRadius={120}
             label
@@ -60,7 +79,7 @@ const NumberofDrivers = () => {
             ))}
           </Pie>
           <Tooltip />
-          <Legend />
+          <Legend layout="vertical" align="right" verticalAlign="middle" /> 
         </PieChart>
       </ResponsiveContainer>
     </div>
