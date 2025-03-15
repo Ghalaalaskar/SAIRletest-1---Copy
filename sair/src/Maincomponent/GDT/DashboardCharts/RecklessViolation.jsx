@@ -101,7 +101,7 @@ const RecklessViolation = () => {
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="name" textAnchor="middle" interval={0} height={60} />
           <YAxis allowDecimals={false} />
-          <Tooltip />
+          <Tooltip formatter={(value, name) => [value, name === "count30" ? "Reckless Violation Type 1" : "Reckless Violation Type 2"]} />
           <Legend />
           <Bar dataKey="count30" fill="#2E7D32" name="The driver exceeded the speed limit by 30km/h" />
           <Bar dataKey="count50" fill="#4CAF50" name="The driver exceeded the speed limit by 50km/h" />
