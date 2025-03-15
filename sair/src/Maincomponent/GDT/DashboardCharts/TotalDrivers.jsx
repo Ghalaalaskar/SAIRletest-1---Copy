@@ -23,11 +23,9 @@ const NumberofDrivers = () => {
   useEffect(() => {
     const fetchDrivers = async () => {
       try {
-        // Fetch drivers
         const driverSnapshot = await getDocs(collection(db, "Driver"));
         const companyMap = new Map();
 
-        // Count drivers per CompanyName
         driverSnapshot.forEach((doc) => {
           const { CompanyName } = doc.data();
           if (CompanyName) {
