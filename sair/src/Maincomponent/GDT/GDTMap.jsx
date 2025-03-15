@@ -2,7 +2,8 @@ import React, { useEffect, useState, useCallback  } from 'react';
 import { GoogleMap, InfoWindowF, MarkerF ,HeatmapLayer} from '@react-google-maps/api';
 import motorcycle from '../../images/motorcycle.png';
 import '../../css/CustomModal.css';
-import { db } from '../../firebase'; // Import your Firebase configuration
+import { useNavigate } from 'react-router-dom'; 
+import { db } from '../../firebase'; 
 import { collection, query, where, getDocs } from "firebase/firestore";
 
 
@@ -22,6 +23,7 @@ const containerStyle = {
 // ];
 
 const GDTMap = ({ locations }) => {  
+  const navigate = useNavigate();
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [heatmapData, setHeatmapData] = useState([]);
   const [map, setMap] = useState(null); 
@@ -241,7 +243,12 @@ const GDTMap = ({ locations }) => {
             <p style={{ margin: '0' }}><strong style={{ color: '#059855' }}>GPS Number:</strong> {motorcycleDetails.GPSnumber}</p>
             <p style={{ margin: '0' }}><strong style={{ color: '#059855' }}>Type:</strong> {motorcycleDetails.Type}</p>
             <p style={{ margin: '0' }}><strong style={{ color: '#059855' }}>License Plate:</strong> {motorcycleDetails.LicensePlate}</p>
-          
+            <button
+                onClick={() => navigate(`/gdtdriverdetails/${driverDetails.DriverID}`)}
+                style={{ backgroundColor: '#059855', color: 'white', border: 'none', padding: '5px 10px', cursor: 'pointer',width:'120px', marginLeft:'100px', marginTop:'10px', marginBottom:'-25px' }}
+              >
+                Full Information
+              </button>
           </div>
         </InfoWindowF>
         )}
