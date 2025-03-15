@@ -40,7 +40,6 @@ const GDTDashboard = () => {
               <TotalDrivers />
             </GridItem>
           </div>
-          {"Change it to Violation"}
           <div
             style={{
               flex: 2,
