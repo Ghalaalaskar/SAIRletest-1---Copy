@@ -7,7 +7,7 @@ import StaffChart from "./DashboardCharts/StaffChart";
 import NumberOfViolations from "./DashboardCharts/NumberOfViolations";
 import NumberofCrashes from "./DashboardCharts/NumberofCrash";
 import TotalDrivers from "./DashboardCharts/TotalDrivers";
-import ComplaintsChart from "./DashboardCharts/ComplaintsChart";
+import RecklessViolation from "./DashboardCharts/RecklessViolation";
 import TotalViolation from "./DashboardCharts/TotalViolation";
 import TotalCrash from "./DashboardCharts/TotalCrashes";
 import { collection, getDocs, query, where } from "firebase/firestore";
@@ -437,8 +437,8 @@ const GDTDashboard = () => {
             <GridItem title="Staff Response Chart">
               <StaffChart />
             </GridItem>
-            <GridItem title="Complaints Overview">
-              <ComplaintsChart />
+            <GridItem title="Reckless Violations">
+              <RecklessViolation />
             </GridItem>
           </div>
         </div>

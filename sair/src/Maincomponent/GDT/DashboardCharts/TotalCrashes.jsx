@@ -33,10 +33,10 @@ const TotalCrash = () => {
             if (driverID) driverIDs.add(driverID);
           });
   
-          console.log("Driver IDs from Violations:", [...driverIDs]);
+          console.log("Driver IDs from Crashes", [...driverIDs]);
   
           if (driverIDs.size === 0) {
-            console.warn("No driverIDs found in Violation collection");
+            console.warn("No driverIDs found in Crash collection");
             setData([]);
             return;
           }
