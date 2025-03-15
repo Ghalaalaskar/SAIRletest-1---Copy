@@ -261,7 +261,7 @@ const GDTDashboard = () => {
     }
   };
   return (
-    <div style={{ backgroundColor: "#FAFAFA", height: "100vh", width: "100%" }}>
+    <div style={{ height: "100vh", width: "100%" }}>
       <Header active="gdtdashboard" />
       <div className="breadcrumb" style={{ padding: "10px 20px" }}>
         <a onClick={() => navigate("/gdthome")} style={{ cursor: "pointer" }}>
