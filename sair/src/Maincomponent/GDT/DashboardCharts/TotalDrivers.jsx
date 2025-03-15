@@ -19,15 +19,14 @@ const capitalizeFirstLetter = (string) => {
 
 const NumberofDrivers = () => {
   const [data, setData] = useState([]);
+  const [totalDrivers, setTotalDrivers] = useState(0);
 
   useEffect(() => {
     const fetchDrivers = async () => {
       try {
-        // Fetch drivers
         const driverSnapshot = await getDocs(collection(db, "Driver"));
         const companyMap = new Map();
 
-        // Count drivers per CompanyName
         driverSnapshot.forEach((doc) => {
           const { CompanyName } = doc.data();
           if (CompanyName) {
@@ -35,7 +34,6 @@ const NumberofDrivers = () => {
           }
         });
 
-        // Fetch employers to map CompanyName to ShortCompanyName
         const employerSnapshot = await getDocs(collection(db, "Employer"));
         const employerMap = new Map();
 
@@ -46,13 +44,13 @@ const NumberofDrivers = () => {
           }
         });
 
-        // Convert to array format for Pie Chart with capitalized ShortCompanyName
         const chartData = Array.from(companyMap, ([companyName, value]) => ({
-          name: capitalizeFirstLetter(employerMap.get(companyName) || companyName), // Capitalize ShortCompanyName
+          name: capitalizeFirstLetter(employerMap.get(companyName) || companyName),
           value,
         }));
 
         setData(chartData);
+        setTotalDrivers(chartData.reduce((sum, entry) => sum + entry.value, 0)); // Calculate total count
       } catch (error) {
         console.error("Error fetching drivers:", error);
       }
@@ -62,26 +60,45 @@ const NumberofDrivers = () => {
   }, []);
 
   return (
-    <div style={{ width: "100%", height: "400px" }}>
+    <div style={{ width: "100%", height: "400px", position: "relative" }}>
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
-            data={data}
+         data={data}
             dataKey="value"
             nameKey="name"
-            cx="40%" // Moves pie to the left for space for legend
+            cx="50%"
             cy="50%"
+            innerRadius={80} // Creates the donut effect
             outerRadius={120}
-            label
+            labelLine={false} // Removes label lines
+            label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`} // Custom labels
           >
             {data.map((_, index) => (
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}
           </Pie>
           <Tooltip />
-          <Legend layout="vertical" align="right" verticalAlign="middle" /> 
+          <Legend layout="horizontal" verticalAlign="buttom" />
         </PieChart>
       </ResponsiveContainer>
+
+      {/* Centered Total Count */}
+      <div
+        style={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          fontSize: "28px",
+          fontWeight: "bold",
+          color: "#333",
+          textAlign: "center",
+        }}
+      >
+        {totalDrivers}
+        <div style={{ fontSize: "14px", color: "#666" }}>Total Drivers</div>
+      </div>
     </div>
   );
 };
