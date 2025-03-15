@@ -26,7 +26,7 @@ const GDTDashboard = () => {
         </a>
       </div>
 
-      <main>
+      <main  style={{ backgroundColor: "#FAFAFA", height: "100vh", width: "100%" }}>
         <div style={{ display: "flex", gap: "20px", padding: "20px" }}>
           <div
             style={{
