@@ -2,6 +2,8 @@ import React, { useEffect, useState, useCallback  } from 'react';
 import { GoogleMap, InfoWindowF, MarkerF ,HeatmapLayer} from '@react-google-maps/api';
 import motorcycle from '../../images/motorcycle.png';
 import '../../css/CustomModal.css';
+import { db } from '../../firebase'; // Import your Firebase configuration
+import { collection, query, where, getDocs } from "firebase/firestore";
 
 
 const containerStyle = {
@@ -31,7 +33,16 @@ const GDTMap = ({ locations }) => {
   });
   const [initialLoad, setInitialLoad] = useState(true); // Track if it's the initial load
   const [zoomLevel, setZoomLevel] = useState(14); // Default zoom level
+  const [driverDetails, setDriverDetails] = useState(null);
+  const [motorcycleDetails, setMotorcycleDetails] = useState(null);
+  const [isHovered, setIsHovered] = useState(false);
+  const [shortCompanyName, setShortCompanyName] = useState('');
 
+  
+  const capitalizeFirstLetter = (string) => {
+    if (!string) return '';
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  };
 
   console.log("GDTMap Component");
   const updateMapData = useCallback(() => {
@@ -112,6 +123,48 @@ const GDTMap = ({ locations }) => {
   //   return <div className="loading-message">Loading Map...</div>;
   // }*/
 
+  const handleMarkerClick = async (gpsNumber, location) => {
+    // Fetch driver details based on GPS number
+    const driverQuery = query(
+      collection(db, "Driver"),
+      where("GPSnumber", "==", gpsNumber)
+    );
+
+    const driverSnapshot = await getDocs(driverQuery);
+    if (!driverSnapshot.empty) {
+      const driverData = driverSnapshot.docs[0].data();
+      setDriverDetails(driverData);
+
+      // Fetch short company name based on CompanyName
+      const employerQuery = query(
+        collection(db, "Employer"),
+        where("CompanyName", "==", driverData.CompanyName)
+      );
+
+      const employerSnapshot = await getDocs(employerQuery);
+      if (!employerSnapshot.empty) {
+        const employerData = employerSnapshot.docs[0].data();
+        setShortCompanyName(employerData.ShortCompanyName);
+      } else {
+        setShortCompanyName('Not available'); // Handle case if not found
+      }
+    }
+
+    // Fetch motorcycle details based on GPS number
+    const motorcycleQuery = query(
+      collection(db, "Motorcycle"),
+      where("GPSnumber", "==", gpsNumber)
+    );
+
+    const motorcycleSnapshot = await getDocs(motorcycleQuery);
+    if (!motorcycleSnapshot.empty) {
+      const motorcycleData = motorcycleSnapshot.docs[0].data();
+      setMotorcycleDetails(motorcycleData);
+    }
+
+    setSelectedLocation(location);
+  };
+
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
       <GoogleMap 
@@ -145,28 +198,52 @@ const GDTMap = ({ locations }) => {
         {/* Render markers only if zoom level is 15 or higher */}
         {/*lastKnownLocations.map((location, index) =>(    here is the old code without zooming*/}
         {zoomLevel >= 16 && lastKnownLocations.map((location, index) => (
-          <MarkerF
-            key={index}
-            position={{ lat: location.lat, lng: location.lng }}
-            icon={motorcycleIcon}
-            onClick={() => {
-              setSelectedLocation(location);
-            }}
-          />
-        ))}
+  <MarkerF
+    key={index}
+    position={{ lat: location.lat, lng: location.lng }}
+    icon={motorcycleIcon}
+    onClick={() => handleMarkerClick(location.gpsNumber, location)} // Pass the location object
+  />
+))}
 
-        {selectedLocation && (
+{selectedLocation && (
           <InfoWindowF
-            position={{ lat: selectedLocation.lat + 0.00012, lng: selectedLocation.lng }}
-            onCloseClick={() => setSelectedLocation(null)}
+          position={{ lat: selectedLocation.lat + 0.00005, lng: selectedLocation.lng }}
+          onCloseClick={() => {
+            setSelectedLocation(null);
+            setDriverDetails(null);
+            setMotorcycleDetails(null);
+            setShortCompanyName('');
+          }}
+          options={{ pixelOffset: new window.google.maps.Size(0, -40) }} // Adjust offset if needed
+        >
+          <div style={{ margin: 0, padding: '10px', lineHeight: '1.5' }}>
+            <h4 style={{ color: '#059855' ,margin: '-13px -10px 0px', padding: '-10px' }}>Driver Information</h4>
+            <p style={{ margin: '0' }}><strong style={{ color: '#059855' }}>Driver ID:</strong> {driverDetails.DriverID}</p>
+            <p style={{ margin: '0' }}><strong style={{ color: '#059855' }}>Name:</strong> {capitalizeFirstLetter(driverDetails?.Fname)} {capitalizeFirstLetter(driverDetails?.Lname)}</p>
+            <p style={{ margin: '0' }}><strong style={{ color: '#059855' }}>Phone:</strong> {driverDetails.PhoneNumber}</p>
+        {/*  <p style={{ marginBottom: '0px' }}><strong style={{ color: '#059855' }}>Email: </strong> 
+          <a
+            href={`mailto:${driverDetails.Email}`}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            style={{
+              color: isHovered ? '#059855' : 'black',
+              textDecoration: 'none'
+            }}
           >
-            <div>
-              <h4>Driver Info</h4>
-              <p><strong>GPS Number:</strong> {selectedLocation.gpsNumber}</p>
-              <p><strong>Latitude:</strong> {selectedLocation.lat}</p>
-              <p><strong>Longitude:</strong> {selectedLocation.lng}</p>
-            </div>
-          </InfoWindowF>
+            {driverDetails.Email}
+          </a>
+        </p> */}    
+              <p style={{ marginBottom: '-10px' }}><strong style={{ color: '#059855' }}>Company Name:</strong> {capitalizeFirstLetter(shortCompanyName) || 'Not available'}</p>               <hr></hr>
+            <h4 style={{ color: '#059855' ,margin: '-13px -10px 0px' }}>Motorcycle Info</h4>
+            <p style={{ margin: '0' }}><strong style={{ color: '#059855' }}>ID:</strong> {motorcycleDetails.MotorcycleID}</p>
+            <p style={{ margin: '0' }}><strong style={{ color: '#059855' }}>GPS Number:</strong> {motorcycleDetails.GPSnumber}</p>
+            <p style={{ margin: '0' }}><strong style={{ color: '#059855' }}>Type:</strong> {motorcycleDetails.Type}</p>
+            <p style={{ margin: '0' }}><strong style={{ color: '#059855' }}>License Plate:</strong> {motorcycleDetails.LicensePlate}</p>
+          
+          </div>
+        </InfoWindowF>
         )}
       </GoogleMap>
 
