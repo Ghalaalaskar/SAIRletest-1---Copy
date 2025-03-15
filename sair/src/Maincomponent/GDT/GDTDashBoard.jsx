@@ -199,7 +199,7 @@ const GDTDashboard = () => {
               }}
             >
               <div style={{ fontWeight: "bold" }}>
-                Violation and Crash Statistics
+                Violation Statistics
               </div>
               <div
                 className="searchContainer"
@@ -421,8 +421,9 @@ const GDTDashboard = () => {
             <GridItem title="Number of Violations">
               <NumberOfViolations />
             </GridItem>
-            <GridItem title="Number of Crashes">
-              <NumberofCrashes />
+          
+            <GridItem title="Reckless Violations">
+              <RecklessViolation />
             </GridItem>
           </div>
 
@@ -437,8 +438,8 @@ const GDTDashboard = () => {
             <GridItem title="Staff Response Chart">
               <StaffChart />
             </GridItem>
-            <GridItem title="Reckless Violations">
-              <RecklessViolation />
+            <GridItem title="Number of Crashes">
+              <NumberofCrashes />
             </GridItem>
           </div>
         </div>
