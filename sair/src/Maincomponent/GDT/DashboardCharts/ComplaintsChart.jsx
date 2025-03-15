@@ -16,14 +16,14 @@ import {
   stop,
 } from "recharts";
 
-const StaffChart = () => {
+const ComplaintsChart = () => {
   const [data, setData] = useState([]);
 
   useEffect(() => {
-    const fetchCrashes = async () => {
+    const fetchComplaints = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "Crash"));
-        const crashesMap = new Map();
+        const querySnapshot = await getDocs(collection(db, "Complaints"));
+        const ComplaintsMap = new Map();
 
         const oneWeekAgo = new Date();
         oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
@@ -37,24 +37,24 @@ const StaffChart = () => {
             day: "2-digit",
             month: "long",
           });
-          crashesMap.set(formattedDate, { total: 0, unresponded: 0 });
+          ComplaintsMap.set(formattedDate, { total: 0, unresponded: 0 });
         }
 
         querySnapshot.forEach((doc) => {
           const { time, RespondedBy } = doc.data();
           if (!time) return;
 
-          const crashDate = new Date(time * 1000);
-          crashDate.setHours(0, 0, 0, 0);
+          const ComplaintsDate = new Date(time * 1000);
+          ComplaintsDate.setHours(0, 0, 0, 0);
 
-          if (crashDate >= oneWeekAgo) {
-            const formattedDate = crashDate.toLocaleDateString("en-GB", {
+          if (ComplaintsDate >= oneWeekAgo) {
+            const formattedDate = ComplaintsDate.toLocaleDateString("en-GB", {
               day: "2-digit",
               month: "long",
             });
 
-            const prevData = crashesMap.get(formattedDate) || { total: 0, unresponded: 0 };
-            crashesMap.set(formattedDate, {
+            const prevData = ComplaintsMap.get(formattedDate) || { total: 0, unresponded: 0 };
+            ComplaintsMap.set(formattedDate, {
               total: prevData.total + 1,
               unresponded: prevData.unresponded + (RespondedBy ? 0 : 1),
             });
@@ -62,7 +62,7 @@ const StaffChart = () => {
         });
 
         // Convert Map to an array
-        const chartData = Array.from(crashesMap, ([date, { total, unresponded }]) => ({
+        const chartData = Array.from(ComplaintsMap, ([date, { total, unresponded }]) => ({
           date,
           total,
           unresponded,
@@ -70,11 +70,11 @@ const StaffChart = () => {
 
         setData(chartData);
       } catch (error) {
-        console.error("Error fetching crashes:", error);
+        console.error("Error fetching Complaints:", error);
       }
     };
 
-    fetchCrashes();
+    fetchComplaints();
   }, []);
 
   return (
@@ -101,30 +101,31 @@ const StaffChart = () => {
           />
           <YAxis
             allowDecimals={false}
-            label={{ value: "Number of Crashes", angle: -90, position: "middle", dx: -20 }}
+            label={{ value: "Number of Complaints", angle: -90, position: "middle", dx: -20 }}
           />
           <CartesianGrid strokeDasharray="3 3" />
           <Tooltip />
           <Legend layout="horizontal" align="right" verticalAlign="top" />
 
-          {/* Total Crashes - Green */}
+
+          {/* Total Complaints - Green */}
           <Area
             type="monotone"
             dataKey="total"
             stroke="#2E7D32"
             fillOpacity={1}
             fill="url(#colorTotal)"
-            name="Total Crashes"
+            name="Total Complaints"
           />
 
-          {/* Unresponded Crashes - Black */}
+          {/* Unresponded Complaints - Black */}
           <Area
             type="monotone"
             dataKey="unresponded"
             stroke="#000000"
             fillOpacity={1}
             fill="url(#colorUnresponded)"
-            name="Unresponded Crashes"
+            name="Unresponded Complaints"
           />
         </AreaChart>
       </ResponsiveContainer>
@@ -132,4 +133,4 @@ const StaffChart = () => {
   );
 };
 
-export default StaffChart;
+export default ComplaintsChart;

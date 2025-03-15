@@ -6,6 +6,7 @@ import StaffChart from "./DashboardCharts/StaffChart";
 import NumberOfViolations from "./DashboardCharts/NumberOfViolations";
 import NumberofCrashes from "./DashboardCharts/NumberofCrash";
 import TotalDrivers from "./DashboardCharts/TotalDrivers";
+import ComplaintsChart from "./DashboardCharts/ComplaintsChart";
 
 const GDTDashboard = () => {
   const navigate = useNavigate();
@@ -75,6 +76,9 @@ const GDTDashboard = () => {
           <div style={{ flex: 2 }}>
             <GridItem title="Staff Response Chart">
               <StaffChart />
+            </GridItem>
+            <GridItem title="Staff Response Chart">
+              <ComplaintsChart/>
             </GridItem>
           </div>
         </div>
