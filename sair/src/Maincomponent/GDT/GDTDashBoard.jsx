@@ -12,18 +12,25 @@ import TotalViolation from "./DashboardCharts/TotalViolation";
 import TotalCrash from "./DashboardCharts/TotalCrashes";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../../firebase";
-
+import { FaArrowUp, FaArrowDown } from "react-icons/fa";
 const GDTDashboard = () => {
   const navigate = useNavigate();
   const [violationFilterType, setViolationFilterType] = useState("All");
   const [complaintFilterType, setComplaintFilterType] = useState("All");
-  const [isTypeOpen, setIsTypeOpen] = useState({ violations: false, complaints: false });
+  const [isTypeOpen, setIsTypeOpen] = useState({
+    violations: false,
+    complaints: false,
+  });
   const [companyOptions, setCompanyOptions] = useState(["All"]);
   const [data, setData] = useState([]);
   const typeDropdownRef = useRef(null);
   const violationDropdownRef = useRef(null);
   const complaintDropdownRef = useRef(null);
-  
+  const [thisWeekViolations, setThisWeekViolations] = useState(0);
+  const [lastWeekViolations, setLastWeekViolations] = useState(0);
+  const [percentageChange, setPercentageChange] = useState(null);
+  const [percentageChangeCrash, setPercentageChangeCrash] = useState(null);
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -37,7 +44,9 @@ const GDTDashboard = () => {
     setIsTypeOpen((prev) => ({
       ...prev,
       [type]: !prev[type],
-      ...(type === "violations" ? { complaints: false } : { violations: false }),
+      ...(type === "violations"
+        ? { complaints: false }
+        : { violations: false }),
     }));
   };
 
@@ -131,12 +140,126 @@ const GDTDashboard = () => {
         setIsTypeOpen({ violations: false, complaints: false });
       }
     };
-  
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-  
 
+  useEffect(() => {
+    fetchViolationData();
+    fetchCrashData();
+  }, []);
+
+  //To calculate the precentage
+  const fetchViolationData = async () => {
+    try {
+      const today = new Date();
+
+      // Start of this week (Sunday at 00:00:00)
+      const thisWeekStart = new Date(today);
+      thisWeekStart.setDate(today.getDate() - today.getDay());
+      thisWeekStart.setHours(0, 0, 0, 0);
+
+      // Start of last week (Previous Sunday at 00:00:00)
+      const lastWeekStart = new Date(thisWeekStart);
+      lastWeekStart.setDate(thisWeekStart.getDate() - 7);
+
+      // End of last week (Saturday at 23:59:59)
+      const lastWeekEnd = new Date(thisWeekStart);
+      lastWeekEnd.setSeconds(-1); // Makes it Saturday 23:59:59
+
+      // Convert JavaScript Date to Unix timestamp (in seconds)
+      const thisWeekStartUnix = Math.floor(thisWeekStart.getTime() / 1000);
+      const lastWeekStartUnix = Math.floor(lastWeekStart.getTime() / 1000);
+      const lastWeekEndUnix = Math.floor(lastWeekEnd.getTime() / 1000);
+
+      // Queries for this week's and last week's violations
+      const thisWeekQuery = query(
+        collection(db, "Violation"),
+        where("time", ">=", thisWeekStartUnix) // Use 'time' field
+      );
+
+      const lastWeekQuery = query(
+        collection(db, "Violation"),
+        where("time", ">=", lastWeekStartUnix), // Use 'time' field
+        where("time", "<=", lastWeekEndUnix)
+      );
+
+      const thisWeekSnapshot = await getDocs(thisWeekQuery);
+      const lastWeekSnapshot = await getDocs(lastWeekQuery);
+
+      const thisWeekCount = thisWeekSnapshot.size;
+      const lastWeekCount = lastWeekSnapshot.size;
+
+      setThisWeekViolations(thisWeekCount);
+      setLastWeekViolations(lastWeekCount);
+
+      // Calculate percentage change
+      if (lastWeekCount > 0) {
+        const change = ((thisWeekCount - lastWeekCount) / lastWeekCount) * 100;
+        setPercentageChange(change.toFixed(2));
+      } else {
+        setPercentageChange(thisWeekCount > 0 ? 100 : 0);
+      }
+    } catch (error) {
+      console.error("Error fetching violation data:", error);
+    }
+  };
+  //To calculate the percentage
+  const fetchCrashData = async () => {
+    try {
+      const today = new Date();
+
+      // Start of this week (Sunday at 00:00:00)
+      const thisWeekStart = new Date(today);
+      thisWeekStart.setDate(today.getDate() - today.getDay());
+      thisWeekStart.setHours(0, 0, 0, 0);
+
+      // Start of last week (Previous Sunday at 00:00:00)
+      const lastWeekStart = new Date(thisWeekStart);
+      lastWeekStart.setDate(thisWeekStart.getDate() - 7);
+
+      // End of last week (Saturday at 23:59:59)
+      const lastWeekEnd = new Date(thisWeekStart);
+      lastWeekEnd.setSeconds(-1); // Makes it Saturday 23:59:59
+
+      // Convert JavaScript Date to Unix timestamp (in seconds)
+      const thisWeekStartUnix = Math.floor(thisWeekStart.getTime() / 1000);
+      const lastWeekStartUnix = Math.floor(lastWeekStart.getTime() / 1000);
+      const lastWeekEndUnix = Math.floor(lastWeekEnd.getTime() / 1000);
+
+      // Queries for this week's and last week's violations
+      const thisWeekQuery = query(
+        collection(db, "Crash"),
+        where("time", ">=", thisWeekStartUnix) // Use 'time' field
+      );
+
+      const lastWeekQuery = query(
+        collection(db, "Crash"),
+        where("time", ">=", lastWeekStartUnix), // Use 'time' field
+        where("time", "<=", lastWeekEndUnix)
+      );
+
+      const thisWeekSnapshot = await getDocs(thisWeekQuery);
+      const lastWeekSnapshot = await getDocs(lastWeekQuery);
+
+      const thisWeekCount = thisWeekSnapshot.size;
+      const lastWeekCount = lastWeekSnapshot.size;
+
+      setThisWeekViolations(thisWeekCount);
+      setLastWeekViolations(lastWeekCount);
+
+      // Calculate percentage change
+      if (lastWeekCount > 0) {
+        const change = ((thisWeekCount - lastWeekCount) / lastWeekCount) * 100;
+        setPercentageChangeCrash(change.toFixed(2));
+      } else {
+        setPercentageChangeCrash(thisWeekCount > 0 ? 100 : 0);
+      }
+    } catch (error) {
+      console.error("Error fetching Crash data:", error);
+    }
+  };
   return (
     <div style={{ backgroundColor: "#FAFAFA", height: "100vh", width: "100%" }}>
       <Header active="gdtdashboard" />
@@ -153,11 +276,82 @@ const GDTDashboard = () => {
         </a>
       </div>
       <main style={{ padding: "20px", width: "100%" }}>
-        <div style={{ display: "flex", gap: "20px", width: "100%" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            gap: "20px",
+            width: "100%",
+          }}
+        >
           {[
             { title: "Total Drivers", component: <TotalDrivers /> },
-            { title: "Total Violation", component: <TotalViolation /> },
-            { title: "Total Crash", component: <TotalCrash /> },
+            {
+              title: "Total Violation",
+              component: (
+                <div
+                  style={{
+                    position: "relative",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <TotalViolation />
+                  {percentageChange !== null && (
+                    <span
+                      style={{
+                        position: "absolute",
+                        bottom: "0",
+                        right: "0",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px",
+                        color: percentageChange >= 0 ? "green" : "red",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {percentageChange >= 0 ? <FaArrowUp /> : <FaArrowDown />}
+                      {percentageChange}% this week
+                    </span>
+                  )}
+                </div>
+              ),
+            },
+            {
+              title: "Total Crash",
+              component: (
+                <div
+                  style={{
+                    position: "relative",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <TotalCrash />
+                  {percentageChange !== null && (
+                    <span
+                      style={{
+                        position: "absolute",
+                        bottom: "0",
+                        right: "0",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px",
+                        color: percentageChange >= 0 ? "green" : "red",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {percentageChangeCrash >= 0 ? (
+                        <FaArrowUp />
+                      ) : (
+                        <FaArrowDown />
+                      )}
+                      {percentageChangeCrash}% this week
+                    </span>
+                  )}
+                </div>
+              ),
+            },
           ].map((item, index) => (
             <GridItem key={index} title={item.title}>
               {item.component}
@@ -198,9 +392,7 @@ const GDTDashboard = () => {
                 alignItems: "center",
               }}
             >
-              <div style={{ fontWeight: "bold" }}>
-                Violation Statistics
-              </div>
+              <div style={{ fontWeight: "bold" }}>Violation Statistics</div>
               <div
                 className="searchContainer"
                 ref={violationDropdownRef}
@@ -216,7 +408,9 @@ const GDTDashboard = () => {
                   }}
                 >
                   <div
-                    className={`customSelect ${isTypeOpen.violations ? "open" : ""}`}
+                    className={`customSelect ${
+                      isTypeOpen.violations ? "open" : ""
+                    }`}
                     onClick={() => toggleTypeDropdown("violations")}
                     style={{
                       cursor: "pointer",
@@ -326,7 +520,9 @@ const GDTDashboard = () => {
                   }}
                 >
                   <div
-                    className={`customSelect ${isTypeOpen.complaints ? "open" : ""}`}
+                    className={`customSelect ${
+                      isTypeOpen.complaints ? "open" : ""
+                    }`}
                     onClick={() => toggleTypeDropdown("complaints")}
                     style={{
                       cursor: "pointer",
@@ -421,7 +617,7 @@ const GDTDashboard = () => {
             <GridItem title="Number of Violations">
               <NumberOfViolations />
             </GridItem>
-          
+
             <GridItem title="Reckless Violations">
               <RecklessViolation />
             </GridItem>
@@ -458,7 +654,7 @@ const GridItem = ({ title, children }) => (
       borderRadius: "8px",
       boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
       flex: 1,
-      minWidth: "300px",
+      minWidth: "550px",
     }}
   >
     <h3 style={{ marginBottom: "15px", textAlign: "center", color: "#059855" }}>
