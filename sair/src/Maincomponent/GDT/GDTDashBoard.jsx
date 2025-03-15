@@ -73,7 +73,12 @@ const GDTDashboard = () => {
           </div>
 
           {/* Right Column: Staff Response Chart */}
-          <div style={{ flex: 2 }}>
+          <div   style={{
+              flex: 2,
+              display: "flex",
+              flexDirection: "column",
+              gap: "20px",
+            }}>
             <GridItem title="Staff Response Chart">
               <StaffChart />
             </GridItem>
