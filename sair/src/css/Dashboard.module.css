@@ -75,3 +75,6 @@
 .customArrow {
   margin-left: 15px; /* Increase margin to move the arrow further to the right */
 }
+.main{
+  background-color: #FAFAFA !important;
+}
