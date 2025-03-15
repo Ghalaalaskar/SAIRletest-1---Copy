@@ -15,27 +15,41 @@ import { db } from "../../firebase";
 
 const GDTDashboard = () => {
   const navigate = useNavigate();
-  const [filterType, setFilterType] = useState("All");
-  const [isTypeOpen, setIsTypeOpen] = useState(false);
+  const [violationFilterType, setViolationFilterType] = useState("All");
+  const [complaintFilterType, setComplaintFilterType] = useState("All");
+  const [isTypeOpen, setIsTypeOpen] = useState({ violations: false, complaints: false });
   const [companyOptions, setCompanyOptions] = useState(["All"]);
   const [data, setData] = useState([]);
   const typeDropdownRef = useRef(null);
-
+  const violationDropdownRef = useRef(null);
+  const complaintDropdownRef = useRef(null);
+  
   useEffect(() => {
     fetchData();
   }, []);
-  // Function to capitalize the first letter of a string
+
   const capitalizeFirstLetter = (string) => {
     if (!string) return "";
     return string.charAt(0).toUpperCase() + string.slice(1);
   };
-  const toggleTypeDropdown = () => {
-    setIsTypeOpen(!isTypeOpen);
+
+  const toggleTypeDropdown = (type) => {
+    setIsTypeOpen((prev) => ({
+      ...prev,
+      [type]: !prev[type],
+      ...(type === "violations" ? { complaints: false } : { violations: false }),
+    }));
   };
 
-  const handleTypeOptionClick = (option) => {
-    setFilterType(option);
-    setIsTypeOpen(false);
+  // Separate handlers for each filter
+  const handleViolationOptionClick = (option) => {
+    setViolationFilterType(option);
+    setIsTypeOpen({ violations: false, complaints: false });
+  };
+
+  const handleComplaintOptionClick = (option) => {
+    setComplaintFilterType(option);
+    setIsTypeOpen({ violations: false, complaints: false });
   };
 
   const fetchData = async () => {
@@ -109,15 +123,19 @@ const GDTDashboard = () => {
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
-        typeDropdownRef.current &&
-        !typeDropdownRef.current.contains(event.target)
+        violationDropdownRef.current &&
+        !violationDropdownRef.current.contains(event.target) &&
+        complaintDropdownRef.current &&
+        !complaintDropdownRef.current.contains(event.target)
       ) {
-        setIsTypeOpen(false);
+        setIsTypeOpen({ violations: false, complaints: false });
       }
     };
+  
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+  
 
   return (
     <div style={{ backgroundColor: "#FAFAFA", height: "100vh", width: "100%" }}>
@@ -154,7 +172,6 @@ const GDTDashboard = () => {
             width: "100%",
           }}
         ></div>
-        {/* Labels in the Same Row */}
         <div
           style={{
             display: "flex",
@@ -171,7 +188,7 @@ const GDTDashboard = () => {
               boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
               flex: 1,
               textAlign: "center",
-              fontWeight: "bold", // Change to normal
+              fontWeight: "bold",
             }}
           >
             <div
@@ -186,7 +203,7 @@ const GDTDashboard = () => {
               </div>
               <div
                 className="searchContainer"
-                ref={typeDropdownRef}
+                ref={violationDropdownRef}
                 style={{ position: "relative" }}
               >
                 <div
@@ -195,42 +212,42 @@ const GDTDashboard = () => {
                     border: "2px solid #4CAF50",
                     borderRadius: "5px",
                     padding: "5px",
-                    fontWeight: "normal", // Change to normal
+                    fontWeight: "normal",
                   }}
                 >
                   <div
-                    className={`customSelect ${isTypeOpen ? "open" : ""}`}
-                    onClick={toggleTypeDropdown}
+                    className={`customSelect ${isTypeOpen.violations ? "open" : ""}`}
+                    onClick={() => toggleTypeDropdown("violations")}
                     style={{
-                      cursor: "pointer", // Pointer cursor on hover
-                      padding: "5px 10px", // Reduced padding for smaller height
-                      position: "relative", // Position for absolute arrow
-                      width: "200px", // Set a fixed width to accommodate the arrow
-                      textAlign: "left", // Align text to the left
+                      cursor: "pointer",
+                      padding: "5px 10px",
+                      position: "relative",
+                      width: "200px",
+                      textAlign: "left",
                     }}
                   >
-                    {filterType === "All" ? (
+                    {violationFilterType === "All" ? (
                       <span>Filter by Company</span>
                     ) : (
-                      filterType
+                      violationFilterType
                     )}
                     <span
                       style={{
                         position: "absolute",
-                        right: "10px", // Position the arrow to the right
+                        right: "10px",
                         top: "50%",
-                        transform: "translateY(-50%)", // Center the arrow vertically
-                        border: "solid #4CAF50", // Arrow color
-                        borderWidth: "0 2px 2px 0", // Adjust border to create arrow shape
+                        transform: "translateY(-50%)",
+                        border: "solid #4CAF50",
+                        borderWidth: "0 2px 2px 0",
                         display: "inline-block",
                         padding: "3px",
-                        transform: isTypeOpen
+                        transform: isTypeOpen.violations
                           ? "translateY(-50%) rotate(-135deg)"
-                          : "translateY(-50%) rotate(45deg)", // Adjust rotation for open/closed state
+                          : "translateY(-50%) rotate(45deg)",
                       }}
                     />
                   </div>
-                  {isTypeOpen && (
+                  {isTypeOpen.violations && (
                     <div
                       className="dropdownMenu"
                       style={{
@@ -250,19 +267,19 @@ const GDTDashboard = () => {
                         <div
                           key={option}
                           className="dropdownOption"
-                          onClick={() => handleTypeOptionClick(option)}
+                          onClick={() => handleViolationOptionClick(option)}
                           style={{
                             padding: "10px",
                             cursor: "pointer",
-                            transition: "background-color 0.3s", // Smooth transition for hover
+                            transition: "background-color 0.3s",
                           }}
                           onMouseEnter={(e) =>
                             (e.currentTarget.style.backgroundColor = "#f0f0f0")
-                          } // Hover effect
+                          }
                           onMouseLeave={(e) =>
                             (e.currentTarget.style.backgroundColor =
                               "transparent")
-                          } // Remove hover effect
+                          }
                         >
                           {capitalizeFirstLetter(option)}
                         </div>
@@ -281,7 +298,7 @@ const GDTDashboard = () => {
               boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
               flex: 1,
               textAlign: "center",
-              fontWeight: "bold", // Change to normal
+              fontWeight: "bold",
             }}
           >
             <div
@@ -292,11 +309,11 @@ const GDTDashboard = () => {
               }}
             >
               <div style={{ fontWeight: "bold" }}>
-                Complaints and Crash Statistics{" "}
+                Complaints and Crash Statistics
               </div>
               <div
                 className="searchContainer"
-                ref={typeDropdownRef}
+                ref={complaintDropdownRef}
                 style={{ position: "relative" }}
               >
                 <div
@@ -305,42 +322,42 @@ const GDTDashboard = () => {
                     border: "2px solid #4CAF50",
                     borderRadius: "5px",
                     padding: "5px",
-                    fontWeight: "normal", // Change to normal
+                    fontWeight: "normal",
                   }}
                 >
                   <div
-                    className={`customSelect ${isTypeOpen ? "open" : ""}`}
-                    onClick={toggleTypeDropdown}
+                    className={`customSelect ${isTypeOpen.complaints ? "open" : ""}`}
+                    onClick={() => toggleTypeDropdown("complaints")}
                     style={{
-                      cursor: "pointer", // Pointer cursor on hover
-                      padding: "5px 10px", // Reduced padding for smaller height
-                      position: "relative", // Position for absolute arrow
-                      width: "200px", // Set a fixed width to accommodate the arrow
-                      textAlign: "left", // Align text to the left
+                      cursor: "pointer",
+                      padding: "5px 10px",
+                      position: "relative",
+                      width: "200px",
+                      textAlign: "left",
                     }}
                   >
-                    {filterType === "All" ? (
+                    {complaintFilterType === "All" ? (
                       <span>Filter by Company</span>
                     ) : (
-                      filterType
+                      complaintFilterType
                     )}
                     <span
                       style={{
                         position: "absolute",
-                        right: "10px", // Position the arrow to the right
+                        right: "10px",
                         top: "50%",
-                        transform: "translateY(-50%)", // Center the arrow vertically
-                        border: "solid #4CAF50", // Arrow color
-                        borderWidth: "0 2px 2px 0", // Adjust border to create arrow shape
+                        transform: "translateY(-50%)",
+                        border: "solid #4CAF50",
+                        borderWidth: "0 2px 2px 0",
                         display: "inline-block",
                         padding: "3px",
-                        transform: isTypeOpen
+                        transform: isTypeOpen.complaints
                           ? "translateY(-50%) rotate(-135deg)"
-                          : "translateY(-50%) rotate(45deg)", // Adjust rotation for open/closed state
+                          : "translateY(-50%) rotate(45deg)",
                       }}
                     />
                   </div>
-                  {isTypeOpen && (
+                  {isTypeOpen.complaints && (
                     <div
                       className="dropdownMenu"
                       style={{
@@ -360,19 +377,19 @@ const GDTDashboard = () => {
                         <div
                           key={option}
                           className="dropdownOption"
-                          onClick={() => handleTypeOptionClick(option)}
+                          onClick={() => handleComplaintOptionClick(option)}
                           style={{
                             padding: "10px",
                             cursor: "pointer",
-                            transition: "background-color 0.3s", // Smooth transition for hover
+                            transition: "background-color 0.3s",
                           }}
                           onMouseEnter={(e) =>
                             (e.currentTarget.style.backgroundColor = "#f0f0f0")
-                          } // Hover effect
+                          }
                           onMouseLeave={(e) =>
                             (e.currentTarget.style.backgroundColor =
                               "transparent")
-                          } // Remove hover effect
+                          }
                         >
                           {capitalizeFirstLetter(option)}
                         </div>
