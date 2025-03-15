@@ -7,6 +7,7 @@ import NumberOfViolations from "./DashboardCharts/NumberOfViolations";
 import NumberofCrashes from "./DashboardCharts/NumberofCrash";
 import TotalDrivers from "./DashboardCharts/TotalDrivers";
 import ComplaintsChart from "./DashboardCharts/ComplaintsChart";
+import TotalViolation from "./DashboardCharts/TotalViolation";
 
 const GDTDashboard = () => {
   const navigate = useNavigate();
@@ -49,8 +50,8 @@ const GDTDashboard = () => {
               gap: "20px",
             }}
           >
-            <GridItem title="Total Drivers">
-              <TotalDrivers />
+            <GridItem title="Total Violation">
+              <TotalViolation/>
             </GridItem>
           </div>
         </div>
