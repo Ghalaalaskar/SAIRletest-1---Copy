@@ -1,4 +1,77 @@
-.chart {
-  min-height: 400px;
-  width: 100%;
+/* Modern Dropdown Styles */
+.searchContainer {
+  position: relative;
+  display: inline-block;
+}
+
+.selectWrapper {
+  position: relative;
+}
+
+.customSelect {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background-color: #ffffff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 180px;
+}
+
+.customSelect:hover {
+  border-color: #888;
+}
+
+.customSelect span {
+  color: #666;
+}
+
+.customSelect::after {
+  content: "▼";
+  font-size: 12px;
+  color: #666;
+  transition: transform 0.3s ease;
+}
+
+.customSelect.open::after {
+  transform: rotate(180deg);
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: calc(100% + 4px); /* Position below the select */
+  left: 0;
+  right: 0;
+  background-color: #ffffff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000; /* Ensure it's above other content */
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.dropdownOption {
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.dropdownOption:hover {
+  background-color: #f0f0f0;
+}
+.dropdownMenu {
+  max-height: 200px; /* Limit height for long lists */
+  overflow-y: auto; /* Scroll if there are many options */
+}
+
+/* Add hover effect for dropdown options */
+.dropdownOption:hover {
+  background-color: #f0f0f0; /* Highlight on hover */
+}
+.customArrow {
+  margin-left: 15px; /* Increase margin to move the arrow further to the right */
 }

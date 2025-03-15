@@ -12,6 +12,7 @@ import TotalViolation from "./DashboardCharts/TotalViolation";
 import TotalCrash from "./DashboardCharts/TotalCrashes";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../../firebase";
+
 const GDTDashboard = () => {
   const navigate = useNavigate();
   const [filterType, setFilterType] = useState("All");
@@ -23,6 +24,19 @@ const GDTDashboard = () => {
   useEffect(() => {
     fetchData();
   }, []);
+  // Function to capitalize the first letter of a string
+  const capitalizeFirstLetter = (string) => {
+    if (!string) return "";
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  };
+  const toggleTypeDropdown = () => {
+    setIsTypeOpen(!isTypeOpen);
+  };
+
+  const handleTypeOptionClick = (option) => {
+    setFilterType(option);
+    setIsTypeOpen(false);
+  };
 
   const fetchData = async () => {
     try {
@@ -58,15 +72,6 @@ const GDTDashboard = () => {
         });
       }
 
-      const companyMap = new Map();
-      violationSnapshot.forEach((doc) => {
-        const { driverID } = doc.data();
-        const companyName = driverMap.get(driverID);
-        if (companyName) {
-          companyMap.set(companyName, (companyMap.get(companyName) || 0) + 1);
-        }
-      });
-
       const employerSnapshot = await getDocs(collection(db, "Employer"));
       const employerMap = new Map();
 
@@ -77,11 +82,21 @@ const GDTDashboard = () => {
         }
       });
 
+      const companyMap = new Map();
+      violationSnapshot.forEach((doc) => {
+        const { driverID } = doc.data();
+        const companyName = driverMap.get(driverID);
+        const shortName = employerMap.get(companyName) || companyName;
+        if (shortName) {
+          companyMap.set(shortName, (companyMap.get(shortName) || 0) + 1);
+        }
+      });
+
       const shortCompanyNames = Array.from(employerMap.values()).sort();
       setCompanyOptions(["All", ...shortCompanyNames]);
 
-      const chartData = Array.from(companyMap, ([companyName, value]) => ({
-        name: employerMap.get(companyName) || companyName,
+      const chartData = Array.from(companyMap, ([shortCompanyName, value]) => ({
+        name: shortCompanyName,
         value,
       }));
 
@@ -156,18 +171,108 @@ const GDTDashboard = () => {
               boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
               flex: 1,
               textAlign: "center",
-              fontWeight: "bold",
+              fontWeight: "bold", // Change to normal
             }}
           >
-            Violation and Crash Statistics
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <div style={{ fontWeight: "bold" }}>
+                Violation and Crash Statistics
+              </div>
+              <div
+                className="searchContainer"
+                ref={typeDropdownRef}
+                style={{ position: "relative" }}
+              >
+                <div
+                  className="selectWrapper"
+                  style={{
+                    border: "2px solid #4CAF50",
+                    borderRadius: "5px",
+                    padding: "5px",
+                    fontWeight: "normal", // Change to normal
+                  }}
+                >
+                  <div
+                    className={`customSelect ${isTypeOpen ? "open" : ""}`}
+                    onClick={toggleTypeDropdown}
+                    style={{
+                      cursor: "pointer", // Pointer cursor on hover
+                      padding: "5px 10px", // Reduced padding for smaller height
+                      position: "relative", // Position for absolute arrow
+                      width: "200px", // Set a fixed width to accommodate the arrow
+                      textAlign: "left", // Align text to the left
+                    }}
+                  >
+                    {filterType === "All" ? (
+                      <span>Filter by Company</span>
+                    ) : (
+                      filterType
+                    )}
+                    <span
+                      style={{
+                        position: "absolute",
+                        right: "10px", // Position the arrow to the right
+                        top: "50%",
+                        transform: "translateY(-50%)", // Center the arrow vertically
+                        border: "solid #4CAF50", // Arrow color
+                        borderWidth: "0 2px 2px 0", // Adjust border to create arrow shape
+                        display: "inline-block",
+                        padding: "3px",
+                        transform: isTypeOpen
+                          ? "translateY(-50%) rotate(-135deg)"
+                          : "translateY(-50%) rotate(45deg)", // Adjust rotation for open/closed state
+                      }}
+                    />
+                  </div>
+                  {isTypeOpen && (
+                    <div
+                      className="dropdownMenu"
+                      style={{
+                        position: "absolute",
+                        zIndex: 1000,
+                        backgroundColor: "#fff",
+                        border: "1px solid #ddd",
+                        top: "100%",
+                        left: "0",
+                        right: "0",
+                        textAlign: "left",
+                        borderRadius: "5px",
+                        fontWeight: "normal",
+                      }}
+                    >
+                      {companyOptions.map((option) => (
+                        <div
+                          key={option}
+                          className="dropdownOption"
+                          onClick={() => handleTypeOptionClick(option)}
+                          style={{
+                            padding: "10px",
+                            cursor: "pointer",
+                            transition: "background-color 0.3s", // Smooth transition for hover
+                          }}
+                          onMouseEnter={(e) =>
+                            (e.currentTarget.style.backgroundColor = "#f0f0f0")
+                          } // Hover effect
+                          onMouseLeave={(e) =>
+                            (e.currentTarget.style.backgroundColor =
+                              "transparent")
+                          } // Remove hover effect
+                        >
+                          {capitalizeFirstLetter(option)}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
-          {/* <div  ref={typeDropdownRef}>
-            <select  onChange={(e) => setFilterType(e.target.value)}>
-              {companyOptions.map((option, index) => (
-                <option key={index} value={option}>{option}</option>
-              ))}
-            </select>
-          </div> */}
           <div
             style={{
               backgroundColor: "#FFFFFF",
@@ -176,10 +281,107 @@ const GDTDashboard = () => {
               boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
               flex: 1,
               textAlign: "center",
-              fontWeight: "bold",
+              fontWeight: "bold", // Change to normal
             }}
           >
-            Complaints and Crash Statistics
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <div style={{ fontWeight: "bold" }}>
+                Complaints and Crash Statistics{" "}
+              </div>
+              <div
+                className="searchContainer"
+                ref={typeDropdownRef}
+                style={{ position: "relative" }}
+              >
+                <div
+                  className="selectWrapper"
+                  style={{
+                    border: "2px solid #4CAF50",
+                    borderRadius: "5px",
+                    padding: "5px",
+                    fontWeight: "normal", // Change to normal
+                  }}
+                >
+                  <div
+                    className={`customSelect ${isTypeOpen ? "open" : ""}`}
+                    onClick={toggleTypeDropdown}
+                    style={{
+                      cursor: "pointer", // Pointer cursor on hover
+                      padding: "5px 10px", // Reduced padding for smaller height
+                      position: "relative", // Position for absolute arrow
+                      width: "200px", // Set a fixed width to accommodate the arrow
+                      textAlign: "left", // Align text to the left
+                    }}
+                  >
+                    {filterType === "All" ? (
+                      <span>Filter by Company</span>
+                    ) : (
+                      filterType
+                    )}
+                    <span
+                      style={{
+                        position: "absolute",
+                        right: "10px", // Position the arrow to the right
+                        top: "50%",
+                        transform: "translateY(-50%)", // Center the arrow vertically
+                        border: "solid #4CAF50", // Arrow color
+                        borderWidth: "0 2px 2px 0", // Adjust border to create arrow shape
+                        display: "inline-block",
+                        padding: "3px",
+                        transform: isTypeOpen
+                          ? "translateY(-50%) rotate(-135deg)"
+                          : "translateY(-50%) rotate(45deg)", // Adjust rotation for open/closed state
+                      }}
+                    />
+                  </div>
+                  {isTypeOpen && (
+                    <div
+                      className="dropdownMenu"
+                      style={{
+                        position: "absolute",
+                        zIndex: 1000,
+                        backgroundColor: "#fff",
+                        border: "1px solid #ddd",
+                        top: "100%",
+                        left: "0",
+                        right: "0",
+                        textAlign: "left",
+                        borderRadius: "5px",
+                        fontWeight: "normal",
+                      }}
+                    >
+                      {companyOptions.map((option) => (
+                        <div
+                          key={option}
+                          className="dropdownOption"
+                          onClick={() => handleTypeOptionClick(option)}
+                          style={{
+                            padding: "10px",
+                            cursor: "pointer",
+                            transition: "background-color 0.3s", // Smooth transition for hover
+                          }}
+                          onMouseEnter={(e) =>
+                            (e.currentTarget.style.backgroundColor = "#f0f0f0")
+                          } // Hover effect
+                          onMouseLeave={(e) =>
+                            (e.currentTarget.style.backgroundColor =
+                              "transparent")
+                          } // Remove hover effect
+                        >
+                          {capitalizeFirstLetter(option)}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         {/* Bottom Section: Charts */}
