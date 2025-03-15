@@ -109,7 +109,7 @@ const NumberofCrashes = () => {
               position: "middle",
               dx: -20,
             }}
-          />
+           />
           <CartesianGrid strokeDasharray="3 3" />
           <Tooltip />
           <Area
