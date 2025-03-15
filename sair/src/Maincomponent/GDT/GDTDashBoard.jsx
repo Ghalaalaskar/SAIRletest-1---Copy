@@ -68,7 +68,7 @@ function GridItem({ title, children }) {
         boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
       }}
     >
-      <h3 style={{ marginBottom: "15px", textAlign: "center" }}>{title}</h3>
+      <h3 style={{ marginBottom: "15px", textAlign: "center" , color:"#059855"}}>{title}</h3>
       {children}
     </div>
   );
