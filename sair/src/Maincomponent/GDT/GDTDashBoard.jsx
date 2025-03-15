@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import StaffChart from "./DashboardCharts/StaffChart";
 import NumberOfViolations from "./DashboardCharts/NumberOfViolations";
 import NumberofCrashes from "./DashboardCharts/NumberofCrash";
+import TotalDrivers from "./DashboardCharts/TotalDrivers";
 
 const GDTDashboard = () => {
   const navigate = useNavigate();
@@ -26,6 +27,33 @@ const GDTDashboard = () => {
       </div>
 
       <main>
+        <div style={{ display: "flex", gap: "20px", padding: "20px" }}>
+          <div
+            style={{
+              flex: 2,
+              display: "flex",
+              flexDirection: "column",
+              gap: "20px",
+            }}
+          >
+            <GridItem title="Total Drivers">
+              <TotalDrivers />
+            </GridItem>
+          </div>
+          {"Change it to Violation"}
+          <div
+            style={{
+              flex: 2,
+              display: "flex",
+              flexDirection: "column",
+              gap: "20px",
+            }}
+          >
+            <GridItem title="Total Drivers">
+              <TotalDrivers />
+            </GridItem>
+          </div>
+        </div>
         <div style={{ display: "flex", gap: "20px", padding: "20px" }}>
           {/* Left Column: Violations & Crashes */}
           <div
@@ -68,7 +96,11 @@ function GridItem({ title, children }) {
         boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
       }}
     >
-      <h3 style={{ marginBottom: "15px", textAlign: "center" , color:"#059855"}}>{title}</h3>
+      <h3
+        style={{ marginBottom: "15px", textAlign: "center", color: "#059855" }}
+      >
+        {title}
+      </h3>
       {children}
     </div>
   );
