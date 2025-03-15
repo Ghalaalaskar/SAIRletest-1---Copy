@@ -8,7 +8,7 @@ import { collection, query, where, getDocs } from "firebase/firestore";
 
 
 const containerStyle = {
-  width: '90%',  // Set the map width
+  width: '70%',  // Set the map width
   height: '600px', // Set the map height
   margin: 'auto',  // Center the map
 };
@@ -39,6 +39,8 @@ const GDTMap = ({ locations }) => {
   const [motorcycleDetails, setMotorcycleDetails] = useState(null);
   const [isHovered, setIsHovered] = useState(false);
   const [shortCompanyName, setShortCompanyName] = useState('');
+  const [expandedMotorcycleId, setExpandedMotorcycleId] = useState(null);
+  const [activeMotorcycleId, setActiveMotorcycleId] = useState(null); 
 
   
   const capitalizeFirstLetter = (string) => {
@@ -131,45 +133,69 @@ const GDTMap = ({ locations }) => {
       collection(db, "Driver"),
       where("GPSnumber", "==", gpsNumber)
     );
-
+  
     const driverSnapshot = await getDocs(driverQuery);
     if (!driverSnapshot.empty) {
       const driverData = driverSnapshot.docs[0].data();
       setDriverDetails(driverData);
-
-      // Fetch short company name based on CompanyName
+    
       const employerQuery = query(
         collection(db, "Employer"),
         where("CompanyName", "==", driverData.CompanyName)
       );
-
+  
       const employerSnapshot = await getDocs(employerQuery);
       if (!employerSnapshot.empty) {
         const employerData = employerSnapshot.docs[0].data();
         setShortCompanyName(employerData.ShortCompanyName);
       } else {
-        setShortCompanyName('Not available'); // Handle case if not found
+        setShortCompanyName('Not available');
       }
     }
-
+  
     // Fetch motorcycle details based on GPS number
     const motorcycleQuery = query(
       collection(db, "Motorcycle"),
       where("GPSnumber", "==", gpsNumber)
     );
-
+  
     const motorcycleSnapshot = await getDocs(motorcycleQuery);
     if (!motorcycleSnapshot.empty) {
       const motorcycleData = motorcycleSnapshot.docs[0].data();
       setMotorcycleDetails(motorcycleData);
+      setExpandedMotorcycleId(motorcycleData.MotorcycleID); // Set the expanded motorcycle ID
+    } else {
+      // Handle case where no motorcycle details are found
+      setMotorcycleDetails(null);
+      setExpandedMotorcycleId(null);
     }
-
+  
     setSelectedLocation(location);
+    setActiveMotorcycleId(location.MotorcycleID); // Set the active motorcycle ID
   };
 
+  const handleListItemClick = (motorcycleId) => {
+    const clickedLocation = lastKnownLocations.find(loc => loc.MotorcycleID === motorcycleId);
+    if (clickedLocation) {
+      setActiveMotorcycleId(motorcycleId); // Set the clicked motorcycle as active
+      setSelectedLocation(clickedLocation); // Set the selected location
+    }
+  };
+
+  const handleMotorcycleClick = (motorcycleId) => {
+    const clickedLocation = lastKnownLocations.find(loc => loc.MotorcycleID === motorcycleId);
+    if (clickedLocation) {
+      setActiveMotorcycleId(motorcycleId); // Set the clicked motorcycle as active
+      setSelectedLocation(clickedLocation); // Set the selected location
+    }
+  };
+  
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-      <GoogleMap 
+<div style={{ display: 'flex', height: '80vh' }}>      
+  
+  
+  
+  <GoogleMap 
         mapContainerStyle={containerStyle} 
         center={mapCenter} 
         zoom={zoomLevel}
@@ -178,6 +204,28 @@ const GDTMap = ({ locations }) => {
         onClick={() => setSelectedLocation(null)} 
         // onLoad={() => setIsMapLoaded(true)}
       >
+
+      <div style={{ width: '300px', padding: '10px', borderRight: '1px solid #ccc' }}>
+        <h4>Motorcycle List</h4>
+        {lastKnownLocations.map((location, index) => (
+          <div key={index}>
+            <div
+              onClick={() => handleMotorcycleClick(location.MotorcycleID)}
+              style={{ cursor: 'pointer', margin: '5px 0', color: '#059855' }}
+            >
+              {location.MotorcycleID}
+            </div>
+            {expandedMotorcycleId === location.MotorcycleID && (
+              <div style={{ paddingLeft: '10px', marginBottom: '10px', backgroundColor: '#f9f9f9' }}>
+                <p><strong>GPS Number:</strong> {location.GPSnumber}</p>
+                <p><strong>Type:</strong> {location.Type}</p>
+                <p><strong>License Plate:</strong> {location.LicensePlate}</p>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
         
         {heatmapData.length > 0 && (
           <HeatmapLayer
