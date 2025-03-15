@@ -128,7 +128,22 @@ const GDTDashboard = () => {
       console.error("Error fetching data:", error);
     }
   };
-
+  // Function to calculate the last Sunday date
+  const getLastSundayDateTime = () => {
+    const today = new Date();
+    const lastSunday = new Date(today);
+    lastSunday.setDate(today.getDate() - today.getDay()); // Sets to the last Sunday
+    lastSunday.setHours(0, 0, 0, 0); // Reset time to the start of the day
+    return lastSunday.toLocaleString("en-US", {
+      weekday: "long", // Full name of the day
+      year: "numeric",
+      month: "long", // Full name of the month
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true, // 12-hour format
+    });
+  };
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -276,6 +291,22 @@ const GDTDashboard = () => {
         </a>
       </div>
       <main style={{ padding: "20px", width: "100%" }}>
+        <div
+          style={{
+            backgroundColor: "#FFFFFF",
+            padding: "20px",
+            borderRadius: "8px",
+            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+            flex: 1,
+            textAlign: "left",
+            fontWeight: "bold",
+            marginBottom: "20px",
+          }}
+        >
+          <div style={{ fontWeight: "bold" }}>
+            Started Streaming at: {getLastSundayDateTime()}
+          </div>
+        </div>
         <div
           style={{
             display: "flex",
