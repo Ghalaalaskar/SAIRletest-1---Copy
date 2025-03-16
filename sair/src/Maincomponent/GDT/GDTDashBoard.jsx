@@ -4,6 +4,7 @@ import d from "../../css/Dashboard.module.css";
 import "../../css/CustomModal.css";
 import { useNavigate } from "react-router-dom";
 import StaffChart from "./DashboardCharts/StaffChart";
+import ViolationCrashGeoChart from "./DashboardCharts/ViolationCrashGeoChart";
 import NumberOfViolations from "./DashboardCharts/NumberOfViolations";
 import NumberofCrashes from "./DashboardCharts/NumberofCrash";
 import TotalDrivers from "./DashboardCharts/TotalDrivers";
@@ -317,7 +318,7 @@ const GDTDashboard = () => {
   }, []);
   return (
     <div style={{ height: "100vh", width: "100%" }}>
-      <Header active="gdtdashboard" />
+      <Header active="GDTDashBoard" />
       <div className="breadcrumb" style={{ padding: "10px 20px" }}>
         <a onClick={() => navigate("/gdthome")} style={{ cursor: "pointer" }}>
           Home
@@ -771,6 +772,28 @@ const GDTDashboard = () => {
             Riyadh Violation and Crash Disribution
           </div>
         </div>
+
+        <div
+          style={{
+            display: "flex",
+            gap: "20px",
+            marginTop: "20px",
+            width: "100%",
+          }}
+        >
+        <div
+            style={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              gap: "20px",
+            }}
+          >
+            <GridItem title="Staff Response Chart">
+              <ViolationCrashGeoChart />
+            </GridItem>
+          </div>
+          </div>
       </main>
     </div>
   );

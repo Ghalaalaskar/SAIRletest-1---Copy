@@ -75,3 +75,9 @@
 .customArrow {
   margin-left: 15px; /* Increase margin to move the arrow further to the right */
 }
+
+table{
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
