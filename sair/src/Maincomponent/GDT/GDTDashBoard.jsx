@@ -753,6 +753,24 @@ const GDTDashboard = () => {
             </GridItem>
           </div>
         </div>
+
+       
+        {/* Geo Charts */} 
+        <div
+          style={{
+            backgroundColor: "#FFFFFF",
+            padding: "20px",
+            borderRadius: "8px",
+            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+            flex: 1,
+            textAlign: "center",
+            fontWeight: "bold",
+          }}
+        >
+          <div style={{ fontWeight: "bold", paddingTop:"15px" }}>
+            Riyadh Violation and Crash Disribution
+          </div>
+        </div>
       </main>
     </div>
   );
