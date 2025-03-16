@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback  } from 'react';
 import { GoogleMap, InfoWindowF, MarkerF ,HeatmapLayer} from '@react-google-maps/api';
 import motorcycle from '../../images/motorcycle.png';
-import motorcycle2 from '../../images/delivery-bike (1).png';
 import '../../css/CustomModal.css';
 import { useNavigate } from 'react-router-dom'; 
 import { db } from '../../firebase'; 
@@ -9,8 +8,8 @@ import { collection, query, where, getDocs } from "firebase/firestore";
 
 
 const containerStyle = {
-  width: '70%',  // Set the map width
-  height: '600px', // Set the map height
+  width: '74%',  // Set the map width
+  height: '590px', // Set the map height
   margin: 'auto',  // Center the map
 };
 
@@ -193,8 +192,10 @@ const GDTMap = ({ locations }) => {
   
   return (
 <div style={{ display: 'flex', height: '80vh' }}>      
-  
-  
+<div style={{ width: '400px', padding: '10px', borderRight: '1px solid #ccc' }}>
+<h4 style={{color:'green', fontSize:'25px'}}>Motorcycle List</h4>
+</div>
+
   
   <GoogleMap 
         mapContainerStyle={containerStyle} 
@@ -205,27 +206,6 @@ const GDTMap = ({ locations }) => {
         onClick={() => setSelectedLocation(null)} 
         // onLoad={() => setIsMapLoaded(true)}
       >
-
-      <div style={{ width: '300px', padding: '10px', borderRight: '1px solid #ccc' }}>
-        <h4>Motorcycle List</h4>
-        {lastKnownLocations.map((location, index) => (
-          <div key={index}>
-            <div
-              onClick={() => handleMotorcycleClick(location.MotorcycleID)}
-              style={{ cursor: 'pointer', margin: '5px 0', color: '#059855' }}
-            >
-              {location.MotorcycleID}
-            </div>
-            {expandedMotorcycleId === location.MotorcycleID && (
-              <div style={{ paddingLeft: '10px', marginBottom: '10px', backgroundColor: '#f9f9f9' }}>
-                <p><strong>GPS Number:</strong> {location.GPSnumber}</p>
-                <p><strong>Type:</strong> {location.Type}</p>
-                <p><strong>License Plate:</strong> {location.LicensePlate}</p>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
 
         
         {heatmapData.length > 0 && (
