@@ -331,7 +331,7 @@ const GDTDashBoard = () => {
           Dashboard
         </a>
       </div>
-      <main style={{ padding: "20px", width: "100%" }}>
+      <main class="Dashboard" style={{ padding: "20px", width: "100%" }}>
       <div
   style={{
     display: "flex",
