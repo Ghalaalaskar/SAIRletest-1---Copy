@@ -1391,7 +1391,7 @@ if(crashDate >= oneMonthAgo){
     { path: "gdtviolations", label: "Violations List" },
     { path: "gdtcomplaints", label: "Complaints List" },
     { path: "gdtcrashes", label: "Crashes List" },
-    { path: "gdtdashboard", label: "Dashboard" },
+    { path: "GDTDashBoard", label: "GDTDashBoard" },
     { path: "gdtheatmap", label: "Heat-Map" },
   ];
 
