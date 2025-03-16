@@ -789,7 +789,7 @@ const GDTDashboard = () => {
               gap: "20px",
             }}
           >
-            <GridItem title="Staff Response Chart">
+            <GridItem title="Violation and Crash">
               <ViolationCrashGeoChart />
             </GridItem>
           </div>
