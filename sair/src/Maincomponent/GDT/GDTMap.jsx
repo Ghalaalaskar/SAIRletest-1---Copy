@@ -194,6 +194,7 @@ const GDTMap = ({ locations }) => {
 <div style={{ display: 'flex', height: '80vh' }}>      
 <div style={{ width: '400px', padding: '10px', borderRight: '1px solid #ccc' }}>
 <h4 style={{color:'green', fontSize:'25px'}}>Motorcycle List</h4>
+{/* The gps number in the location saved in array after that query the driver collection and motorcycle then display them in the list */}
 </div>
 
   
