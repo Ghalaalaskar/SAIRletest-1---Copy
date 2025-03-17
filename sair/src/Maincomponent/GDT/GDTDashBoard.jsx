@@ -21,7 +21,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../../firebase";
 import { FaArrowUp, FaArrowDown } from "react-icons/fa";
-const GDTDashboard = () => {
+const GDTDashBoard = () => {
   const navigate = useNavigate();
   const [violationFilterType, setViolationFilterType] = useState("All");
   const [complaintFilterType, setComplaintFilterType] = useState("All");
@@ -317,7 +317,7 @@ const GDTDashboard = () => {
     console.log("Response By:", responseBy);
   }, []);
   return (
-    <div style={{ height: "100vh", width: "100%" }}>
+    <div>
       <Header active="GDTDashBoard" />
       <div className="breadcrumb" style={{ padding: "10px 20px" }}>
         <a onClick={() => navigate("/gdthome")} style={{ cursor: "pointer" }}>
@@ -331,7 +331,7 @@ const GDTDashboard = () => {
           Dashboard
         </a>
       </div>
-      <main style={{ padding: "20px", width: "100%" }}>
+      <main class="Dashboard" style={{ padding: "20px", width: "100%" }}>
       <div
   style={{
     display: "flex",
@@ -789,7 +789,7 @@ const GDTDashboard = () => {
               gap: "20px",
             }}
           >
-            <GridItem title="Staff Response Chart">
+            <GridItem title="Violation and Crash">
               <ViolationCrashGeoChart />
             </GridItem>
           </div>
@@ -799,7 +799,7 @@ const GDTDashboard = () => {
   );
 };
 
-export default GDTDashboard;
+export default GDTDashBoard;
 
 const GridItem = ({ title, children }) => (
   <div

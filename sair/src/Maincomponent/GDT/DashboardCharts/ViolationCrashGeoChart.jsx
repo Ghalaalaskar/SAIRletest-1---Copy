@@ -14,6 +14,7 @@ import {
 } from "recharts";
 import Map from "../../Map";
 import { GoogleMap } from "@react-google-maps/api";
+import { Table } from "antd";
 
 const containerStyle = {
   width: "100%", // Set the map width
@@ -31,6 +32,20 @@ const ViolationCrashGeoChart = () => {
       setZoomLevel(mapInstance.getZoom());
     });
   };
+
+  // Riyadh Neighborhoods
+  const neighborhoods = [
+    "Al-Olaya",
+    "Al-Malaz",
+    "Al-Murabba",
+    "Al-Sulimania",
+    "Al-Rawdah",
+    "Al-Nakheel",
+    "Al-Yasmin",
+    "Al-Rahmaniyah",
+    "Al-Naseem",
+    "Al-Wadi",
+  ];
 
   useEffect(() => {
     const fetchViolations = async () => {
@@ -188,7 +203,7 @@ const ViolationCrashGeoChart = () => {
         </div>
 
         {/* Table Container */}
-        <div
+          <div
           style={{
             width: "48%",
             height: "100%",
@@ -201,198 +216,32 @@ const ViolationCrashGeoChart = () => {
         >
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
-              <tr
-                style={{
-                  background: "#FAFAFA",
-                  color: "#000000E0",
-                  Font: "Open Sans",
-                }}
-              >
-                <th
-                  style={{
-                    padding: "10px",
-                    textAlign: "left",
-                    borderBottom: "2px solid #ddd",
-                  }}
-                >
+              <tr style={{ background: "#FAFAFA", color: "#000000E0" }}>
+                <th style={{ padding: "10px", textAlign: "left", borderBottom: "2px solid #ddd" }}>
+                  Neighborhood Name
+                </th>
+                <th style={{ padding: "10px", textAlign: "left", borderBottom: "2px solid #ddd" }}>
                   Number of Violations
                 </th>
-                <th
-                  style={{
-                    padding: "10px",
-                    textAlign: "left",
-                    borderBottom: "2px solid #ddd",
-                  }}
-                >
+                <th style={{ padding: "10px", textAlign: "left", borderBottom: "2px solid #ddd" }}>
                   Number of Crashes
-                </th>
-                <th
-                  style={{
-                    padding: "10px",
-                    textAlign: "left",
-                    borderBottom: "2px solid #ddd",
-                  }}
-                >
-                  Neighborhood Name
                 </th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  5
-                </td>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  2
-                </td>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  Downtown
-                </td>
-              </tr>
-              <tr>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  8
-                </td>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  3
-                </td>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  Uptown
-                </td>
-              </tr>
-              <tr>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  5
-                </td>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  2
-                </td>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  Downtown
-                </td>
-              </tr>
-              <tr>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  8
-                </td>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  3
-                </td>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  Uptown
-                </td>
-              </tr>
-              <tr>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  5
-                </td>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  2
-                </td>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  Downtown
-                </td>
-              </tr>
-              <tr>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  8
-                </td>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  3
-                </td>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  Uptown
-                </td>
-              </tr>
-              <tr>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  5
-                </td>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  2
-                </td>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  Downtown
-                </td>
-              </tr>
-              <tr>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  8
-                </td>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  3
-                </td>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  Uptown
-                </td>
-              </tr>
-              <tr>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  5
-                </td>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  2
-                </td>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  Downtown
-                </td>
-              </tr>
-              <tr>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  8
-                </td>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  3
-                </td>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  Uptown
-                </td>
-              </tr>
-              <tr>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  5
-                </td>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  2
-                </td>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  Downtown
-                </td>
-              </tr>
-              <tr>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  8
-                </td>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  3
-                </td>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  Uptown
-                </td>
-              </tr>
-              <tr>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  5
-                </td>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  2
-                </td>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  Downtown
-                </td>
-              </tr>
-              <tr>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  8
-                </td>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  3
-                </td>
-                <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                  Uptown
-                </td>
-              </tr>
-              {/* Add more rows here as needed */}
+              {neighborhoods.map((neighborhood, index) => (
+                <tr key={index}>
+                  <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
+                    {neighborhood}
+                  </td>
+                  <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
+                    {Math.floor(Math.random() * 10)} {/* Replace with actual data */}
+                  </td>
+                  <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
+                    {Math.floor(Math.random() * 5)} {/* Replace with actual data */}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
