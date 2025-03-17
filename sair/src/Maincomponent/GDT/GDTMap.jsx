@@ -11,6 +11,8 @@ const containerStyle = {
   width: '74%',  // Set the map width
   height: '590px', // Set the map height
   margin: 'auto',  // Center the map
+  marginRight:'8px',
+  marginLeft:'8px',
 };
 
 // const beigeMapStyle = [
@@ -41,6 +43,7 @@ const GDTMap = ({ locations }) => {
   const [shortCompanyName, setShortCompanyName] = useState('');
   const [expandedMotorcycleId, setExpandedMotorcycleId] = useState(null);
   const [activeMotorcycleId, setActiveMotorcycleId] = useState(null); 
+  const [motorcycleData, setMotorcycleData] = useState([]);
 
   
   const capitalizeFirstLetter = (string) => {
@@ -105,6 +108,74 @@ const GDTMap = ({ locations }) => {
       // setIsMapLoaded(true);
     }
   }, []);
+
+  const fetchMotorcycleAndDriverData = async () => {
+    const gpsNumbers = locations.map(loc => loc.gpsNumber);
+    
+    const motorcyclePromises = gpsNumbers.map(gpsNumber => {
+      const motorcycleQuery = query(
+        collection(db, "Motorcycle"),
+        where("GPSnumber", "==", gpsNumber)
+      );
+      return getDocs(motorcycleQuery);
+    });
+  
+    const driverPromises = gpsNumbers.map(gpsNumber => {
+      const driverQuery = query(
+        collection(db, "Driver"),
+        where("GPSnumber", "==", gpsNumber)
+      );
+      return getDocs(driverQuery);
+    });
+  
+    const employerPromises = gpsNumbers.map(async (gpsNumber) => {
+      // Fetch the driver details first to get the CompanyName
+      const driverQuery = query(
+        collection(db, "Driver"),
+        where("GPSnumber", "==", gpsNumber)
+      );
+      const driverSnapshot = await getDocs(driverQuery);
+      if (!driverSnapshot.empty) {
+        const driverData = driverSnapshot.docs[0].data();
+        const employerQuery = query(
+          collection(db, "Employer"),
+          where("CompanyName", "==", driverData.CompanyName)
+        );
+        return getDocs(employerQuery);
+      }
+      return null; // If no driver found, return null
+    });
+  
+    const motorcycleSnapshots = await Promise.all(motorcyclePromises);
+    const driverSnapshots = await Promise.all(driverPromises);
+    const employerSnapshots = await Promise.all(employerPromises);
+  
+    const motorcyclesWithDrivers = motorcycleSnapshots.map((snapshot, index) => {
+      const motorcycleData = snapshot.docs[0]?.data();
+      const driverData = driverSnapshots[index].docs[0]?.data();
+      const employerData = employerSnapshots[index]?.docs[0]?.data();
+  
+      return {
+        motorcycleID: motorcycleData?.MotorcycleID || 'N/A',
+        driverID: driverData?.DriverID || 'N/A',
+        driverName: driverData ? `${driverData.Fname} ${driverData.Lname}` : 'Unknown',
+        phoneNumber: driverData?.PhoneNumber || 'N/A',
+        shortCompanyName: employerData?.ShortCompanyName || 'N/A', // Set ShortCompanyName from employer data
+        gpsNumber: motorcycleData?.GPSnumber || 'N/A',
+        type: motorcycleData?.Type || 'N/A',
+        licensePlate: motorcycleData?.LicensePlate || 'N/A',
+      };
+    });
+  
+    setMotorcycleData(motorcyclesWithDrivers);
+  };
+
+  useEffect(() => {
+    if (locations.length > 0) {
+      fetchMotorcycleAndDriverData();
+    }
+  }, [locations]);
+
 
   const motorcycleIcon = {
     url: motorcycle, 
@@ -190,12 +261,103 @@ const GDTMap = ({ locations }) => {
     }
   };
   
+  const toggleExpand = (motorcycleID) => {
+    setExpandedMotorcycleId(expandedMotorcycleId === motorcycleID ? null : motorcycleID);
+  };
+  
+  const capitalizeName = (name) => {
+    return name.split(' ').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
+  };
+  
   return (
-<div style={{ display: 'flex', height: '80vh' }}>      
-<div style={{ width: '400px', padding: '10px', borderRight: '1px solid #ccc' }}>
-<h4 style={{color:'green', fontSize:'25px'}}>Motorcycle List</h4>
+    <div style={{ display: 'flex', height: '80vh' }}>
+      <div style={{ width: '400px', padding: '10px', borderRight: '1px solid #ccc', backgroundColor: '#f9f9f9' }}>
+        <h4 style={{ color: 'green', fontSize: '25px', marginBottom:'10px' }}>Motorcycle List</h4>
+        <ul style={{ listStyleType: 'none', padding: '0' }}>
+          {motorcycleData.map((item, index) => (
+            <li key={index} style={{ position: 'relative', marginBottom: '10px', padding: '10px', border: '1px solid #ddd', borderRadius: '5px', backgroundColor: '#fff' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <strong style={{ color: '#059855' }}>Motorcycle ID:</strong> {item.motorcycleID} <br />
+                <strong style={{ color: '#059855' }}>Driver Name:</strong> {capitalizeName(item.driverName)}
+              </div>
+              <button 
+                onClick={() => toggleExpand(item.motorcycleID)} 
+                style={{
+                  position: 'absolute',
+                  top: '10px',
+                  right: '0px',
+                  background: 'none', 
+                  border: 'none', 
+                  cursor: 'pointer', 
+                  color: 'grey',
+                  transition: 'color 0.3s',
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.color = '#059855'}
+                onMouseLeave={(e) => e.currentTarget.style.color = 'grey'}
+              >
+                {expandedMotorcycleId === item.motorcycleID ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                    <path d="M6 16 L12 10 L18 16" stroke="currentColor" strokeWidth="2" fill="none"/>
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                    <path d="M6 8 L12 14 L18 8" stroke="currentColor" strokeWidth="2" fill="none"/>
+                  </svg>
+                )}
+              </button>
+            </div>
+            {expandedMotorcycleId === item.motorcycleID && (
+              <div style={{ fontSize: '12px', color: '#555', marginTop: '5px' }}>
+                <p style={{ margin: '5px 0' }}><strong style={{ color: '#059855' }}>Driver ID:</strong> {item.driverID}</p>
+                <p style={{ margin: '5px 0' }}><strong style={{ color: '#059855' }}>Phone:</strong> {item.phoneNumber}</p>
+                <p style={{ margin: '5px 0' }}><strong style={{ color: '#059855' }}>Company:</strong> {item.shortCompanyName}</p>
+                <p style={{ margin: '5px 0' }}><strong style={{ color: '#059855' }}>GPS Number:</strong> {item.gpsNumber}</p>
+                <p style={{ margin: '5px 0' }}><strong style={{ color: '#059855' }}>Type:</strong> {item.type}</p>
+                <p style={{ margin: '5px 0' }}><strong style={{ color: '#059855' }}>License Plate:</strong> {item.licensePlate}</p>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginTop: '5px' }}>
+                  <button
+                    onClick={() => navigate(`/gdtdriverdetails/${item.driverID}`)}
+                    style={{
+                      backgroundColor: '#059855',
+                      color: 'white',
+                      border: 'none',
+                      padding: '5px',
+                      width: '120px',
+                      cursor: 'pointer',
+                      marginBottom: '5px'
+                    }}
+                  >
+                    Full Information
+                  </button>
+                  <button
+                    onClick={() => {
+                      const location = lastKnownLocations.find(loc => loc.gpsNumber === item.gpsNumber);
+                      if (location) {
+                        setMapCenter({ lat: location.lat, lng: location.lng });
+                        setSelectedLocation(location);
+                      }
+                    }}
+                    style={{
+                      backgroundColor: '#059855',
+                      color: 'white',
+                      border: 'none',
+                      padding: '5px',
+                      width: '120px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Go to Location
+                  </button>
+                </div>
+              </div>
+            )}
+          </li>
+          ))}
+        </ul>
+      </div>
+
 {/* The gps number in the location saved in array after that query the driver collection and motorcycle then display them in the list */}
-</div>
 
   
   <GoogleMap 
