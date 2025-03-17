@@ -41,7 +41,8 @@ const GDTMap = ({ locations }) => {
   const [motorcycleDetails, setMotorcycleDetails] = useState(null);
   const [isHovered, setIsHovered] = useState(false);
   const [shortCompanyName, setShortCompanyName] = useState('');
-  const [expandedMotorcycleId, setExpandedMotorcycleId] = useState(null);
+  const [expandedMotorcycleIds, setExpandedMotorcycleIds] = useState([]);
+  const [expandedMotorcycleId, setExpandedMotorcycleId] = useState([]);
   const [activeMotorcycleId, setActiveMotorcycleId] = useState(null); 
   const [motorcycleData, setMotorcycleData] = useState([]);
 
@@ -199,6 +200,9 @@ const GDTMap = ({ locations }) => {
   // }*/
 
   const handleMarkerClick = async (gpsNumber, location) => {
+    // Close any expanded dropdowns
+    setExpandedMotorcycleId(null); // Close dropdowns when a marker is clicked
+  
     // Fetch driver details based on GPS number
     const driverQuery = query(
       collection(db, "Driver"),
@@ -209,7 +213,7 @@ const GDTMap = ({ locations }) => {
     if (!driverSnapshot.empty) {
       const driverData = driverSnapshot.docs[0].data();
       setDriverDetails(driverData);
-    
+  
       const employerQuery = query(
         collection(db, "Employer"),
         where("CompanyName", "==", driverData.CompanyName)
@@ -234,15 +238,10 @@ const GDTMap = ({ locations }) => {
     if (!motorcycleSnapshot.empty) {
       const motorcycleData = motorcycleSnapshot.docs[0].data();
       setMotorcycleDetails(motorcycleData);
-      setExpandedMotorcycleId(motorcycleData.MotorcycleID); // Set the expanded motorcycle ID
+      setSelectedLocation(location); // Set the selected location
     } else {
-      // Handle case where no motorcycle details are found
       setMotorcycleDetails(null);
-      setExpandedMotorcycleId(null);
     }
-  
-    setSelectedLocation(location);
-    setActiveMotorcycleId(location.MotorcycleID); // Set the active motorcycle ID
   };
 
   const handleListItemClick = (motorcycleId) => {
@@ -262,7 +261,11 @@ const GDTMap = ({ locations }) => {
   };
   
   const toggleExpand = (motorcycleID) => {
-    setExpandedMotorcycleId(expandedMotorcycleId === motorcycleID ? null : motorcycleID);
+    setExpandedMotorcycleIds((prev) =>
+      prev.includes(motorcycleID)
+        ? prev.filter(id => id !== motorcycleID) // Remove if already expanded
+        : [...prev, motorcycleID] // Add to expanded
+    );
   };
   
   const capitalizeName = (name) => {
@@ -271,11 +274,11 @@ const GDTMap = ({ locations }) => {
   
   return (
     <div style={{ display: 'flex', height: '80vh' }}>
-      <div style={{ width: '400px', padding: '10px', borderRight: '1px solid #ccc', backgroundColor: '#f9f9f9' }}>
-        <h4 style={{ color: 'green', fontSize: '25px', marginBottom:'10px' }}>Motorcycle List</h4>
-        <ul style={{ listStyleType: 'none', padding: '0' }}>
-          {motorcycleData.map((item, index) => (
-            <li key={index} style={{ position: 'relative', marginBottom: '10px', padding: '10px', border: '1px solid #ddd', borderRadius: '5px', backgroundColor: '#fff' }}>
+    <div style={{ width: '400px', padding: '10px', borderRight: '1px solid #ccc', backgroundColor: '#f9f9f9' }}>
+      <h4 style={{ color: 'green', fontSize: '25px', marginBottom: '10px' }}>Motorcycle List</h4>
+      <ul style={{ listStyleType: 'none', padding: '0' }}>
+        {motorcycleData.map((item, index) => (
+          <li key={index} style={{ position: 'relative', marginBottom: '10px', padding: '10px', border: '1px solid #ddd', borderRadius: '5px', backgroundColor: '#fff' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
                 <strong style={{ color: '#059855' }}>Motorcycle ID:</strong> {item.motorcycleID} <br />
@@ -296,7 +299,7 @@ const GDTMap = ({ locations }) => {
                 onMouseEnter={(e) => e.currentTarget.style.color = '#059855'}
                 onMouseLeave={(e) => e.currentTarget.style.color = 'grey'}
               >
-                {expandedMotorcycleId === item.motorcycleID ? (
+                {expandedMotorcycleIds.includes(item.motorcycleID) ? (
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
                     <path d="M6 16 L12 10 L18 16" stroke="currentColor" strokeWidth="2" fill="none"/>
                   </svg>
@@ -307,7 +310,7 @@ const GDTMap = ({ locations }) => {
                 )}
               </button>
             </div>
-            {expandedMotorcycleId === item.motorcycleID && (
+            {expandedMotorcycleIds.includes(item.motorcycleID) && (
               <div style={{ fontSize: '12px', color: '#555', marginTop: '5px' }}>
                 <p style={{ margin: '5px 0' }}><strong style={{ color: '#059855' }}>Driver ID:</strong> {item.driverID}</p>
                 <p style={{ margin: '5px 0' }}><strong style={{ color: '#059855' }}>Phone:</strong> {item.phoneNumber}</p>
@@ -332,11 +335,11 @@ const GDTMap = ({ locations }) => {
                   </button>
                   <button
                     onClick={() => {
-                      const location = lastKnownLocations.find(loc => loc.gpsNumber === item.gpsNumber);
+                      {/*const location = lastKnownLocations.find(loc => loc.gpsNumber === item.gpsNumber);
                       if (location) {
                         setMapCenter({ lat: location.lat, lng: location.lng });
                         setSelectedLocation(location);
-                      }
+                      }*/}
                     }}
                     style={{
                       backgroundColor: '#059855',
@@ -353,9 +356,9 @@ const GDTMap = ({ locations }) => {
               </div>
             )}
           </li>
-          ))}
-        </ul>
-      </div>
+        ))}
+      </ul>
+    </div>
 
 {/* The gps number in the location saved in array after that query the driver collection and motorcycle then display them in the list */}
 
