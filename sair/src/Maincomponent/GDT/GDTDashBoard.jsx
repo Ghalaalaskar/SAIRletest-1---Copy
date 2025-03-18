@@ -757,19 +757,25 @@ const GDTDashBoard = () => {
 
        
         {/* Geo Charts */} 
-        <div
+        <div 
           style={{
-            backgroundColor: "#FFFFFF",
+            backgroundColor: "#05b06d",
+            color: "#ffffff",
             padding: "20px",
-            borderRadius: "8px",
+            borderTopLeftRadius: "8px",
+            borderTopRightRadius: "8px",
+            borderBottomLeftRadius: "0",
+            borderBottomRightRadius: "0",
             boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
             flex: 1,
             textAlign: "center",
             fontWeight: "bold",
+            marginTop: "20px",
+            animation: "fadeIn 1s ease-in-out",
           }}
         >
-          <div style={{ fontWeight: "bold", paddingTop:"15px" }}>
-            Riyadh Violation and Crash Disribution
+          <div style={{ fontWeight: "bold" }}>
+            Riyadh Violation and Crash Distribution
           </div>
         </div>
 
@@ -777,7 +783,6 @@ const GDTDashBoard = () => {
           style={{
             display: "flex",
             gap: "20px",
-            marginTop: "20px",
             width: "100%",
           }}
         >
@@ -789,7 +794,7 @@ const GDTDashBoard = () => {
               gap: "20px",
             }}
           >
-            <GridItem title="Violation and Crash">
+            <GridItem title="">
               <ViolationCrashGeoChart />
             </GridItem>
           </div>
@@ -806,7 +811,10 @@ const GridItem = ({ title, children }) => (
     style={{
       backgroundColor: "#FFFFFF",
       padding: "20px",
-      borderRadius: "8px",
+      borderTopLeftRadius: "0",
+      borderTopRightRadius: "0",
+      borderBottomLeftRadius: "8px",
+      borderBottomRightRadius: "8px",
       boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
       flex: 1,
       minWidth: "550px",

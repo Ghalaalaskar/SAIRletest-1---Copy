@@ -81,3 +81,19 @@ table{
   border-collapse: collapse;
   margin-top: 20px;
 }
+
+.label {
+  background-color: #05b06d;
+  color: #ffffff;
+  padding: 20px;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  box-Shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  flex: 1;
+  text-Align: center;
+  font-Weight: bold;
+  margin-Top: 20px;
+  animation: fadeIn 1s ease-in-out;
+}
