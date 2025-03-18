@@ -601,13 +601,19 @@ const GDTDashBoard = () => {
           </div>
           <div
             style={{
-              backgroundColor: "#FFFFFF",
+              backgroundColor: "#05b06d",
+              color: "#ffffff",
               padding: "20px",
-              borderRadius: "8px",
+              borderTopLeftRadius: "8px",
+              borderTopRightRadius: "8px",
+              borderBottomLeftRadius: "0",
+              borderBottomRightRadius: "0",
               boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
               flex: 1,
               textAlign: "center",
               fontWeight: "bold",
+              marginTop: "20px",
+              animation: "fadeIn 1s ease-in-out",
             }}
           >
             <div
@@ -618,7 +624,7 @@ const GDTDashBoard = () => {
               }}
             >
               <div style={{ fontWeight: "bold" }}>
-                Complaints and Crash Statistics
+                Staff Response Statistics
               </div>
               <div
                 className="searchContainer"
@@ -629,6 +635,8 @@ const GDTDashBoard = () => {
                   className="selectWrapper"
                   style={{
                     border: "2px solid #4CAF50",
+                    backgroundColor: "#FFFFFF",
+                    color: "black",
                     borderRadius: "5px",
                     padding: "5px",
                     fontWeight: "normal",
@@ -717,7 +725,6 @@ const GDTDashBoard = () => {
           style={{
             display: "flex",
             gap: "20px",
-            marginTop: "20px",
             width: "100%",
           }}
         >
