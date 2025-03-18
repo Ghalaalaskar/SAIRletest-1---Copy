@@ -632,13 +632,29 @@ const addDriverToSystem= async(driver)=>{
 
  
 }
+const sendEmail = (email, driverName, password) => {
+  const templateParams = {
+    email: email,
+    subject: 'Welcome to SAIR!',
+    driverName: driverName,
+    generatedPassword: password,
+  };
+
+  emailjs.send('service_ltz361p', 'template_gd1x3q7', templateParams, '6NEdVNsgOnsmX-H4s')
+      .then((response) => {
+          console.log('Email sent successfully!', response.status, response.text);
+      }, (error) => {
+          console.error('Failed to send email:', error);
+      });
+};
+
   const handleAddDriver = async (values) => {
     try {
-      if (fileData.length <= 0) {
       // Format PhoneNumber and handle GPSnumber
       const formattedPhoneNumber = `${values.PhoneNumber}`;
       const GPSnumber = values.GPSnumber === 'None' ? null : values.GPSnumber;
   
+
       // Check for existing phone number
       const phoneQuery = query(
         collection(db, 'Driver'),
@@ -653,6 +669,21 @@ const addDriverToSystem= async(driver)=>{
         return;
       }
   
+      // Check for existing DriverID
+      const driveremailQuery = query(
+        collection(db, 'Driver'),
+        where('Email', '==', values.Email),
+        where('CompanyName', '==', Employer.CompanyName)
+      );
+      const driveremailSnapshot = await getDocs(driveremailQuery);
+      if (!driveremailSnapshot.empty) {
+        setPopupMessage("Email already exists.");
+        setPopupImage(errorImage);
+        setPopupVisible(true);
+        return;
+      }
+  
+
       // Check for existing DriverID
       const driverIdQuery = query(
         collection(db, 'Driver'),
@@ -727,7 +758,7 @@ const addDriverToSystem= async(driver)=>{
         setPopupMessage('Driver added successfully!');
         setPopupImage(successImage);
       } else {
-        setPopupMessage('Error sending email.');
+        setPopupMessage('Email already exists.');
         setPopupImage(errorImage);
       }
   
@@ -735,212 +766,12 @@ const addDriverToSystem= async(driver)=>{
   
       // Navigate to the driver list after a short delay
       setTimeout(() => {
-        navigate('/driverslist'); // Adjust the path if necessary
+        navigate('/driverslist'); 
       }, 2000);
-    }
-
-    else {
-      const validDrivers = [];
-      const invalidDrivers = [];
-      const errorList=[];
-     
-       // Step 1: Separate valid and invalid drivers
-       for (const driver of values) {
-        const validationResult = await validateDriver(driver, validDrivers);
-        if (validationResult.isValid) {
-          validDrivers.push(driver);
-        } else {
-          invalidDrivers.push(driver);
-          errorList.push(...validationResult.errors); // Add all errors for this driver
-          console.log('ghll',errorList);
-        }
-      }
-     console.log('validDrivers:',validDrivers);
-     console.log('invalidDrivers:',invalidDrivers);
-
-
-   // Step 2: Add all valid drivers
-   const successfullyAddedDrivers = [];
-   for (const driver of validDrivers) {
-     try {
-       await addDriverToSystem(driver); // Call the logic to add driver
-       successfullyAddedDrivers.push(driver);
-     } catch (error) {
-       console.error(`Failed to add driver: ${driver.Fname}`, error);
-       invalidDrivers.push(driver); // Move failed additions to invalid
-     }
-   }
-console.log('successfullyAddedDrivers:',successfullyAddedDrivers);
-
- // Step 3: Update the array and remove valid drivers
- const remainingDrivers = drivers.filter(
-  (driver) => !successfullyAddedDrivers.includes(driver)
-);
-setDrivers(remainingDrivers); // Update the state to remove added drivers
-console.log('remainingDrivers:',remainingDrivers);
-
-// Step 4: Show popups for invalid drivers
-if (invalidDrivers.length > 0) {
-  const orderedErrorList = [...errorList].reverse();
-  orderedErrorList.forEach((error) => {     
-       // Customize the message to include the driverID and the error message
-      setPopupMessage(`Driver (${error.driverID}): ${error.message}`);
-      setPopupImage(errorImage);  // Assuming you have a predefined error image
-      setPopupVisible(true);  // Trigger the pop-up display
-    });
-}
-else{
-  setPopupMessage("All drivers added successfully!");
-    setPopupImage(successImage);
-    setPopupVisible(true);
-    setTimeout(() => navigate("/driverslist"), 2000);
-}
-
-
-
-
-      // Bulk insertion for file data
-      // for (const driver of values) {
-      //   console.log('hi',values);
-      //     const formattedPhoneNumber = `${driver.PhoneNumber}`;
-      //     const GPSnumber = driver.GPSnumber === "None" ? null : driver.GPSnumber;
-
-      //    console.log(formattedPhoneNumber);
-      //    console.log(GPSnumber);
-      //       // Check for existing phone number
-      //       const phoneQuery = query(
-      //         collection(db, 'Driver'),
-      //         where('PhoneNumber', '==', formattedPhoneNumber),
-      //         where('CompanyName', '==', Employer.CompanyName)
-      //       );
-      //       console.log(phoneQuery);
-      //       const phoneSnapshot = await getDocs(phoneQuery);
-      //       if (!phoneSnapshot.empty) {
-      //         console.log('sssss');
-      //         errorList.push({
-               
-      //           message: `For driver , The Phone number ${driver.PhoneNumber} is already used.`,
-      //         });
-              
-      //         setPopupMessage(
-      //           `For driver , The phone number ${driver.PhoneNumber} is already used.` );
-      //         setPopupImage(errorImage);
-      //         setPopupVisible(true);
-      //         return;
-      //       }
-
-      //       // Check for existing DriverID
-      //       const driverIdQuery = query(
-      //         collection(db, 'Driver'),
-      //         where('DriverID', '==', driver.DriverID),
-      //         where('CompanyName', '==', Employer.CompanyName)
-      //       );
-      //       console.log(driverIdQuery);
-      //       const driverIdSnapshot = await getDocs(driverIdQuery);
-      //       if (!driverIdSnapshot.empty) {
-      //         errorList.push({
-               
-      //           message: `For driver , The driver ID ${driver.DriverID} already exists.`,
-      //         });
-      //         setPopupMessage(
-      //           `For driver , The driver ID ${driver.DriverID} already exists.` );
-      //         setPopupImage(errorImage);
-      //         setPopupVisible(true);
-      //         return;
-      //       }
-
-      //           const isValid = availableMotorcycles.some(
-      //             (motorcyclee) => motorcyclee.GPSnumber === GPSnumber
-      //           );
-      //            if(!isValid && GPSnumber !==null){
-      //             errorList.push({
-                    
-      //               message: `For driver , The GPS number ${driver.GPSnumber} is invalid.`,
-      //             });
-                  
-      //             setPopupMessage(
-      //               `For driver , The GPS number ${driver.GPSnumber} is invalid.` );
-      //             setPopupImage(errorImage);
-      //             setPopupVisible(true);
-      //             return;               
-      //            }
-
-            
-      //       // Generate a random password for the driver
-      //       const generatedPassword = generateRandomPassword();
-
-      //       // Create a new user in Firebase Auth
-      //       const userCredential = await createUserWithEmailAndPassword(
-      //         auth,
-      //         driver.Email,
-      //         generatedPassword
-      //       );
-      //       const user = userCredential.user;
-
-      //       // Create the new driver object
-      //       const newDriver = {
-      //         ...driver,
-      //         PhoneNumber: formattedPhoneNumber,
-      //         GPSnumber: GPSnumber,
-      //         CompanyName: Employer.CompanyName,
-      //         isDefaultPassword: true,
-      //         available: GPSnumber === null,
-      //         UID: user.uid,
-      //       };
-
-      //       // Add the driver to Firestore
-      //       await addDoc(collection(db, 'Driver'), newDriver);
-           
-      //       // Update motorcycle availability if GPSnumber is assigned
-      //       if (GPSnumber) {
-      //         const q = query(
-      //           collection(db, 'Motorcycle'),
-      //           where('GPSnumber', '==', GPSnumber)
-      //         );
-      //         console.log(q);
-      //         const querySnapshot = await getDocs(q);
-      //         if (!querySnapshot.empty) {
-      //           const motorcycleDocRef = querySnapshot.docs[0].ref;
-      //           await updateDoc(motorcycleDocRef, {
-      //             available: false,
-      //             DriverID: driver.DriverID,
-      //           });
-      //         }
-      //       }
-
-      //       // Send welcome email using EmailJS
-      //       const templateParams = {
-      //         email: driver.Email,
-      //         subject: 'Welcome to SAIR!',
-      //         companyName: Employer.ShortCompanyName,
-      //         generatedPassword: generatedPassword,
-      //       };
-
-      //       await emailjs.send(
-      //         'service_ltz361p',
-      //         'template_u0v3anh',
-      //         templateParams,
-      //         '6NEdVNsgOnsmX-H4s'
-      //       );
-         
-      //     }
-
-      // if (errorList.length > 0) {
-      //   console.error("Errors during bulk addition:", errorList);
-       
-      // } else {
-      //   setPopupMessage("All drivers added successfully!");
-      //   setPopupImage(successImage);
-      //   setPopupVisible(true);
-      //   setTimeout(() => navigate("/driverslist"), 2000);
-      // }
-
-
-    }
   
     } catch (error) {
       console.error('Error adding driver:', error);
-      setPopupMessage("Driver Email Already exist.");
+      setPopupMessage("Email Already exist.");
       setPopupImage(errorImage);
       setPopupVisible(true);
     }
@@ -956,6 +787,16 @@ else{
     } 
     return 'Phone number must start with +9665 and be followed by 8 digits.';
   };
+
+  const validateEmail = (Email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(Email) ? null : 'Please enter a valid Email.';
+};
+
+const validatedriverID = (DriverID) => {
+  const driverIDRegex = /^\d{10}$/; // Must be exactly 10 digits
+  return driverIDRegex.test(DriverID) ? null : 'Driver ID must be 10 digits.';
+};
 
   // const handleSubmit = (e) => {
   //   e.preventDefault();
@@ -1020,7 +861,6 @@ else{
     let isValid = true;
     let newValidationMessages = {};
     
-    if(fileData.length <= 0){
       const { Fname, Lname, PhoneNumber, Email, DriverID,GPSnumber } = manualDriver;
       newValidationMessages = {};
     if (!Fname) {
@@ -1069,93 +909,17 @@ else{
       newValidationMessages.GPSnumber = 'Please choose a motorcycle';
       isValid = false;
     }
-  }
+  
     
-  else{
-    // Loop through dataToValidate (it could be multiple drivers from file or just one manual entry)
-    drivers.forEach((driver, index) => {
-      const { Fname, Lname, PhoneNumber, Email, DriverID, GPSnumber } = driver;
-      newValidationMessages[index] = {};
-
-      // Validation logic
-      if (!Fname) {
-        console.log(Fname);
-        newValidationMessages[index].Fname = 'Please enter driver first name.';
-        isValid = false;
-      }
   
-      if (!Lname) {
-        newValidationMessages[index].Lname = 'Please enter driver last name.';
-        isValid = false;
-      }
-  
-     // Phone number validation
- // Phone number validation
-  if(!PhoneNumber|| PhoneNumber === '+966'){
-    console.log('cmcm');    
-    newValidationMessages[index].PhoneNumber= 'Please enter driver phone number';
-  }    
-
-  // Validate phone number
-  else{
-  if (PhoneNumber.length > 4) {
-    const validationResult = validatePhoneNumber(PhoneNumber);
-    if (validationResult === '' || validationResult === '0') {
-      newValidationMessages[index].PhoneNumber = ''; // Clear error if valid
-    } else {
-      newValidationMessages[index].PhoneNumber = validationResult;
-    }
-  }}
-  
-      if (!Email) {
-        newValidationMessages[index].Email = 'Please enter Email';
-        isValid = false;
-      }
-      
-        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-          if (!emailRegex.test(Email)) {
-            newValidationMessages[index].Email = 'Please enter a valid Email';
-            isValid = false;
-      }
-    
-    
-      if (!DriverID) {
-        newValidationMessages[index].DriverID = 'Please enter driver ID';
-        isValid = false;
-      } else if (DriverID.length !== 10) {
-        newValidationMessages[index].DriverID = 'Driver ID must be 10 digits';
-        isValid = false;
-      }
-  
-      if (!GPSnumber) {
-        newValidationMessages[index].GPSnumber = 'Please choose a motorcycle';
-        isValid = false;
-      }
-      // if(GPSnumber==='None'){
-      //   newValidationMessages[index].GPSnumber = '';
-      // }
-      // if (GPSnumber && GPSnumber !=='None' ){
-      //   const isValid = availableMotorcycles.some(
-      //     (motorcyclee) => motorcyclee.GPSnumber === GPSnumber
-      //   );
-      //   if(!isValid){
-      //     console.log('a');
-      //     newValidationMessages[index].GPSnumber =  'The entered GPS number is not available.';
-      //   }}
-      
-    });
-  }
     // Update validation messages
     setValidationMessages(newValidationMessages);
   
     if (isValid) {
-      if (fileData.length > 0) {
-        // If data is from the file, add all drivers
-        handleAddDriver(drivers);
-      } else {
+     
         // If data is manual, add a single driver
         handleAddDriver(manualDriver);
-      }
+      
     }
   };
   
@@ -1325,6 +1089,135 @@ const handleRemoveFile = () => {
 };
 
   
+
+const handleBatchUpload = async (driverArray) => { 
+    const errorList = [];
+
+    for (const driver of driverArray) {
+        const { Fname, Lname, PhoneNumber, Email, DriverID , GPSnumber } = driver; //GPSnumber???????????
+         GPSnumber = GPSnumber === 'None' ? null : GPSnumber;
+
+        if (!Fname || !Lname || !PhoneNumber || !Email || !DriverID ) {
+            errorList.push({ driver, message: 'All fields are required.' });
+            continue;
+        }
+
+        const phoneValidation = validatePhoneNumber(PhoneNumber);
+        if (phoneValidation) {
+            errorList.push({ driver, message: `Error adding ${Fname} ${Lname}: ${phoneValidation}` });
+            continue;
+        }
+
+        const emailValidation = validateEmail(Email);
+        if (emailValidation) {
+            errorList.push({ driver, message: `Error adding ${Fname} ${Lname}: ${emailValidation}` });
+            continue;
+        }
+
+        const driverIDValidation = validatedriverID(DriverID);
+        if (driverIDValidation) {
+            errorList.push({ driver, message: `Error adding ${Fname} ${Lname}: ${driverIDValidation}` });
+            continue;
+        }   
+
+        const uniqueValidationResult = await checkUniqueness(PhoneNumber, Email, DriverID);
+        if (!uniqueValidationResult.isUnique) {
+            errorList.push({ driver, message: `Error adding ${Fname} ${Lname}: ${uniqueValidationResult.message}` });
+            continue;
+        }
+
+        try {
+            const password = generateRandomPassword();
+            // Create user with email and password
+            
+            const userCredential = await createUserWithEmailAndPassword(
+              auth,
+              Email,
+              password
+            );
+            const user = userCredential.user; 
+
+            await addDoc(collection(db, 'Driver'), {
+                Fname,
+                Lname,
+                Email,
+                PhoneNumber,
+                DriverID,
+                GPSnumber: GPSnumber,
+                CompanyName: Employer.CompanyName,
+                isDefaultPassword: true,
+                available: driver.GPSnumber === null,
+                UID: user.uid,
+            });
+            // Send welcome email 
+            sendEmail(Email, `${Fname} ${Lname}`, password);
+        } catch (error) {
+            // Capture the specific error message, if available
+            let errorMessage = error.message || "Failed to create user.";
+            errorList.push({ driver, message: `Error adding ${Fname} ${Lname}: ${errorMessage}` });
+        }
+    }
+
+    if (errorList.length > 0) {
+        const errorMessages = errorList.map(err => err.message).join('\n'); // Join messages with newline
+        setPopupMessage(`Some drivers could not be added:\n${errorMessages}`); // Add a newline after the main message
+        setPopupImage(errorImage);
+        setPopupVisible(true);
+        console.error("Errors during batch addition:", errorList)
+    } else {
+        setPopupMessage("All drivers added successfully!");
+        setPopupImage(successImage);
+        setPopupVisible(true);
+        setTimeout(() => {
+                navigate('/driverslist'); 
+              }, 2000);
+    }
+};
+
+
+
+const checkUniqueness = async (phone, email, driverID) => {
+  const driverIdQuery = query(
+    collection(db, 'Driver'),
+    where('DriverID', '==', driverID),
+    where('CompanyName', '==', Employer.CompanyName)
+  );
+  const phoneQuery = query(
+    collection(db, 'Driver'),
+    where('PhoneNumber', '==', phone),
+    where('CompanyName', '==', Employer.CompanyName)
+  );
+    const emailQuery = query(
+      collection(db, 'Driver'), 
+      where("Email", "==", email));
+
+    const phoneSnapshot = await getDocs(phoneQuery);
+    if (!phoneSnapshot.empty) {
+        return {
+            isUnique: false,
+            message: "Phone number already exists."
+        };
+    }
+
+    const emailSnapshot = await getDocs(emailQuery);
+    if (!emailSnapshot.empty) {
+        return {
+            isUnique: false,
+            message: "Email already exists."
+        };
+    }
+
+    const driverIDSnapshot = await getDocs(driverIdQuery);
+    if (!driverIDSnapshot.empty) {
+        return {
+            isUnique: false,
+            message: "Driver ID already exists."
+        };
+    }
+
+    return { isUnique: true, message: "" };
+};
+
   return (
     <div>
       <Header active="driverslist" />
@@ -1335,8 +1228,151 @@ const handleRemoveFile = () => {
         <span> / </span>
         <a onClick={() => navigate('/add-driver')}>Add Driver</a>
       </div>
+<div className={s.container}>
+                <h2 className='title'>Add Driver</h2>
+                
+                {fileData.length === 0 ? (
+                    <form onSubmit={handleSubmit} className={s.form}>
+                        <div className={s.formRow}>
+                        <div>
+              <label>First Name</label>
+              <input
+                type="text"
+                name="Fname"
+                value={manualDriver.Fname}
+                onChange={handleInputChange}
+              />
+              {validationMessages.Fname && <p className={s.valdationMessage}>{validationMessages.Fname}</p>}
+            </div>
 
-      <main className={s.container}>
+            <div>
+              <label>Last Name</label>
+              <input
+                type="text"
+                name="Lname"
+                value={manualDriver.Lname}
+                onChange={handleInputChange}
+              />
+              {validationMessages.Lname && <p className={s.valdationMessage}>{validationMessages.Lname}</p>}
+            </div>
+          </div>
+          <div className={s.formRow}>
+            <div>
+              <label>Phone Number</label>
+              <input 
+                name="PhoneNumber" 
+                value={manualDriver.PhoneNumber}
+                placeholder="+966" 
+                onChange={handlePhoneNumberChange}  
+              />
+              {validationMessages.PhoneNumber && <p className={s.valdationMessage}>{validationMessages.PhoneNumber}</p>}
+            </div>
+            <div>
+              <label>Email</label>
+              <input 
+                name="Email"
+                value={manualDriver.Email}
+                onChange={handleInputChange}
+              />
+              {validationMessages.Email && <p className={s.valdationMessage}>{validationMessages.Email}</p>}
+            </div>
+          </div>
+          <div className={s.formRow}>
+            <div>
+              <label>Driver ID (National ID / Residency Number)</label>
+              <input
+                type="text"
+                name="DriverID"
+                maxLength={10}
+                value={manualDriver.DriverID}
+                onChange={handleInputChange}
+              />
+              {validationMessages.DriverID && <p className={s.valdationMessage}>{validationMessages.DriverID}</p>}
+            </div>
+            <div>
+              <label>GPS Number</label>
+              <select
+  name="GPSnumber"
+  value={manualDriver.GPSnumber}
+  onChange={handleInputChange}
+>
+  <option value="" disabled>Select a Motorcycle</option>
+
+  <option value="None">None</option>
+    {manualDriver.GPSnumber && manualDriver.GPSnumber !== '' && (
+                    <option
+                      key={manualDriver.GPSnumber}
+                      value={manualDriver.GPSnumber}
+                    >
+                      {manualDriver.GPSnumber}
+                    </option>
+                  )}
+  {availableMotorcycles.length > 0 ? (
+    availableMotorcycles.map((item) => (
+      <option key={item.id} value={item.GPSnumber}>
+        {item.GPSnumber}
+      </option>
+    ))
+  ) : (
+    <option disabled>No motorcycles available</option>
+  )}
+</select>
+              {validationMessages.GPSnumber && <p className={s.valdationMessage}>{validationMessages.GPSnumber}</p>}
+            </div>
+          </div>
+                        <div>
+                        <p style={{ marginTop: '10px' }}>
+  Alternatively, you can add staff as a batch to the staff list. To proceed,{'  '}
+  <span 
+    onClick={() => navigate('/Addstaffbatch')} 
+    style={{ cursor: 'pointer', color: '#059855', textDecoration: 'underline' }}
+  >
+    click here
+  </span>.
+</p>
+<button
+                                onClick={() => { navigate('/driverslist');}}
+                                className={s.profileCancel}
+                               
+                            >
+                                Cancel
+                            </button>
+                            <button type="submit" className={s.editBtn}>Add Driver</button>
+                                                 </div>
+                    </form>
+                ) : (
+                <div>
+                        //<button onClick={() => handleBatchUpload(fileData)} className={s.editBtn} style={{marginBottom:"10px"}}>
+                        //    Add All Staff from File
+                        //</button>
+                   </div>
+                )}
+
+                {popupVisible && (
+                     <Modal
+                        title={null}
+                        visible={popupVisible}
+                        onCancel={handleClosePopup}
+                        footer={<p style={{ textAlign:'center'}}>{popupMessage}</p>}
+                        style={{ top: '38%' }}
+                        className="custom-modal" 
+                        closeIcon={
+                          <span className="custom-modal-close-icon">
+                            ×
+                          </span>
+                        }
+                      >
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                          <img src={popupImage} alt="Popup" style={{ width: '20%', marginBottom: '16px' }} />
+                        </div>
+                      </Modal>
+                )}
+            </div>
+        </div>   
+    ); 
+};
+
+      {/* <main className={s.container}>
         <h2 className='title'>Add Driver</h2>
         <p>You can add drivers as batch file:</p>
         <div className={s.formRow}>
@@ -1569,9 +1605,9 @@ const handleRemoveFile = () => {
       )}
       
       </main>
-     
 
-      {popupVisible && (
+
+       {popupVisible && (
   <Modal
     title={null} // No title for this image notification
     visible={popupVisible}
@@ -1593,6 +1629,6 @@ const handleRemoveFile = () => {
 )}
     </div>
   );
-};
+}; */}
 
 export default AddDriver;

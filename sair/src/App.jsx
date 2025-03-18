@@ -11,6 +11,7 @@ import Crashes from './Maincomponent/Crashes';
 import EmployeeProfile from './Maincomponent/Employeeprofilepage';
 import ViolationDetail from './Maincomponent/ViolationDetail';
 import AddDriver from './Maincomponent/AddDriver';
+import Addstaffbatch from './Maincomponent/Addstaffbatch';
 import EditDriver from './Maincomponent/EditDriver';
 import ViolationGeneral from './Maincomponent/Violationgeneral';
 import AddMotorcycle from './Maincomponent/AddMotorcycle';
@@ -181,6 +182,8 @@ function App() {
         <Route path="/ricklessdrives" element={<RicklessDrivers />} />
         <Route path="/notificationslist" element={<NotificationsList />} />
         <Route path="/gdtnotificationslist" element={<GDTNotificationsList />} />
+        <Route path="/gdtadddriverbatch" element={<Addstaffbatch />} />
+
       </Routes>
     </Router>
     </LoadScript>

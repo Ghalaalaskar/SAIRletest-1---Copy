@@ -322,7 +322,7 @@ const handleBatchUpload = async (staffArray) => {
     const handleClosePopup = () => {
         setPopupVisible(false);
     };
-
+//
     return (        
         <div>   
             <Header active="gdtstafflist" />
