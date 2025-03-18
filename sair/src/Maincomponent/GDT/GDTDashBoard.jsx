@@ -632,7 +632,7 @@ const GDTDashBoard = () => {
               }}
             >
               <div style={{ fontWeight: "bold" }}>
-                Staff Response Statistics
+                 Statistics
               </div>
               <div
                 className="searchContainer"
@@ -761,15 +761,54 @@ const GDTDashBoard = () => {
               gap: "20px",
             }}
           >
-            <GridItem title="Staff Response Chart">
-              <StaffChart />
-            </GridItem>
             <GridItem title="Number of Crashes">
               <NumberofCrashes />
             </GridItem>
           </div>
         </div>
+        
+        
+        {/* Staff Charts */}
+        <div
+          style={{
+            backgroundColor: "#05b06d",
+            color: "#ffffff",
+            padding: "20px",
+            borderTopLeftRadius: "8px",
+            borderTopRightRadius: "8px",
+            borderBottomLeftRadius: "0",
+            borderBottomRightRadius: "0",
+            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+            flex: 1,
+            textAlign: "center",
+            fontWeight: "bold",
+            marginTop: "20px",
+            animation: "fadeIn 1s ease-in-out",
+          }}
+        >
+          <div style={{ fontWeight: "bold" }}>Staff Response Statistics</div>
+        </div>
 
+        <div
+          style={{
+            display: "flex",
+            gap: "20px",
+            width: "100%",
+          }}
+        >
+          <div
+            style={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              gap: "20px",
+            }}
+          >
+            <GridItem title="Staff Response Chart">
+              <StaffChart />
+            </GridItem>
+          </div>
+        </div>
        
         {/* Geo Charts */} 
         <div 
