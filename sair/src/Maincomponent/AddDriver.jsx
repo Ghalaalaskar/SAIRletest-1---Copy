@@ -1322,9 +1322,9 @@ const checkUniqueness = async (phone, email, driverID) => {
           </div>
                         <div>
                         <p style={{ marginTop: '10px' }}>
-  Alternatively, you can add staff as a batch to the staff list. To proceed,{'  '}
+  Alternatively, you can add drivers as a batch to the drivers list. To proceed,{'  '}
   <span 
-    onClick={() => navigate('/Addstaffbatch')} 
+    onClick={() => navigate('/Adddriverbatch')} 
     style={{ cursor: 'pointer', color: '#059855', textDecoration: 'underline' }}
   >
     click here
@@ -1342,9 +1342,9 @@ const checkUniqueness = async (phone, email, driverID) => {
                     </form>
                 ) : (
                 <div>
-                        //<button onClick={() => handleBatchUpload(fileData)} className={s.editBtn} style={{marginBottom:"10px"}}>
+                        {/* //<button onClick={() => handleBatchUpload(fileData)} className={s.editBtn} style={{marginBottom:"10px"}}>
                         //    Add All Staff from File
-                        //</button>
+                        //</button> */}
                    </div>
                 )}
 
