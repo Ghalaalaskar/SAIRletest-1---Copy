@@ -193,17 +193,17 @@ const ViolationCrashGeoChart = () => {
               borderRadius: "15px",
             }}
           >
-          <GoogleMap
-            mapContainerStyle={containerStyle}
-            center={mapCenter}
-            zoom={zoomLevel}
-            onLoad={handleMapLoad}
-          ></GoogleMap>
+            <GoogleMap
+              mapContainerStyle={containerStyle}
+              center={mapCenter}
+              zoom={zoomLevel}
+              onLoad={handleMapLoad}
+            ></GoogleMap>
           </div>
         </div>
 
         {/* Table Container */}
-          <div
+        <div
           style={{
             width: "48%",
             height: "100%",
@@ -211,39 +211,84 @@ const ViolationCrashGeoChart = () => {
             borderRadius: "15px",
             boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
             padding: "20px",
-            overflowY: "auto",
+            overflow: "hidden", // Prevent overflow on outer div
           }}
         >
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr style={{ background: "#FAFAFA", color: "#000000E0" }}>
-                <th style={{ padding: "10px", textAlign: "left", borderBottom: "2px solid #ddd" }}>
-                  Neighborhood Name
-                </th>
-                <th style={{ padding: "10px", textAlign: "left", borderBottom: "2px solid #ddd" }}>
-                  Number of Violations
-                </th>
-                <th style={{ padding: "10px", textAlign: "left", borderBottom: "2px solid #ddd" }}>
-                  Number of Crashes
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {neighborhoods.map((neighborhood, index) => (
-                <tr key={index}>
-                  <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                    {neighborhood}
-                  </td>
-                  <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                    {Math.floor(Math.random() * 10)} {/* Replace with actual data */}
-                  </td>
-                  <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-                    {Math.floor(Math.random() * 5)} {/* Replace with actual data */}
-                  </td>
+          <div style={{ maxHeight: "400px", overflowY: "auto" }}>
+            {" "}
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead
+                style={{
+                  position: "sticky",
+                  top: 0,
+                  background: "#FAFAFA",
+                  zIndex: 1,
+                }}
+              >
+                <tr style={{ color: "#000000E0" }}>
+                  <th
+                    style={{
+                      padding: "10px",
+                      textAlign: "left",
+                      borderBottom: "2px solid #ddd",
+                    }}
+                  >
+                    Neighborhood Name
+                  </th>
+                  <th
+                    style={{
+                      padding: "10px",
+                      textAlign: "left",
+                      borderBottom: "2px solid #ddd",
+                    }}
+                  >
+                    Number of Violations
+                  </th>
+                  <th
+                    style={{
+                      padding: "10px",
+                      textAlign: "left",
+                      borderBottom: "2px solid #ddd",
+                    }}
+                  >
+                    Number of Crashes
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {neighborhoods.map((neighborhood, index) => (
+                  <tr key={index}>
+                    <td
+                      style={{
+                        padding: "10px",
+                        borderBottom: "1px solid #ddd",
+                      }}
+                    >
+                      {neighborhood}
+                    </td>
+                    <td
+                      style={{
+                        padding: "10px",
+                        borderBottom: "1px solid #ddd",
+                      }}
+                    >
+                      {Math.floor(Math.random() * 10)}{" "}
+                      {/* Replace with actual data */}
+                    </td>
+                    <td
+                      style={{
+                        padding: "10px",
+                        borderBottom: "1px solid #ddd",
+                      }}
+                    >
+                      {Math.floor(Math.random() * 5)}{" "}
+                      {/* Replace with actual data */}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </ResponsiveContainer>
