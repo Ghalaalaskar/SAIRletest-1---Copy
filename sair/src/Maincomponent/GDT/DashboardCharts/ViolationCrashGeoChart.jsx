@@ -45,6 +45,15 @@ const ViolationCrashGeoChart = () => {
     "Al-Rahmaniyah",
     "Al-Naseem",
     "Al-Wadi",
+    "Al-Maathar",
+    "Al-Khozama", 
+    "Al-Selay",
+    "Al-Mansour",
+    "Al-Maazer",
+    "Al-Qirawan",
+    "Al-Malga",
+    "Al-Nafal",
+    "Al-Rawabi",
   ];
 
   useEffect(() => {
@@ -210,12 +219,11 @@ const ViolationCrashGeoChart = () => {
             background: "#ffffff",
             borderRadius: "15px",
             boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-            padding: "20px",
+            padding: "0 20px 20px 20px",
             overflow: "hidden", // Prevent overflow on outer div
           }}
         >
           <div style={{ maxHeight: "400px", overflowY: "auto" }}>
-            {" "}
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead
                 style={{
@@ -272,8 +280,7 @@ const ViolationCrashGeoChart = () => {
                         borderBottom: "1px solid #ddd",
                       }}
                     >
-                      {Math.floor(Math.random() * 10)}{" "}
-                      {/* Replace with actual data */}
+                      {Math.floor(Math.random() * 10)}
                     </td>
                     <td
                       style={{
@@ -281,8 +288,7 @@ const ViolationCrashGeoChart = () => {
                         borderBottom: "1px solid #ddd",
                       }}
                     >
-                      {Math.floor(Math.random() * 5)}{" "}
-                      {/* Replace with actual data */}
+                      {Math.floor(Math.random() * 5)}
                     </td>
                   </tr>
                 ))}
