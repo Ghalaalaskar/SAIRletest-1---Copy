@@ -32,6 +32,19 @@ const ViolationCrashGeoChart = () => {
       setZoomLevel(mapInstance.getZoom());
     });
   };
+  const [isDropdownOpen, setDropdownOpen] = useState(false);
+  const [selectedOption, setSelectedOption] = useState("All");
+
+  const options = ["All", "Violation", "Crash"];
+
+  const toggleDropdown = () => {
+    setDropdownOpen(!isDropdownOpen);
+  };
+
+  const handleOptionClick = (option) => {
+    setSelectedOption(option);
+    setDropdownOpen(false);
+  };
 
   // Riyadh Neighborhoods
   const neighborhoods = [
@@ -46,7 +59,7 @@ const ViolationCrashGeoChart = () => {
     "Al-Naseem",
     "Al-Wadi",
     "Al-Maathar",
-    "Al-Khozama", 
+    "Al-Khozama",
     "Al-Selay",
     "Al-Mansour",
     "Al-Maazer",
@@ -189,19 +202,109 @@ const ViolationCrashGeoChart = () => {
           style={{
             width: "48%",
             height: "100%",
+            position: "relative",
             borderRadius: "15px",
             overflow: "hidden",
             boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
             background: "#f4f4f4",
           }}
         >
+          {/* Dropdown Filter Container */}
           <div
+            className="searchContainer"
             style={{
-              width: "100%",
-              height: "100%",
-              borderRadius: "15px",
+              position: "absolute",
+              top: "10px",
+              right: "10px",
+              zIndex: 10,
             }}
           >
+            <div
+              className="selectWrapper"
+              style={{
+                border: "2px solid #4CAF50",
+                backgroundColor: "#FFFFFF",
+                color: "black",
+                borderRadius: "5px",
+                padding: "5px",
+                fontWeight: "normal",
+              }}
+            >
+              <div
+                className={`customSelect ${isDropdownOpen ? "open" : ""}`}
+                onClick={toggleDropdown}
+                style={{
+                  cursor: "pointer",
+                  padding: "5px 10px",
+                  position: "relative",
+                  width: "200px",
+                  textAlign: "left",
+                }}
+              >
+                {selectedOption === "All" ? (
+                  <span>Filter by Incident Type</span>
+                ) : (
+                  selectedOption
+                )}
+                <span
+                  style={{
+                    position: "absolute",
+                    right: "10px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    border: "solid #4CAF50",
+                    borderWidth: "0 2px 2px 0",
+                    display: "inline-block",
+                    padding: "3px",
+                    transform: isDropdownOpen
+                      ? "translateY(-50%) rotate(-135deg)"
+                      : "translateY(-50%) rotate(45deg)",
+                  }}
+                />
+              </div>
+              {isDropdownOpen && (
+                <div
+                  className="dropdownMenu"
+                  style={{
+                    position: "absolute",
+                    zIndex: 1000,
+                    backgroundColor: "#fff",
+                    border: "1px solid #ddd",
+                    top: "100%",
+                    left: "0",
+                    right: "0",
+                    textAlign: "left",
+                    borderRadius: "5px",
+                    fontWeight: "normal",
+                  }}
+                >
+                  {options.map((option) => (
+                    <div
+                      key={option}
+                      className="dropdownOption"
+                      onClick={() => handleOptionClick(option)}
+                      style={{
+                        padding: "10px",
+                        cursor: "pointer",
+                        transition: "background-color 0.3s",
+                      }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.backgroundColor = "#f0f0f0")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.backgroundColor = "transparent")
+                      }
+                    >
+                      {option}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Google Map */}
+          <div style={{ width: "100%", height: "100%", borderRadius: "15px" }}>
             <GoogleMap
               mapContainerStyle={containerStyle}
               center={mapCenter}
@@ -261,37 +364,60 @@ const ViolationCrashGeoChart = () => {
                   >
                     Number of Crashes
                   </th>
+                  <th
+                    style={{
+                      padding: "10px",
+                      textAlign: "left",
+                      borderBottom: "2px solid #ddd",
+                    }}
+                  >
+                    Total Incidents
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {neighborhoods.map((neighborhood, index) => (
-                  <tr key={index}>
-                    <td
-                      style={{
-                        padding: "10px",
-                        borderBottom: "1px solid #ddd",
-                      }}
-                    >
-                      {neighborhood}
-                    </td>
-                    <td
-                      style={{
-                        padding: "10px",
-                        borderBottom: "1px solid #ddd",
-                      }}
-                    >
-                      {Math.floor(Math.random() * 10)}
-                    </td>
-                    <td
-                      style={{
-                        padding: "10px",
-                        borderBottom: "1px solid #ddd",
-                      }}
-                    >
-                      {Math.floor(Math.random() * 5)}
-                    </td>
-                  </tr>
-                ))}
+                {neighborhoods.map((neighborhood, index) => {
+                  const violations = Math.floor(Math.random() * 10);
+                  const crashes = Math.floor(Math.random() * 5);
+                  const totalIncidents = violations + crashes; // Calculate total
+
+                  return (
+                    <tr key={index}>
+                      <td
+                        style={{
+                          padding: "10px",
+                          borderBottom: "1px solid #ddd",
+                        }}
+                      >
+                        {neighborhood}
+                      </td>
+                      <td
+                        style={{
+                          padding: "10px",
+                          borderBottom: "1px solid #ddd",
+                        }}
+                      >
+                        {violations}
+                      </td>
+                      <td
+                        style={{
+                          padding: "10px",
+                          borderBottom: "1px solid #ddd",
+                        }}
+                      >
+                        {crashes}
+                      </td>
+                      <td
+                        style={{
+                          padding: "10px",
+                          borderBottom: "1px solid #ddd",
+                        }}
+                      >
+                        {totalIncidents} {/* Display calculated total */}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
