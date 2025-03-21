@@ -5,7 +5,9 @@ import '../../css/CustomModal.css';
 import { useNavigate } from 'react-router-dom'; 
 import { db } from '../../firebase'; 
 import { collection, query, where, getDocs } from "firebase/firestore";
-
+import { SearchOutlined } from '@ant-design/icons'; 
+import { FaFilter } from 'react-icons/fa'; 
+import s from "../../css/ComplaintList.module.css"; // CSS module for ComplaintList
 
 const containerStyle = {
   width: '74%',  // Set the map width
@@ -45,7 +47,9 @@ const GDTMap = ({ locations }) => {
   const [expandedMotorcycleId, setExpandedMotorcycleId] = useState([]);
   const [activeMotorcycleId, setActiveMotorcycleId] = useState(null); 
   const [motorcycleData, setMotorcycleData] = useState([]);
-
+  const [searchQuery, setSearchQuery] = useState("");
+  const [uniqueCompanyNames, setUniqueCompanyNames] = useState([]);
+  const [selectedStatus, setSelectedStatus] = useState("");
   
   const capitalizeFirstLetter = (string) => {
     if (!string) return '';
@@ -176,7 +180,18 @@ const GDTMap = ({ locations }) => {
       fetchMotorcycleAndDriverData();
     }
   }, [locations]);
+ 
+  useEffect(() => {
+    const fetchUniqueCompanyNames = () => {
+      const companyNames = motorcycleData.map(item => item.shortCompanyName);
+      const uniqueNames = [...new Set(companyNames)]; // Get unique names
+      setUniqueCompanyNames(uniqueNames);
+    };
 
+    if (motorcycleData.length > 0) {
+      fetchUniqueCompanyNames();
+    }
+  }, [motorcycleData]);
 
   const motorcycleIcon = {
     url: motorcycle, 
@@ -272,12 +287,71 @@ const GDTMap = ({ locations }) => {
     return name.split(' ').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
   };
   
+  const filteredMotorcycleData = motorcycleData.filter(item => {
+    const matchesSearch = item.driverName.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          item.driverID.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesFilter = selectedStatus === "" || item.shortCompanyName === selectedStatus;
+  
+    return matchesSearch && matchesFilter;
+  });
+
   return (
     <div style={{ display: 'flex', height: '80vh' }}>
     <div style={{ width: '400px', padding: '10px', borderRight: '1px solid #ccc', backgroundColor: '#f9f9f9' }}>
       <h4 style={{ color: 'green', fontSize: '25px', marginBottom: '10px' }}>Motorcycle List</h4>
+      <div style={{  flexDirection: 'column', marginBottom: '10px', alignItems: 'flex-start' }}>
+  {/* Search Bar */}
+  <div className={s.searchInputs} style={{ width: '100%' }}>
+  <div className={s.searchContainer} style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+    <SearchOutlined style={{ color: '#059855', marginRight: '5px' , marginLeft:'-70px'}} />
+    <input
+      type="text"
+      placeholder="Search by Driver ID or Driver Name"
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+      style={{
+        width: "230px",
+        height: "20px",  // Ensures consistent height
+        borderRadius: '20px', // Round corners
+        border: 'none',  // Remove border
+        backgroundColor: 'transparent', // Transparent background
+        padding: '0 0 0 0px',  // Left padding to give space for icon
+        boxSizing: 'border-box',  // Include padding in width
+        outline: 'none', // Remove outline on focus
+      }}
+    />
+  </div>
+</div>
+
+  {/* Filter Dropdown */}
+  <div className={s.searchContainer} style={{ marginTop:'5px'}} >
+   <div className={s.selectWrapper} style={{ width: '100%',height:'25px'}}>
+    <FaFilter className={s.filterIcon} style={{ marginRight: '5px' }}/>
+    <select
+      className={s.customSelect}
+      onChange={(event) => setSelectedStatus(event.target.value)}
+      defaultValue=""
+      style={{
+        width: "230px", 
+        height: "35px",
+        padding: "4px",
+        fontSize: "14px",
+        color: 'grey',
+        border: '1px none #059855',
+        borderRadius: '4px'
+      }}
+    >
+      <option value="" disabled>Filter by Company Name</option>
+      <option value="">All</option>
+      {uniqueCompanyNames.map((name, index) => (
+        <option key={index} value={name}>{name}</option>
+      ))}
+    </select>
+  </div>
+  </div>
+</div>
       <ul style={{ listStyleType: 'none', padding: '0' }}>
-        {motorcycleData.map((item, index) => (
+        {filteredMotorcycleData.map((item, index) => (
           <li key={index} style={{ position: 'relative', marginBottom: '10px', padding: '10px', border: '1px solid #ddd', borderRadius: '5px', backgroundColor: '#fff' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
@@ -394,14 +468,17 @@ const GDTMap = ({ locations }) => {
 
         {/* Render markers only if zoom level is 15 or higher */}
         {/*lastKnownLocations.map((location, index) =>(    here is the old code without zooming*/}
-        {zoomLevel >= 16 && lastKnownLocations.map((location, index) => (
-  <MarkerF
-    key={index}
-    position={{ lat: location.lat, lng: location.lng }}
-    icon={motorcycleIcon}
-    onClick={() => handleMarkerClick(location.gpsNumber, location)} // Pass the location object
-  />
-))}
+     {zoomLevel >= 16 && filteredMotorcycleData.map((item, index) => {
+  const location = lastKnownLocations.find(loc => loc.MotorcycleID === item.motorcycleID);
+  return location ? (
+    <MarkerF
+      key={index}
+      position={{ lat: location.lat, lng: location.lng }}
+      icon={motorcycleIcon}
+      onClick={() => handleMarkerClick(location.gpsNumber, location)}
+    />
+  ) : null; // Ensure location is valid
+})}
 
 {selectedLocation && (
           <InfoWindowF
