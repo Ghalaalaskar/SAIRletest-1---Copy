@@ -10,8 +10,8 @@ import { FaFilter } from 'react-icons/fa';
 import s from "../../css/ComplaintList.module.css"; // CSS module for ComplaintList
 
 const containerStyle = {
-  width: '74%',  // Set the map width
-  height: '590px', // Set the map height
+  width: '100%',  // Set the map width
+  height: '100%', // Change to fill full height
   margin: 'auto',  // Center the map
   marginRight:'8px',
   marginLeft:'8px',
@@ -59,16 +59,19 @@ const GDTMap = ({ locations }) => {
   console.log("GDTMap Component");
   const updateMapData = useCallback(() => {
     if (locations.length > 0 && window.google && window.google.maps) {
-      const newHeatmapData = locations
-        .filter(loc => loc && !isNaN(loc.lat) && !isNaN(loc.lng))
-        .map(loc => new window.google.maps.LatLng(loc.lat, loc.lng));
+      const newHeatmapData = [
+        ...locations
+          .filter(loc => loc && !isNaN(loc.lat) && !isNaN(loc.lng))
+          .map(loc => new window.google.maps.LatLng(loc.lat, loc.lng)),
+        ...staticMotorcycleData // Add static motorcycle data coordinates for heatmap
+          .map(staticLoc => new window.google.maps.LatLng(staticLoc.lat, staticLoc.lng)),
+      ];
       setHeatmapData(newHeatmapData);
-
-      // Only set lastKnownLocations and mapCenter on the first load
+  
       if (initialLoad) {
         setLastKnownLocations(locations);
         setMapCenter({ lat: locations[0].lat, lng: locations[0].lng });
-        setInitialLoad(false); // Prevent further updates
+        setInitialLoad(false);
       }
     }
   }, [locations, initialLoad]);
@@ -116,64 +119,80 @@ const GDTMap = ({ locations }) => {
 
   const fetchMotorcycleAndDriverData = async () => {
     const gpsNumbers = locations.map(loc => loc.gpsNumber);
-    
+
+    // Define the static motorcycle data
+    const staticMotorcycleData = [
+        { MotorcycleID: 'Static1', gpsNumber: 'GPS1234', lat: 24.7137, lng: 46.6753, driverName: 'John Doe', driverID: 'D001', phoneNumber: '123-456-7890', shortCompanyName: 'Company A', type: 'Type A', licensePlate: 'XYZ 123' },
+        { MotorcycleID: 'Static2', gpsNumber: 'GPS5678', lat: 24.7137, lng: 46.6753, driverName: 'Jane Smith', driverID: 'D002', phoneNumber: '123-456-7891', shortCompanyName: 'Company A', type: 'Type A', licensePlate: 'XYZ 124' },
+        { MotorcycleID: 'Static3', gpsNumber: 'GPS9101', lat: 24.7137, lng: 46.6753, driverName: 'Alice Johnson', driverID: 'D003', phoneNumber: '123-456-7892', shortCompanyName: 'Company B', type: 'Type B', licensePlate: 'XYZ 125' },
+        { MotorcycleID: 'Static4', gpsNumber: 'GPS1112', lat: 24.7138, lng: 46.6754, driverName: 'Bob Brown', driverID: 'D004', phoneNumber: '123-456-7893', shortCompanyName: 'Company C', type: 'Type C', licensePlate: 'XYZ 126' },
+        { MotorcycleID: 'Static5', gpsNumber: 'GPS1314', lat: 24.7139, lng: 46.6755, driverName: 'Charlie White', driverID: 'D005', phoneNumber: '123-456-7894', shortCompanyName: 'Company D', type: 'Type D', licensePlate: 'XYZ 127' },
+    ];
+
+    // Fetch motorcycle data asynchronously based on GPS numbers
     const motorcyclePromises = gpsNumbers.map(gpsNumber => {
-      const motorcycleQuery = query(
-        collection(db, "Motorcycle"),
-        where("GPSnumber", "==", gpsNumber)
-      );
-      return getDocs(motorcycleQuery);
-    });
-  
-    const driverPromises = gpsNumbers.map(gpsNumber => {
-      const driverQuery = query(
-        collection(db, "Driver"),
-        where("GPSnumber", "==", gpsNumber)
-      );
-      return getDocs(driverQuery);
-    });
-  
-    const employerPromises = gpsNumbers.map(async (gpsNumber) => {
-      // Fetch the driver details first to get the CompanyName
-      const driverQuery = query(
-        collection(db, "Driver"),
-        where("GPSnumber", "==", gpsNumber)
-      );
-      const driverSnapshot = await getDocs(driverQuery);
-      if (!driverSnapshot.empty) {
-        const driverData = driverSnapshot.docs[0].data();
-        const employerQuery = query(
-          collection(db, "Employer"),
-          where("CompanyName", "==", driverData.CompanyName)
+        const motorcycleQuery = query(
+            collection(db, "Motorcycle"),
+            where("GPSnumber", "==", gpsNumber)
         );
-        return getDocs(employerQuery);
-      }
-      return null; // If no driver found, return null
+        return getDocs(motorcycleQuery);
     });
-  
+
+    const driverPromises = gpsNumbers.map(gpsNumber => {
+        const driverQuery = query(
+            collection(db, "Driver"),
+            where("GPSnumber", "==", gpsNumber)
+        );
+        return getDocs(driverQuery);
+    });
+
+    const employerPromises = gpsNumbers.map(async (gpsNumber) => {
+        // Fetch driver details first to get the CompanyName
+        const driverQuery = query(
+            collection(db, "Driver"),
+            where("GPSnumber", "==", gpsNumber)
+        );
+        const driverSnapshot = await getDocs(driverQuery);
+        if (!driverSnapshot.empty) {
+            const driverData = driverSnapshot.docs[0].data();
+            const employerQuery = query(
+                collection(db, "Employer"),
+                where("CompanyName", "==", driverData.CompanyName)
+            );
+            return getDocs(employerQuery);
+        }
+        return null; // If no driver found, return null
+    });
+
+    // Resolve all promises
     const motorcycleSnapshots = await Promise.all(motorcyclePromises);
     const driverSnapshots = await Promise.all(driverPromises);
     const employerSnapshots = await Promise.all(employerPromises);
-  
+
+    // Map the fetched data to an array
     const motorcyclesWithDrivers = motorcycleSnapshots.map((snapshot, index) => {
-      const motorcycleData = snapshot.docs[0]?.data();
-      const driverData = driverSnapshots[index].docs[0]?.data();
-      const employerData = employerSnapshots[index]?.docs[0]?.data();
-  
-      return {
-        motorcycleID: motorcycleData?.MotorcycleID || 'N/A',
-        driverID: driverData?.DriverID || 'N/A',
-        driverName: driverData ? `${driverData.Fname} ${driverData.Lname}` : 'Unknown',
-        phoneNumber: driverData?.PhoneNumber || 'N/A',
-        shortCompanyName: employerData?.ShortCompanyName || 'N/A', // Set ShortCompanyName from employer data
-        gpsNumber: motorcycleData?.GPSnumber || 'N/A',
-        type: motorcycleData?.Type || 'N/A',
-        licensePlate: motorcycleData?.LicensePlate || 'N/A',
-      };
+        const motorcycleData = snapshot.docs[0]?.data();
+        const driverData = driverSnapshots[index].docs[0]?.data();
+        const employerData = employerSnapshots[index]?.docs[0]?.data();
+
+        // Return combined object for each motorcycle with driver info
+        return {
+            motorcycleID: motorcycleData?.MotorcycleID || 'N/A',
+            driverID: driverData?.DriverID || 'N/A',
+            driverName: driverData ? `${driverData.Fname} ${driverData.Lname}` : 'Unknown',
+            phoneNumber: driverData?.PhoneNumber || 'N/A',
+            shortCompanyName: employerData?.ShortCompanyName || 'N/A', // Set ShortCompanyName from employer data
+            gpsNumber: motorcycleData?.GPSnumber || 'N/A',
+            type: motorcycleData?.Type || 'N/A',
+            licensePlate: motorcycleData?.LicensePlate || 'N/A',
+        };
     });
-  
-    setMotorcycleData(motorcyclesWithDrivers);
-  };
+
+// Combine the static motorcycle data
+const combinedMotorcycleData = [...motorcyclesWithDrivers, ...staticMotorcycleData];
+
+setMotorcycleData(combinedMotorcycleData);
+};
 
   useEffect(() => {
     if (locations.length > 0) {
@@ -295,9 +314,24 @@ const GDTMap = ({ locations }) => {
     return matchesSearch && matchesFilter;
   });
 
+  // Get the number of motorcycles displayed
+  const listLength = filteredMotorcycleData.length;
+
+  // Calculate the height of the map
+  const maxListHeight = 300; // Max height for the list
+  const mapHeight = Math.max(500, Math.min(listLength * 200, 800)); // Example: Increase map height based on list length
+
+  const staticMotorcycleData = [
+    { MotorcycleID: '5522941899', gpsNumber: 'GPS1234', lat: 24.7137, lng: 46.6753, driverName: 'John Doe', driverID: 'D001', phoneNumber: '123-456-7890', shortCompanyName: 'Company A', type: 'Type A', licensePlate: 'XYZ 123' },
+    { MotorcycleID: '5771942237', gpsNumber: 'GPS5678', lat: 24.7137, lng: 46.6753, driverName: 'Jane Smith', driverID: 'D002', phoneNumber: '123-456-7891', shortCompanyName: 'Company A', type: 'Type A', licensePlate: 'XYZ 124' },
+    { MotorcycleID: '5531998797', gpsNumber: 'GPS9101', lat: 24.7137, lng: 46.6753, driverName: 'Alice Johnson', driverID: 'D003', phoneNumber: '123-456-7892', shortCompanyName: 'Company B', type: 'Type B', licensePlate: 'XYZ 125' },
+    { MotorcycleID: '5551941897', gpsNumber: 'GPS1112', lat: 24.7138, lng: 46.6754, driverName: 'Bob Brown', driverID: 'D004', phoneNumber: '123-456-7893', shortCompanyName: 'Company C', type: 'Type C', licensePlate: 'XYZ 126' },
+    { MotorcycleID: '5232831897', gpsNumber: 'GPS1314', lat: 24.7139, lng: 46.6755, driverName: 'Charlie White', driverID: 'D005', phoneNumber: '123-456-7894', shortCompanyName: 'Company D', type: 'Type D', licensePlate: 'XYZ 127' },
+  ];
+
   return (
-    <div style={{ display: 'flex', height: '80vh' }}>
-    <div style={{ width: '400px', padding: '10px', borderRight: '1px solid #ccc', backgroundColor: '#f9f9f9' }}>
+  <div style={{ display: 'flex', height: '500vh', overflow: 'hidden' }}> {/* Main container with flex layout */}
+      <div style={{ width: '400px', padding: '10px', borderRight: '1px solid #ccc', backgroundColor: '#f9f9f9',maxHeight: maxListHeight, }}>
       <h4 style={{ color: 'green', fontSize: '25px', marginBottom: '10px' }}>Motorcycle List</h4>
       <div style={{  flexDirection: 'column', marginBottom: '10px', alignItems: 'flex-start' }}>
   {/* Search Bar */}
@@ -436,8 +470,8 @@ const GDTMap = ({ locations }) => {
 
 {/* The gps number in the location saved in array after that query the driver collection and motorcycle then display them in the list */}
 
-  
-  <GoogleMap 
+<div style={{ flex: 1, height: mapHeight }}>
+    <GoogleMap 
         mapContainerStyle={containerStyle} 
         center={mapCenter} 
         zoom={zoomLevel}
@@ -465,20 +499,24 @@ const GDTMap = ({ locations }) => {
             }}
           />
         )}
-
         {/* Render markers only if zoom level is 15 or higher */}
         {/*lastKnownLocations.map((location, index) =>(    here is the old code without zooming*/}
-     {zoomLevel >= 16 && filteredMotorcycleData.map((item, index) => {
-  const location = lastKnownLocations.find(loc => loc.MotorcycleID === item.motorcycleID);
-  return location ? (
-    <MarkerF
-      key={index}
-      position={{ lat: location.lat, lng: location.lng }}
-      icon={motorcycleIcon}
-      onClick={() => handleMarkerClick(location.gpsNumber, location)}
-    />
-  ) : null; // Ensure location is valid
-})}
+          {zoomLevel >= 16 && (motorcycleData.map((item, index) => {
+    // Get the position for the marker
+    const position = {
+        lat: item.lat || (lastKnownLocations.find(loc => loc.MotorcycleID === item.MotorcycleID)?.lat) || 0,
+        lng: item.lng || (lastKnownLocations.find(loc => loc.MotorcycleID === item.MotorcycleID)?.lng) || 0,
+    };
+
+    return (
+        <MarkerF
+            key={index}
+            position={position}
+            icon={motorcycleIcon} // Define a custom icon if needed
+            onClick={() => handleMarkerClick(item, index)} // Handle click event
+        />
+    );
+}))}
 
 {selectedLocation && (
           <InfoWindowF
@@ -525,6 +563,7 @@ const GDTMap = ({ locations }) => {
         </InfoWindowF>
         )}
       </GoogleMap>
+      </div>
 
     </div>
   );
