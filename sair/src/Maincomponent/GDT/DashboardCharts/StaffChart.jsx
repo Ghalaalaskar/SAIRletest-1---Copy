@@ -29,58 +29,43 @@ const CustomLegend = () => {
 
 
 const StaffChart = () => {
-  const [data, setData] = useState([]); // Keep the useState here, only once
+  const [data, setData] = useState([]);
 
   useEffect(() => {
     const fetchResponse = async () => {
       try {
-        const CrashQuerySnapshot = await getDocs(collection(db, "Crash"), where("Status", "==", "Emergency SOS"));
-        const ComplaintQuerySnapshot = await getDocs(collection(db, "Complaint"));
-        const StaffCounts = new Map();
+        // Fetch all staff from GDT collection
+        const staffQuerySnapshot = await getDocs(collection(db, "GDT"));
+        const allStaff = staffQuerySnapshot.docs.map((doc) => ({
+          ID: doc.data().ID, 
+          FirstName: doc.data().Fname || "Unknown",
+          Crash: 0,
+          Complaint: 0,
+        }));
 
-        //count crash response
+        // Create a map of staff responses
+        const staffResponseMap = new Map(allStaff.map(staff => [staff.ID, { ...staff }]));
+
+        // Fetch and count Crash responses
+        const CrashQuerySnapshot = await getDocs(collection(db, "Crash"), where("Status", "==", "Emergency SOS"));
         CrashQuerySnapshot.forEach((doc) => {
           const { RespondedBy } = doc.data();
-
-          if (RespondedBy) {
-            if (!StaffCounts.has(RespondedBy)) {
-              StaffCounts.set(RespondedBy, { countCrash: 0, countComplaint: 0 });
-            }
-            StaffCounts.get(RespondedBy).countCrash += 1; // Increment crash response count
+          if (RespondedBy && staffResponseMap.has(RespondedBy)) {
+            staffResponseMap.get(RespondedBy).Crash += 1;
           }
         });
 
-        //count complaint response 
+        // Fetch and count Complaint responses
+        const ComplaintQuerySnapshot = await getDocs(collection(db, "Complaint"));
         ComplaintQuerySnapshot.forEach((doc) => {
           const { RespondedBy } = doc.data();
-          if (RespondedBy) {
-            if (!StaffCounts.has(RespondedBy)) {
-              StaffCounts.set(RespondedBy, { countCrash: 0, countComplaint: 0 });
-            }
-            StaffCounts.get(RespondedBy).countComplaint += 1;
+          if (RespondedBy && staffResponseMap.has(RespondedBy)) {
+            staffResponseMap.get(RespondedBy).Complaint += 1;
           }
         });
 
-        // Get GDT (Staff) first names from Firestore
-        const staffData = await Promise.all(
-          Array.from(StaffCounts.keys()).map(async (GDTID) => {
-            const gdtQuery = query(collection(db, "GDT"), where("ID", "==", GDTID)); // Match ID field
-            const gdtDocs = await getDocs(gdtQuery);
-            
-            let firstName = "";
-            if (!gdtDocs.empty) {
-              firstName = gdtDocs.docs[0].data().Fname || ""; // Extract first name
-            }
-
-            return {
-              FirstName: firstName,
-              Crash: StaffCounts.get(GDTID).countCrash,
-              Complaint: StaffCounts.get(GDTID).countComplaint,
-            };
-          })
-        );
-
-        setData(staffData);
+        // Convert map values to array and update state
+        setData(Array.from(staffResponseMap.values()));
       } catch (error) {
         console.error("Error fetching data:", error);
       }
