@@ -75,10 +75,16 @@ const StaffChart = () => {
   }, []); 
 
   return (
-    <div style={{ width: "100%", height: "400px" }}>
+    <div style={{ width: "100%", height: "100%",}}>
       <CustomLegend />
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+    <div style={{ overflowX: "auto", whiteSpace: "nowrap" }}>
+      <div style={{ width: `${data.length}px` }}>
+        <BarChart
+          width={data.length * 150}
+          height={450}
+          data={data}
+          margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
+        >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="FirstName" textAnchor="middle" interval={0} height={60} />
           <YAxis allowDecimals={false} />
@@ -86,7 +92,8 @@ const StaffChart = () => {
           <Bar dataKey="Crash" fill="#2E7D32" name="Number of Crash Responses" />
           <Bar dataKey="Complaint" fill="#4CAF50" name="Number of Complaint Responses" />
         </BarChart>
-      </ResponsiveContainer>
+        </div>
+      </div>
     </div>
   );
 };
