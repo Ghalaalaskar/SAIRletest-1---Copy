@@ -332,22 +332,22 @@ const GDTDashBoard = () => {
         </a>
       </div>
       <main class="Dashboard" style={{ padding: "20px", width: "100%" }}>
-      <div
-  style={{
-    display: "flex",
-    justifyContent: "space-between",
-    gap: "20px",
-    marginBottom: "20px",
-  }}
->
-  <div
-    style={{
-      backgroundColor: "#FFFFFF",
-      padding: "20px",
-      borderRadius: "8px",
-      boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-      flex: 1,
-      textAlign: "center",
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: "20px",
+            marginBottom: "20px",
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "#FFFFFF",
+              padding: "20px",
+              borderRadius: "8px",
+              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+              flex: 1,
+              textAlign: "center",
       fontWeight: "bold",
     }}
   >
@@ -355,7 +355,6 @@ const GDTDashBoard = () => {
       Started Streaming at: {getLastSundayDateTime()}
     </div>
   </div>
-  
   <div
   style={{
     backgroundColor: "#FFFFFF",
@@ -367,27 +366,27 @@ const GDTDashBoard = () => {
     fontWeight: "bold",
   }}
 >
-  <div style={{ fontWeight: "bold", textAlign: "left" }}>
-    <div style={{ marginBottom: "10px" }}>
+  <div 
+    style={{ 
+      display: "flex", 
+      alignItems: "center", 
+      justifyContent: "space-between",
+      gap: "15px",paddingTop:"15px" 
+    }}
+  >
+    <span>
       Last Crash Detected: <strong>{lastCrashTime || "No data available"}</strong>
-    </div>
-    <div
-      style={{
-        display: "flex",
-        justifyContent: responseBy ? "flex-start" : "center", // Center if no response
-        alignItems: "center",
-        color: responseBy ? "black" : "red",
-        marginTop: responseBy ? "0" : "10px" // Add margin for spacing when centered
-      }}
-    >
+    </span>
+    <span style={{ color: responseBy ? "black" : "red" }}>
       {responseBy ? (
-        <span>Response By: <strong>{responseBy}</strong></span>
+        <>Response By: <strong>{responseBy}</strong></>
       ) : (
-        <span style={{ color: "red" }}>Needs Response</span>
+        <>Needs Response</>
       )}
-    </div>
+    </span>
   </div>
 </div>
+
 </div>
         <div
           style={{
