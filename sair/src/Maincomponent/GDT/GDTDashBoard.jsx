@@ -784,7 +784,25 @@ const GDTDashBoard = () => {
             <GridItem title="Number of Violations">
               <NumberOfViolations />
             </GridItem>
-
+            <div
+          style={{
+            backgroundColor: "#05b06d",
+            color: "#ffffff",
+            padding: "20px",
+            borderTopLeftRadius: "8px",
+            borderTopRightRadius: "8px",
+            borderBottomLeftRadius: "0",
+            borderBottomRightRadius: "0",
+            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+            flex: 1,
+            textAlign: "center",
+            fontWeight: "bold",
+            marginTop: "20px",
+            animation: "fadeIn 1s ease-in-out",
+          }}
+        >
+          <div style={{ fontWeight: "bold" }}>Violation Statistics</div>
+        </div>
             <GridItem title="Reckless Violations">
               <RecklessViolation />
             </GridItem>
