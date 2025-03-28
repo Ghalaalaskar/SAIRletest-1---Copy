@@ -16,6 +16,7 @@ import {
   getDocs,
   query,
   where,
+  onSnapshot,
   orderBy,
   limit,
 } from "firebase/firestore";
@@ -50,6 +51,44 @@ const GDTDashBoard = () => {
     return string.charAt(0).toUpperCase() + string.slice(1);
   };
 
+  const GDTResponse = (RespondedBy, setResponseByName) => {
+    try {
+      // Reference to GDT collection with filtering
+      const gdtQuery = query(
+        collection(db, "GDT"),
+        where("ID", "==", RespondedBy)
+      );
+
+      // Set up a real-time listener
+      const unsubscribe = onSnapshot(gdtQuery, (snapshot) => {
+        if (!snapshot.empty) {
+          const gdtData = snapshot.docs[0].data();
+          setResponseByName(`${gdtData.Fname} ${gdtData.Lname}`);
+        } else {
+          console.error("No GDT document found with ID:", RespondedBy);
+          setResponseByName("Unknown");
+        }
+      });
+
+      // Cleanup function to remove listener when component unmounts
+      return unsubscribe;
+    } catch (error) {
+      console.error("Error fetching GDT details:", error);
+      setResponseByName("Error");
+    }
+  };
+  const ResponseBy = ({ respondedBy }) => {
+    const [responseByName, setResponseByName] = useState("");
+
+    useEffect(() => {
+      if (respondedBy) {
+        const unsubscribe = GDTResponse(respondedBy, setResponseByName);
+        return () => unsubscribe && unsubscribe(); // Cleanup listener on unmount
+      }
+    }, [respondedBy]);
+
+    return <span>{responseByName}</span>;
+  };
   const toggleTypeDropdown = (type) => {
     setIsTypeOpen((prev) => ({
       ...prev,
@@ -295,15 +334,12 @@ const GDTDashBoard = () => {
           orderBy("time", "desc"),
           limit(1)
         );
-
+  
         const querySnapshot = await getDocs(crashQuery);
-        querySnapshot.forEach((doc) => {
-          console.log("Crash Document:", doc.id, "=>", doc.data());
-        });
         if (!querySnapshot.empty) {
           const lastCrash = querySnapshot.docs[0].data();
           setLastCrashTime(new Date(lastCrash.time * 1000).toLocaleString());
-          setResponseBy(lastCrash.RespondedBy);
+          setResponseBy(lastCrash.RespondedBy); // Set the responder's ID
         } else {
           console.log("No crashes detected.");
         }
@@ -397,12 +433,12 @@ const GDTDashBoard = () => {
       Last Crash Detected: <strong>{lastCrashTime || "No data available"}</strong>
     </span>
     <span style={{ color: responseBy ? "black" : "red" }}>
-      {responseBy ? (
-        <>Response By: <strong>{responseBy}</strong></>
-      ) : (
-        <>Needs Response</>
-      )}
-    </span>
+  {responseBy ? (
+    <>Response By: <strong><ResponseBy respondedBy={responseBy} /></strong></>
+  ) : (
+    <>Needs Response</>
+  )}
+</span>
   </div>
 </div>
 
