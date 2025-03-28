@@ -129,7 +129,7 @@ const TotalViolation = () => {
   return (
     <div style={{ width: "100%", height: "400px", position: "relative" }}>
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 50 }}>
+        <BarChart data={data}   width={data.length * 150} margin={{ top: 20, right: 30, left: 20, bottom: 50 }}>
           <CartesianGrid strokeDasharray="3 3" />
             
         {/* X Axis in the middle */}
