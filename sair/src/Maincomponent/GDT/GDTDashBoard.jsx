@@ -53,13 +53,11 @@ const GDTDashBoard = () => {
 
   const GDTResponse = (RespondedBy, setResponseByName) => {
     try {
-      // Reference to GDT collection with filtering
       const gdtQuery = query(
         collection(db, "GDT"),
         where("ID", "==", RespondedBy)
       );
-
-      // Set up a real-time listener
+  
       const unsubscribe = onSnapshot(gdtQuery, (snapshot) => {
         if (!snapshot.empty) {
           const gdtData = snapshot.docs[0].data();
@@ -69,8 +67,7 @@ const GDTDashBoard = () => {
           setResponseByName("Unknown");
         }
       });
-
-      // Cleanup function to remove listener when component unmounts
+  
       return unsubscribe;
     } catch (error) {
       console.error("Error fetching GDT details:", error);
@@ -79,15 +76,24 @@ const GDTDashBoard = () => {
   };
   const ResponseBy = ({ respondedBy }) => {
     const [responseByName, setResponseByName] = useState("");
-
+  
     useEffect(() => {
+      console.log('RespondedBy ID:', respondedBy);
+      
       if (respondedBy) {
         const unsubscribe = GDTResponse(respondedBy, setResponseByName);
-        return () => unsubscribe && unsubscribe(); // Cleanup listener on unmount
+        
+        // Cleanup function to unsubscribe from the listener
+        return () => {
+          console.log('Cleaning up listener');
+          unsubscribe && unsubscribe();
+        };
+      } else {
+        setResponseByName("Unknown"); // Reset if no ID
       }
     }, [respondedBy]);
-
-    return <span>{responseByName}</span>;
+  
+    return <span>{responseByName || "Loading..."}</span>; // Show loading while fetching
   };
   const toggleTypeDropdown = (type) => {
     setIsTypeOpen((prev) => ({
