@@ -3,12 +3,14 @@ import { useEffect, useState } from "react";
 import { db } from "../../../firebase";
 import { collection, getDocs } from "firebase/firestore";
 import {
-  PieChart,
-  Pie,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   Legend,
-  Tooltip,
-  Cell,
 } from "recharts";
 
 const COLORS = ["#2E7D32", "#4CAF50", "#FFC107", "#FF5722", "#03A9F4", "#9C27B0"]; // Colors for companies
@@ -58,46 +60,50 @@ const NumberofDrivers = () => {
 
     fetchDrivers();
   }, []);
-
   return (
     <div style={{ width: "100%", height: "400px", position: "relative" }}>
       <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <Pie
-         data={data}
-            dataKey="value"
-            nameKey="name"
-            cx="50%"
-            cy="50%"
-            innerRadius={80} // Creates the donut effect
-            outerRadius={120}
-            labelLine={false} // Removes label lines
-            label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`} // Custom labels
-          >
-            {data.map((_, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-            ))}
-          </Pie>
+        <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 50 }}>
+          <CartesianGrid strokeDasharray="3 3" />
+            
+        {/* X Axis in the middle */}
+        <XAxis 
+          dataKey="name" 
+          tick={{ dy: 10 }} 
+          label={{
+            value: "Delivery Companies",
+            position: "insideBottom",
+            dy: 25,
+          }}
+        />
+        
+          <YAxis allowDecimals={false}  label={{
+            value: "Number of Drivers",
+            angle: -90,
+            position: "middle",
+            dx: -20,
+          }}/>
           <Tooltip />
-          <Legend layout="horizontal" verticalAlign="buttom" />
-        </PieChart>
+          <Bar dataKey="value" fill="#4CAF50"  name="Number of Crashes">
+            {data.map((_, index) => (
+              <rect key={`bar-${index}`} fill={COLORS[index % COLORS.length]} />
+            ))}
+          </Bar>
+        </BarChart>
       </ResponsiveContainer>
 
-      {/* Centered Total Count */}
+      {/* Total Drivers Display */}
       <div
         style={{
           position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          fontSize: "28px",
+          top: "-12px",
+          right: "30px",
+          fontSize: "18px",
           fontWeight: "bold",
           color: "#333",
-          textAlign: "center",
         }}
       >
-        {totalDrivers}
-        <div style={{ fontSize: "14px", color: "#666" }}>Total Drivers</div>
+        Total Drivers: {totalDrivers}
       </div>
     </div>
   );
