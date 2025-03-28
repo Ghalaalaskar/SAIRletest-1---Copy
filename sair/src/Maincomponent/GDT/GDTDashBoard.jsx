@@ -332,12 +332,31 @@ const GDTDashBoard = () => {
         </a>
       </div>
       <main class="Dashboard" style={{ padding: "20px", width: "100%" }}>
+      <div
+          style={{
+            backgroundColor: "#05b06d",
+            color: "#ffffff",
+            padding: "20px",
+            borderTopLeftRadius: "8px",
+            borderTopRightRadius: "8px",
+            borderBottomLeftRadius: "8px",
+            borderBottomRightRadius: "8px",
+            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+            flex: 1,
+            textAlign: "center",
+            fontWeight: "bold",
+            animation: "fadeIn 1s ease-in-out",
+          }}
+        >
+          Delivery Companies Statistics
+        </div>
         <div
           style={{
             display: "flex",
             justifyContent: "space-between",
             gap: "20px",
             marginBottom: "20px",
+            marginTop :"20px",
           }}
         >
           <div
@@ -480,6 +499,25 @@ const GDTDashBoard = () => {
             width: "100%",
           }}
         ></div>
+          <div
+          style={{
+            backgroundColor: "#05b06d",
+            color: "#ffffff",
+            padding: "20px",
+            borderTopLeftRadius: "8px",
+            borderTopRightRadius: "8px",
+            borderBottomLeftRadius: "8px",
+            borderBottomRightRadius: "8px",
+            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+            flex: 1,
+            textAlign: "center",
+            marginBottom:"0",
+            fontWeight: "bold",
+            animation: "fadeIn 1s ease-in-out",
+          }}
+        >
+          Traffic Statistics
+        </div>
         <div
           style={{
             display: "flex",
