@@ -84,7 +84,7 @@ const NumberofDrivers = () => {
             dx: -20,
           }}/>
           <Tooltip />
-          <Bar dataKey="value" fill="#4CAF50"  name="Number of Drivers">
+          <Bar dataKey="value" fill="#4CAF50"  name="Number of Drivers" barSize={80}>
             {data.map((_, index) => (
               <rect key={`bar-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}
