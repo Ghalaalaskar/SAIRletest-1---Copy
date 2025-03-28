@@ -705,7 +705,7 @@ const GDTDashBoard = () => {
               }}
             >
               <div style={{ fontWeight: "bold" }}>
-                 Statistics
+                 Crash Statistics
               </div>
               <div
                 className="searchContainer"
