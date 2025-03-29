@@ -111,8 +111,8 @@ const RecklessViolation = () => {
           <XAxis dataKey="name" textAnchor="middle" interval={0} height={60} />
           <YAxis allowDecimals={false} />
           <Tooltip />
-          <Bar dataKey="count30" fill="#2E7D32" name="Reckless Violation Type 1" />
-          <Bar dataKey="count50" fill="#4CAF50" name="Reckless Violation Type 2" />
+          <Bar dataKey="count30" fill="#2E7D32" name="Reckless Violation Type 1" barSize={80} />
+          <Bar dataKey="count50" fill="#4CAF50" name="Reckless Violation Type 2" barSize={80}/>
         </BarChart>
       </ResponsiveContainer>
     </div>

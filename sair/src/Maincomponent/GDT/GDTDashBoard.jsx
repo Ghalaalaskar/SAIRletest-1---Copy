@@ -16,6 +16,7 @@ import {
   getDocs,
   query,
   where,
+  onSnapshot,
   orderBy,
   limit,
 } from "firebase/firestore";
@@ -50,6 +51,50 @@ const GDTDashBoard = () => {
     return string.charAt(0).toUpperCase() + string.slice(1);
   };
 
+  const GDTResponse = (RespondedBy, setResponseByName) => {
+    try {
+      const gdtQuery = query(
+        collection(db, "GDT"),
+        where("ID", "==", RespondedBy)
+      );
+  
+      const unsubscribe = onSnapshot(gdtQuery, (snapshot) => {
+        if (!snapshot.empty) {
+          const gdtData = snapshot.docs[0].data();
+          setResponseByName(`${gdtData.Fname} ${gdtData.Lname}`);
+        } else {
+          console.error("No GDT document found with ID:", RespondedBy);
+          setResponseByName("Unknown");
+        }
+      });
+  
+      return unsubscribe;
+    } catch (error) {
+      console.error("Error fetching GDT details:", error);
+      setResponseByName("Error");
+    }
+  };
+  const ResponseBy = ({ respondedBy }) => {
+    const [responseByName, setResponseByName] = useState("");
+  
+    useEffect(() => {
+      console.log('RespondedBy ID:', respondedBy);
+      
+      if (respondedBy) {
+        const unsubscribe = GDTResponse(respondedBy, setResponseByName);
+        
+        // Cleanup function to unsubscribe from the listener
+        return () => {
+          console.log('Cleaning up listener');
+          unsubscribe && unsubscribe();
+        };
+      } else {
+        setResponseByName("Unknown"); // Reset if no ID
+      }
+    }, [respondedBy]);
+  
+    return <span>{responseByName || "Loading..."}</span>; // Show loading while fetching
+  };
   const toggleTypeDropdown = (type) => {
     setIsTypeOpen((prev) => ({
       ...prev,
@@ -295,15 +340,12 @@ const GDTDashBoard = () => {
           orderBy("time", "desc"),
           limit(1)
         );
-
+  
         const querySnapshot = await getDocs(crashQuery);
-        querySnapshot.forEach((doc) => {
-          console.log("Crash Document:", doc.id, "=>", doc.data());
-        });
         if (!querySnapshot.empty) {
           const lastCrash = querySnapshot.docs[0].data();
           setLastCrashTime(new Date(lastCrash.time * 1000).toLocaleString());
-          setResponseBy(lastCrash.RespondedBy);
+          setResponseBy(lastCrash.RespondedBy); // Set the responder's ID
         } else {
           console.log("No crashes detected.");
         }
@@ -332,22 +374,23 @@ const GDTDashBoard = () => {
         </a>
       </div>
       <main class="Dashboard" style={{ padding: "20px", width: "100%" }}>
-      <div
-  style={{
-    display: "flex",
-    justifyContent: "space-between",
-    gap: "20px",
-    marginBottom: "20px",
-  }}
->
-  <div
-    style={{
-      backgroundColor: "#FFFFFF",
-      padding: "20px",
-      borderRadius: "8px",
-      boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-      flex: 1,
-      textAlign: "center",
+ 
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: "20px",
+            marginBottom: "20px",
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "#FFFFFF",
+              padding: "20px",
+              borderRadius: "8px",
+              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+              flex: 1,
+              textAlign: "center",
       fontWeight: "bold",
     }}
   >
@@ -355,7 +398,6 @@ const GDTDashBoard = () => {
       Started Streaming at: {getLastSundayDateTime()}
     </div>
   </div>
-  
   <div
   style={{
     backgroundColor: "#FFFFFF",
@@ -367,29 +409,47 @@ const GDTDashBoard = () => {
     fontWeight: "bold",
   }}
 >
-  <div style={{ fontWeight: "bold", textAlign: "left" }}>
-    <div style={{ marginBottom: "10px" }}>
+  <div 
+    style={{ 
+      display: "flex", 
+      alignItems: "center", 
+      justifyContent: "space-between",
+      gap: "15px",paddingTop:"15px" 
+    }}
+  >
+    <span>
       Last Crash Detected: <strong>{lastCrashTime || "No data available"}</strong>
-    </div>
-    <div
-      style={{
-        display: "flex",
-        justifyContent: responseBy ? "flex-start" : "center", // Center if no response
-        alignItems: "center",
-        color: responseBy ? "black" : "red",
-        marginTop: responseBy ? "0" : "10px" // Add margin for spacing when centered
-      }}
-    >
-      {responseBy ? (
-        <span>Response By: <strong>{responseBy}</strong></span>
-      ) : (
-        <span style={{ color: "red" }}>Needs Response</span>
-      )}
-    </div>
+    </span>
+    <span style={{ color: responseBy ? "black" : "red" }}>
+  {responseBy ? (
+    <>Response By: <strong><ResponseBy respondedBy={responseBy} /></strong></>
+  ) : (
+    <>Needs Response</>
+  )}
+</span>
   </div>
 </div>
+
 </div>
-        <div
+<div
+          style={{
+            backgroundColor: "#05b06d",
+            color: "#ffffff",
+            padding: "20px",
+            borderTopLeftRadius: "8px",
+            borderTopRightRadius: "8px",
+            borderBottomLeftRadius: "8px",
+            borderBottomRightRadius: "8px",
+            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+            flex: 1,
+            textAlign: "center",
+            fontWeight: "bold",
+            animation: "fadeIn 1s ease-in-out",
+            marginBottom:"20px"
+          }}
+        >
+          Delivery Companies Statistics
+        </div>   <div
           style={{
             display: "flex",
             justifyContent: "center",
@@ -481,6 +541,25 @@ const GDTDashBoard = () => {
             width: "100%",
           }}
         ></div>
+          <div
+          style={{
+            backgroundColor: "#05b06d",
+            color: "#ffffff",
+            padding: "20px",
+            borderTopLeftRadius: "8px",
+            borderTopRightRadius: "8px",
+            borderBottomLeftRadius: "8px",
+            borderBottomRightRadius: "8px",
+            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+            flex: 1,
+            textAlign: "center",
+            marginBottom:"0",
+            fontWeight: "bold",
+            animation: "fadeIn 1s ease-in-out",
+          }}
+        >
+          Traffic Statistics
+        </div>
         <div
           style={{
             display: "flex",
@@ -632,7 +711,7 @@ const GDTDashBoard = () => {
               }}
             >
               <div style={{ fontWeight: "bold" }}>
-                 Statistics
+                 Crash Statistics
               </div>
               <div
                 className="searchContainer"
@@ -747,7 +826,25 @@ const GDTDashBoard = () => {
             <GridItem title="Number of Violations">
               <NumberOfViolations />
             </GridItem>
-
+            <div
+          style={{
+            backgroundColor: "#05b06d",
+            color: "#ffffff",
+            padding: "20px",
+            borderTopLeftRadius: "8px",
+            borderTopRightRadius: "8px",
+            borderBottomLeftRadius: "0",
+            borderBottomRightRadius: "0",
+            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+            flex: 1,
+            textAlign: "center",
+            fontWeight: "bold",
+            marginTop: "20px",
+            animation: "fadeIn 1s ease-in-out",
+          }}
+        >
+          <div style={{ fontWeight: "bold" }}>Violation Statistics</div>
+        </div>
             <GridItem title="Reckless Violations">
               <RecklessViolation />
             </GridItem>
