@@ -367,18 +367,7 @@ const Adddriverbatch = () => {
     }
   };
 
-  const handleBatchUploadResults = (errorList, successCount) => {
-    if (errorList.length > 0) {
-      const errorMessages = errorList.map((err) => err.message).join('\n');
-      setPopupMessage(errorMessages);
-      setPopupImage(errorImage);
-      setPopupVisible(true);
-    } else {
-      setPopupMessage(`A total of ${successCount} Drivers Added Successfully!`);
-      setPopupImage(successImage);
-      setPopupVisible(true);
-    }
-  };
+  
 
   const sendEmail = (email, driverName, password) => {
     // const templateParams = {
@@ -454,40 +443,55 @@ const Adddriverbatch = () => {
     setPopupVisible(false);
   };
 
-  const handleAddDrivers = async () => {
-    const hasErrors = errorData.some((staffErrors) =>
-      Object.values(staffErrors).some((error) => error)
-    );
-    if (hasErrors) {
-      setPopupMessage('Please fix the errors before adding staff.');
+  const handleBatchUploadResults = (errorList, successCount) => {
+    console.log('errorLlllllllllllllllllllllllllist',errorList);
+    if (errorList.length > 0) {
+      const errorMessages = errorList.map((err) => err.message).join('\n');
+      setPopupMessage(errorMessages);
       setPopupImage(errorImage);
       setPopupVisible(true);
-      return;
+    } else {
+      setPopupMessage(`A total of ${successCount} Drivers Added Successfully!`);
+      setPopupImage(successImage);
+      setPopupVisible(true);
     }
-
-    const errorList = [];
-    let successCount = 0;
-    const addedDriversIDs = [];
-    for (const driver of fileData) {
-      try {
-        console.log("driver.GPSnumber:", driver.GPSnumber);
-        const addedDriver = await addDriverToDatabase(driver);
-        addedDriversIDs.push(addedDriver.id); // Store the added driver ID
-        successCount++;
-        // Store the staff ID in sessionStorage
-        sessionStorage.setItem(`driver_${addedDriver.id}`, addedDriver.id);
-      }  catch (error) {
-        errorList.push({
-          message: `Error adding driver ${driver['First name']} ${driver['Last name']}: ${error.message}`,
-        });
-      }
-    }
-// Store added staff IDs in sessionStorage
-const existingIDs = JSON.parse(sessionStorage.getItem('addedDriversIDs')) || [];
-const updatedIDs = [...new Set([...existingIDs, ...addedDriversIDs])]; // Ensure unique IDs
-sessionStorage.setItem('addedDriversIDs', JSON.stringify(updatedIDs));
-    handleBatchUploadResults(errorList, successCount);
   };
+
+
+  const handleAddDrivers = async () => {
+     const hasErrors = errorData.some((staffErrors) =>
+          Object.values(staffErrors).some((error) => error)
+        );
+        if (hasErrors) {
+          setPopupMessage('Please fix the errors before adding drivers.');
+          setPopupImage(errorImage);
+          setPopupVisible(true);
+          return;
+        }
+    
+        const errorList = [];
+        let successCount = 0;
+        const addedDriversIDs = [];
+        for (const staff of fileData) {
+          try {
+            const addedStaff = await addDriverToDatabase(staff);
+            addedDriversIDs.push(addedStaff.id); // Store the added staff ID
+            successCount++;
+            // Store the staff ID in sessionStorage
+            sessionStorage.setItem(`driver${addedStaff.ID}`, addedStaff.ID);
+          }  catch (error) {
+            errorList.push({
+              message: `Error adding driver ${staff['First name']} ${staff['Last name']}: ${error.message}`,
+            });
+          }
+        }
+    // Store added staff IDs in sessionStorage
+    const existingIDs = JSON.parse(sessionStorage.getItem('addedDriversIDs')) || [];
+    const updatedIDs = [...new Set([...existingIDs, ...addedDriversIDs])]; // Ensure unique IDs
+    sessionStorage.setItem('addedDriversIDs', JSON.stringify(updatedIDs));
+        handleBatchUploadResults(errorList, successCount);
+      };
+    
 
   const addDriverToDatabase = async (driver) => {
     const {
@@ -507,12 +511,8 @@ sessionStorage.setItem('addedDriversIDs', JSON.stringify(updatedIDs));
       // Attempt to create user in Firebase Authentication
       const userCredential = await createUserWithEmailAndPassword(auth, Email, password);
       user = userCredential.user; // Store the user if creation succeeds
-    } catch (error) {
-      // If user creation fails, stop and throw the error
-      throw new Error(`${error.message}`);
-    }
+   
 
-    try {
       // Proceed to add to Firestore only if user creation was successful
       const addedDriver = await addDoc(collection(db, 'Driver'), {
         Fname,
@@ -541,28 +541,28 @@ sessionStorage.setItem('addedDriversIDs', JSON.stringify(updatedIDs));
           });
         }
       }
+      sessionStorage.setItem(`driver${addedDriver.id}`, addedDriver.id);
 
       sendEmail(Email, `${Fname} ${Lname}`, password);
       return addedDriver;
 
     } catch (error) {
-      // Handle errors related to Firestore operation
-      throw new Error(`Database operation failed for ${Fname} ${Lname}: ${error.message}`);
+      throw error;
     }
 };
 
-  useEffect(() => {
-    const hasErrors = errorData.some((staffErrors) =>
-      Object.values(staffErrors).some((error) => error)
-    );
-
-    setIsButtonDisabled(hasErrors);
-    setErrorMessage(
-      hasErrors
-        ? 'Please fix the errors in the table highlighted with red borders.'
-        : ''
-    );
-  }, [errorData, fileData]);
+   useEffect(() => {
+      const hasErrors = errorData.some((staffErrors) =>
+        Object.values(staffErrors).some((error) => error)
+      );
+  
+      setIsButtonDisabled(hasErrors);
+      setErrorMessage(
+        hasErrors
+          ? 'Please fix the errors in the table highlighted with red borders.'
+          : ''
+      );
+    }, [errorData, fileData]);
 
 
   
