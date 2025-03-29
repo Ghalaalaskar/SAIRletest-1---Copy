@@ -174,44 +174,100 @@ const GDTAddStaffBatch = () => {
       : 'Staff ID must be 10 digits.';
   };
 
-  const checkUniqueness = async (phone, email, staffID) => {
+  const checkUniqueness = async (phone, email, ID) => {
     let result = { PhoneNumber: true, Email: true, ID: true };
 
+
     try {
-      const phoneQuery = query(
-        collection(db, 'GDT'),
+      let queries = [];
+      let queryMap = {}; // Store which field corresponds to which query
+  
+      if (phone) {
+        const phoneQuery = query(
+          collection(db, 'GDT'),
         where('PhoneNumber', '==', phone)
-      );
-      const emailQuery = query(
-        collection(db, 'GDT'),
+        );
+        queryMap['PhoneNumber'] = getDocs(phoneQuery);
+        queries.push(queryMap['PhoneNumber']);
+      }
+  
+      if (email) {
+        const emailQuery = query(
+          collection(db, 'GDT'),
         where('GDTEmail', '==', email)
-      );
-      const idQuery = query(collection(db, 'GDT'), where('ID', '==', staffID));
-
-      const [phoneSnapshot, emailSnapshot, idSnapshot] = await Promise.all([
-        getDocs(phoneQuery),
-        getDocs(emailQuery),
-        getDocs(idQuery),
-      ]);
-
-      if (!phoneSnapshot.empty) {
-        result = { ...result, PhoneNumber: false };
+        );
+        queryMap['Email'] = getDocs(emailQuery);
+        queries.push(queryMap['Email']);
       }
-      if (!emailSnapshot.empty) {
-        result = { ...result, Email: false };
+  
+      if (ID) {
+        const idQuery = query(
+          collection(db, 'GDT'), where('ID', '==', ID)
+        );
+        queryMap['ID'] = getDocs(idQuery);
+        queries.push(queryMap['ID']);
       }
-      if (!idSnapshot.empty) {
-        result = { ...result, ID: false };
+  
+      const snapshots = await Promise.all(queries);
+  
+      // Check snapshots correctly
+      if (phone && !(await queryMap['PhoneNumber']).empty) {
+        result.PhoneNumber = false;
       }
-
+      if (email && !(await queryMap['Email']).empty) {
+        result.Email = false;
+      }
+      if (ID && !(await queryMap['ID']).empty) {
+        result.ID = false;
+      }
+  
       return result;
     } catch (error) {
       console.error('Error checking uniqueness:', error);
-      return {
-        message: 'Error checking uniqueness in the database.',
-      };
+      return { message: 'Error checking uniqueness in the database.' };
     }
   };
+
+
+
+
+
+
+  //   try {
+  //     const phoneQuery = query(
+  //       collection(db, 'GDT'),
+  //       where('PhoneNumber', '==', phone)
+  //     );
+  //     const emailQuery = query(
+  //       collection(db, 'GDT'),
+  //       where('GDTEmail', '==', email)
+  //     );
+  //     const idQuery = query(collection(db, 'GDT'), where('ID', '==', staffID));
+
+  //     const [phoneSnapshot, emailSnapshot, idSnapshot] = await Promise.all([
+  //       getDocs(phoneQuery),
+  //       getDocs(emailQuery),
+  //       getDocs(idQuery),
+  //     ]);
+
+  //     if (!phoneSnapshot.empty) {
+  //       result = { ...result, PhoneNumber: false };
+  //     }
+  //     if (!emailSnapshot.empty) {
+  //       result = { ...result, Email: false };
+  //     }
+  //     if (!idSnapshot.empty) {
+  //       result = { ...result, ID: false };
+  //     }
+
+  //     return result;
+  //   } catch (error) {
+  //     console.error('Error checking uniqueness:', error);
+  //     return {
+  //       message: 'Error checking uniqueness in the database.',
+  //     };
+  //   }
+  // };
 
   const handleBatchUploadResults = (errorList, successCount) => {
     if (errorList.length > 0) {
