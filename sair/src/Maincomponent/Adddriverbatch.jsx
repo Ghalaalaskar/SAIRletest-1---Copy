@@ -19,6 +19,7 @@ const Adddriverbatch = () => {
   const [fileData, setFileData] = useState([]);
   const [availableMotorcycles, setAvailableMotorcycles] = useState([]);
   const [selectedGPSNumbers, setSelectedGPSNumbers] = useState({}); 
+  const [deletedGPS, setDeletedGPS] = useState(null); // New state for deletedGPS
 
   const [Employer, setEmployer] = useState({ CompanyName: '' });
 
@@ -65,6 +66,9 @@ const Adddriverbatch = () => {
             id: doc.id,
             GPSnumber: doc.data().GPSnumber,
           }));
+          // const filteredBikes = bikes.filter(bike => 
+          //   !Object.values(selectedGPSNumbers).includes(bike.GPSnumber)
+          // );
           setAvailableMotorcycles(bikes);
         });
         return () => unsubscribe();
@@ -75,7 +79,8 @@ const Adddriverbatch = () => {
 
 
   const handleInputChangeGPS = (index, value, driver) => {
-
+    console.log('hhhhhhhhhhhhhhhhhhhhhhhhhhiiiiiiiiiiiiiiii',selectedGPSNumbers);
+    console.log('hhhhhhhhhhhhhhhhhhhhhhhhhhiiiiiiiiiiiiiiii',availableMotorcycles);
 
     setFileData((prevFileData) => {
       const updatedFileData = [...prevFileData];
@@ -86,10 +91,30 @@ const Adddriverbatch = () => {
     });
   
     // Optionally update the selected GPS numbers state if you are tracking them
-    setSelectedGPSNumbers((prevSelected) => ({
-      ...prevSelected,
-      [index]: value,
-    }));
+    // setSelectedGPSNumbers((prevSelected) => ({
+    //   ...prevSelected,
+    //   [index]: value,
+    // }));
+    setSelectedGPSNumbers((prevSelected) => {
+
+      // if (value === 'None') {
+      //   console.log('hhhhhhhhhhhhhhhhhhhhhhhhhhiiiiiiiiiiiiiiii',prevSelected);
+      //   return prevSelected;
+      // }
+    
+      // Check if the value (GPS number) is already selected
+      // if (Object.values(prevSelected).includes(value)) {
+      //   return prevSelected; // Return the previous state if the value already exists (no duplicates)
+      // }
+    
+      // If not, update the state with the new selected GPS number
+      return {
+        ...prevSelected,
+        [index]: value,
+      };
+    });
+    
+
   
 
     setErrorData((prev) => {
@@ -154,31 +179,58 @@ const Adddriverbatch = () => {
     );
   };
 
+
+
   const handleDeleteDrivers = (index) => {
-   
       const updatedFileData = [...fileData];
       const deletedGPS = updatedFileData[index]?.GPSnumber;
-  
+      setDeletedGPS(deletedGPS);
+      console.log('mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm',selectedGPSNumbers);
+        if (deletedGPS && deletedGPS !== 'None') {
+          // Remove from selected list
+          // setSelectedGPSNumbers(prevSelected => {
+          //   const updatedSelected = { ...prevSelected };
+          //   delete updatedSelected[deletedGPS];
+          //   return updatedSelected;
+          // });
+          const updatedSelectedGPSNumbers = { ...selectedGPSNumbers };
+          console.log('mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm',updatedSelectedGPSNumbers);
+
+        delete updatedSelectedGPSNumbers[index];
+        console.log('mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm',updatedSelectedGPSNumbers);
+
+        setSelectedGPSNumbers(updatedSelectedGPSNumbers);
+      console.log('mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm',selectedGPSNumbers);
+          // Add back to availableMotorcycles
+          // setAvailableMotorcycles(prevAvailable => {
+          //   return [...prevAvailable, deletedGPS]; // Add back to available list
+          // });
+        }
+
+      console.log('mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm',selectedGPSNumbers);
+      console.log('mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm',availableMotorcycles);
+
       updatedFileData.splice(index, 1);
       const updatedErrorData = [...errorData];
       updatedErrorData.splice(index, 1);
   
-      console.log('deletedGPS', deletedGPS);
-  
-      if (deletedGPS && deletedGPS !== 'None') {
-          const updatedSelectedGPSNumbers = { ...selectedGPSNumbers };
-          delete updatedSelectedGPSNumbers[deletedGPS]; // Remove from selected list
-          setSelectedGPSNumbers(updatedSelectedGPSNumbers);
-  
-          // Adding the deleted GPS back to available list
-          setAvailableMotorcycles(prevAvailable => [...prevAvailable, deletedGPS]);
-      }
-  
+
+      
     setFileData(updatedFileData);
     setErrorData(updatedErrorData);
     setIsDeletePopupVisible(false);
 };
 
+
+
+useEffect(() => {
+
+  console.log('hhhhhhhhhhhhhhhhhhhhhhhhhhiiiiiiiiiiiiiiii',selectedGPSNumbers);
+  console.log('hhhhhhhhhhhhhhhhhhhhhhhhhhiiiiiiiiiiiiiiii',availableMotorcycles);
+setSelectedGPSNumbers(selectedGPSNumbers);
+
+  // setDeletedGPS(null);
+}, [selectedGPSNumbers]); // Re-run whenever deletedGPS changes
 
   const validateDriverMember = async (driver, index) => {
     const staffErrors = {
@@ -434,6 +486,7 @@ const Adddriverbatch = () => {
     }
     setFileData([]);
     setSelectedGPSNumbers([]);
+    // setAvailableMotorcycles([])
     setIsButtonDisabled(true);
     setErrorMessage('');
     setIsUploadBoxVisible(true);
@@ -564,7 +617,12 @@ const Adddriverbatch = () => {
       );
     }, [errorData, fileData]);
 
-
+    const getFilteredUniqueGPSNumbers = (selectedGPSNumbers) => {
+      // Convert the object to an array, filter out 'None', and remove duplicates
+      const filteredNumbers = Array.from(new Set(Object.values(selectedGPSNumbers).filter(value => value !== 'None')));
+      console.log('fggggggggggggggggggggggggggggggggg',filteredNumbers);
+      return filteredNumbers;
+    };
   
 
   return (
@@ -791,17 +849,15 @@ const Adddriverbatch = () => {
   }}
   title={errorData?.[index]?.GPSnumber ? errorData?.[index]?.GPSnumberMessage : ''}
 >
-  <option value="" disabled>Select a Motorcycle</option>
+<option value="" disabled>Select a Motorcycle</option>
   <option value="None">None</option>
 
-  {/* Show the previously selected GPS number even if it's not available */}
+  {/* Show previously selected GPS number */}
   {driver?.GPSnumber && driver.GPSnumber !== "None" && (
-    <option value={driver.GPSnumber}>
-      {driver.GPSnumber}
-    </option>
+    <option value={driver.GPSnumber}>{driver.GPSnumber}</option>
   )}
 
-  {/* Show only unselected GPS numbers */}
+  {/* Only show unselected GPS numbers */}
   {availableMotorcycles
     .filter((item) => !Object.values(selectedGPSNumbers).includes(item.GPSnumber))
     .map((item) => (
@@ -811,7 +867,7 @@ const Adddriverbatch = () => {
     ))}
 
   {/* Display when no motorcycles are available */}
-  {availableMotorcycles.length === Object.values(selectedGPSNumbers).length && (
+  {availableMotorcycles.length === getFilteredUniqueGPSNumbers(selectedGPSNumbers).length && (
     <option disabled>No motorcycles available</option>
   )}
 </select>
@@ -876,7 +932,9 @@ const Adddriverbatch = () => {
     <Button key="no" onClick={() => setIsDeletePopupVisible(false)}>
       No
     </Button>,
-    <Button key="yes" type="primary" danger onClick={() => handleDeleteDrivers(fileData.indexOf(driverToRemove))}>
+    <Button key="yes" type="primary" danger  onClick={() => {
+      handleDeleteDrivers(fileData.indexOf(driverToRemove)); 
+    }}>
       Yes
     </Button>,
   ]}
