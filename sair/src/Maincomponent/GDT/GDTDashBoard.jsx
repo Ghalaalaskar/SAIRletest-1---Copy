@@ -560,7 +560,7 @@ const GDTDashBoard = () => {
         >
           Traffic Statistics
         </div>
-        <div
+        <
           style={{
             display: "flex",
             gap: "20px",
