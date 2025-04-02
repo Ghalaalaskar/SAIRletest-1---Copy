@@ -20,12 +20,7 @@ const NumberofViolations = ({ dateType }) => {
     // Violations for the past 12 months
     { time: Math.floor(new Date(2025, 0, 1).getTime() / 1000) }, // January
     { time: Math.floor(new Date(2025, 1, 1).getTime() / 1000) }, // February
-    { time: Math.floor(new Date(2025, 1, 1).getTime() / 1000) }, // February
-    { time: Math.floor(new Date(2025, 1, 1).getTime() / 1000) }, // February
-    { time: Math.floor(new Date(2025, 1, 1).getTime() / 1000) }, // February
     { time: Math.floor(new Date(2025, 2, 1).getTime() / 1000) }, // March
-    { time: Math.floor(new Date(2025, 3, 1).getTime() / 1000) }, // April
-    { time: Math.floor(new Date(2025, 3, 1).getTime() / 1000) }, // April
     { time: Math.floor(new Date(2025, 3, 1).getTime() / 1000) }, // April
     { time: Math.floor(new Date(2025, 4, 1).getTime() / 1000) }, // May
     { time: Math.floor(new Date(2025, 5, 1).getTime() / 1000) }, // June
@@ -40,6 +35,8 @@ const NumberofViolations = ({ dateType }) => {
     { time: Math.floor(new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Yesterday
     { time: Math.floor(new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Two days ago
     { time: Math.floor(new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Three days ago
+    { time: Math.floor(new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Four days ago
+    { time: Math.floor(new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Four days ago
     { time: Math.floor(new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Four days ago
     { time: Math.floor(new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Five days ago
     { time: Math.floor(new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Six days ago
@@ -119,11 +116,11 @@ const NumberofViolations = ({ dateType }) => {
           }
         });
 
-        // Convert Map to an array
+        // Convert Map to an array and sort it in ascending order
         const chartData = Array.from(violationsMap, ([date, count]) => ({
           date,
           count,
-        }));
+        })).sort((a, b) => new Date(a.date) - new Date(b.date)); // Sort by date ascending
 
         setData(chartData);
       } catch (error) {
@@ -133,6 +130,7 @@ const NumberofViolations = ({ dateType }) => {
 
     fetchViolations(); // Fetch violations data
   }, [dateType]);
+
 
   return (
     <div style={{ width: "100%", height: "400px", overflowX: "auto" }}>
