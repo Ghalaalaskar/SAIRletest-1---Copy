@@ -42,6 +42,7 @@ const GDTDashBoard = () => {
   const [lastCrashTime, setLastCrashTime] = useState(null);
   const [responseBy, setResponseBy] = useState(null);
   const [FilterByDate, setFilterByDate] = useState("Week");
+  const [FilterByDateCrash, setFilterByDateCrash] = useState("Week");
 
   useEffect(() => {
     fetchData();
@@ -50,6 +51,11 @@ const GDTDashBoard = () => {
     const isChecked = event.target.checked;
     const filterByDate = isChecked ? "Month" : "Week"; // Determine the filter based on checked state
     setFilterByDate(filterByDate); // Update your filter state
+  };
+  const handleDateFilterChangeCarsh = (event) => {
+    const isChecked = event.target.checked;
+    const filterByDateCrash = isChecked ? "Month" : "Week"; // Determine the filter based on checked state
+    setFilterByDateCrash(filterByDateCrash); // Update your filter state
   };
   const capitalizeFirstLetter = (string) => {
     if (!string) return "";
@@ -603,22 +609,21 @@ const GDTDashBoard = () => {
                 width: "100%", // Ensure the container takes full width
               }}
             >
-              <div style={{ fontWeight: "bold" }}>Violation Statistics</div>
+              <div style={{ fontWeight: "bold", marginRight:"150px" }}>Violation Statistics</div>
+              <label className={d.switch}>
+                <input type="checkbox" onChange={handleDateFilterChange} />
+                <span className={d.slider}></span>
+              </label>
 
               <div
                 className="searchContainer"
                 ref={violationDropdownRef}
                 style={{
                   display: "flex",
-                  alignItems: "center", // Align items vertically in the center
+                  alignItems: "center",
                   position: "relative",
                 }}
               >
-                <label className={d.switch}>
-                  <input type="checkbox" onChange={handleDateFilterChange} />
-                  <span className={d.slider}></span>
-                </label>
-
                 <div
                   className="selectWrapper"
                   style={{
@@ -626,42 +631,43 @@ const GDTDashBoard = () => {
                     backgroundColor: "#FFFFFF",
                     color: "black",
                     borderRadius: "5px",
-                    padding: "5px",
                     fontWeight: "normal",
-                    marginLeft: "10px", // Space between the checkbox and the dropdown
+                    marginLeft: "10px",
+                    width: "220px", // Fixed width
+                    boxSizing: "border-box", // Prevents expansion
+                    position: "relative", // For absolute dropdown positioning
                   }}
                 >
                   <div
-                    className={`customSelect ${
-                      isTypeOpen.violations ? "open" : ""
-                    }`}
+                    className="customSelect"
                     onClick={() => toggleTypeDropdown("violations")}
                     style={{
                       cursor: "pointer",
-                      padding: "5px 10px",
-                      position: "relative",
-                      width: "200px",
+                      padding: "8px 12px",
+                      width: "100%", // Prevents expansion
                       textAlign: "left",
+                      fontSize: "14px",
+                      position: "relative",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
                     }}
                   >
-                    {violationFilterType === "All" ? (
-                      <span>Filter by Company</span>
-                    ) : (
-                      violationFilterType
-                    )}
+                    <span>
+                      {violationFilterType === "All"
+                        ? "Filter by Company"
+                        : violationFilterType}
+                    </span>
                     <span
                       style={{
-                        position: "absolute",
-                        right: "10px",
-                        top: "50%",
-                        transform: "translateY(-50%)",
                         border: "solid #4CAF50",
                         borderWidth: "0 2px 2px 0",
                         display: "inline-block",
-                        padding: "3px",
+                        padding: "4px",
                         transform: isTypeOpen.violations
-                          ? "translateY(-50%) rotate(-135deg)"
-                          : "translateY(-50%) rotate(45deg)",
+                          ? "rotate(-135deg)"
+                          : "rotate(45deg)",
+                        transition: "transform 0.2s",
                       }}
                     />
                   </div>
@@ -674,12 +680,12 @@ const GDTDashBoard = () => {
                         zIndex: 1000,
                         backgroundColor: "#fff",
                         border: "1px solid #ddd",
-                        top: "100%",
-                        left: "0",
-                        right: "0",
-                        textAlign: "left",
                         borderRadius: "5px",
-                        fontWeight: "normal",
+                        width: "100%", // Matches select width
+                        top: "100%", // Positions below the select
+                        left: 0, // Ensures alignment
+                        boxSizing: "border-box",
+                        boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
                       }}
                     >
                       {companyOptions.map((option) => (
@@ -688,9 +694,10 @@ const GDTDashBoard = () => {
                           className="dropdownOption"
                           onClick={() => handleViolationOptionClick(option)}
                           style={{
-                            padding: "10px",
+                            padding: "12px",
                             cursor: "pointer",
                             transition: "background-color 0.3s",
+                            fontSize: "14px",
                           }}
                           onMouseEnter={(e) =>
                             (e.currentTarget.style.backgroundColor = "#f0f0f0")
@@ -707,7 +714,7 @@ const GDTDashBoard = () => {
                   )}
                 </div>
               </div>
-            </div>{" "}
+            </div>
           </div>
           <div
             style={{
@@ -733,22 +740,34 @@ const GDTDashBoard = () => {
                 alignItems: "center",
               }}
             >
-              <div style={{ fontWeight: "bold" }}>Crash Statistics</div>
+              <div style={{ fontWeight: "bold", marginRight:"150px" }}>Crash Statistics</div>
+              <label className={d.switch}>
+                <input type="checkbox" onChange={handleDateFilterChangeCarsh} />
+                <span className={d.slider}></span>
+              </label>
+
               <div
                 className="searchContainer"
                 ref={complaintDropdownRef}
-                style={{ position: "relative" }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  position: "relative",
+                }}
               >
                 <div
-                  className="selectWrapper"
-                  style={{
-                    border: "2px solid #4CAF50",
-                    backgroundColor: "#FFFFFF",
-                    color: "black",
-                    borderRadius: "5px",
-                    padding: "5px",
-                    fontWeight: "normal",
-                  }}
+                   className="selectWrapper"
+                   style={{
+                     border: "2px solid #4CAF50",
+                     backgroundColor: "#FFFFFF",
+                     color: "black",
+                     borderRadius: "5px",
+                     fontWeight: "normal",
+                     marginLeft: "10px",
+                     width: "220px", // Fixed width
+                     boxSizing: "border-box", // Prevents expansion
+                     position: "relative", // For absolute dropdown positioning
+                   }}
                 >
                   <div
                     className={`customSelect ${
@@ -757,10 +776,14 @@ const GDTDashBoard = () => {
                     onClick={() => toggleTypeDropdown("complaints")}
                     style={{
                       cursor: "pointer",
-                      padding: "5px 10px",
-                      position: "relative",
-                      width: "200px",
+                      padding: "8px 12px",
+                      width: "100%", // Prevents expansion
                       textAlign: "left",
+                      fontSize: "14px",
+                      position: "relative",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
                     }}
                   >
                     {complaintFilterType === "All" ? (
@@ -769,36 +792,33 @@ const GDTDashBoard = () => {
                       complaintFilterType
                     )}
                     <span
-                      style={{
-                        position: "absolute",
-                        right: "10px",
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                        border: "solid #4CAF50",
-                        borderWidth: "0 2px 2px 0",
-                        display: "inline-block",
-                        padding: "3px",
-                        transform: isTypeOpen.complaints
-                          ? "translateY(-50%) rotate(-135deg)"
-                          : "translateY(-50%) rotate(45deg)",
-                      }}
+                        style={{
+                          border: "solid #4CAF50",
+                          borderWidth: "0 2px 2px 0",
+                          display: "inline-block",
+                          padding: "4px",
+                          transform: isTypeOpen.complaints
+                            ? "rotate(-135deg)"
+                            : "rotate(45deg)",
+                          transition: "transform 0.2s",
+                        }}
                     />
                   </div>
                   {isTypeOpen.complaints && (
                     <div
-                      className="dropdownMenu"
-                      style={{
-                        position: "absolute",
-                        zIndex: 1000,
-                        backgroundColor: "#fff",
-                        border: "1px solid #ddd",
-                        top: "100%",
-                        left: "0",
-                        right: "0",
-                        textAlign: "left",
-                        borderRadius: "5px",
-                        fontWeight: "normal",
-                      }}
+                    className="dropdownMenu"
+                    style={{
+                      position: "absolute",
+                      zIndex: 1000,
+                      backgroundColor: "#fff",
+                      border: "1px solid #ddd",
+                      borderRadius: "5px",
+                      width: "100%", // Matches select width
+                      top: "100%", // Positions below the select
+                      left: 0, // Ensures alignment
+                      boxSizing: "border-box",
+                      boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+                    }}
                     >
                       {companyOptions.map((option) => (
                         <div
@@ -809,6 +829,7 @@ const GDTDashBoard = () => {
                             padding: "10px",
                             cursor: "pointer",
                             transition: "background-color 0.3s",
+                            fontSize: "14px",
                           }}
                           onMouseEnter={(e) =>
                             (e.currentTarget.style.backgroundColor = "#f0f0f0")
