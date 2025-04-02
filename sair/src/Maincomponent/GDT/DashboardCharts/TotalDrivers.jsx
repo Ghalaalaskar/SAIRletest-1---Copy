@@ -63,6 +63,8 @@ const NumberofDrivers = () => {
           { CompanyName: "Keeta" },
           { CompanyName: "Nana" },
           { CompanyName: "Nana" },
+
+          { CompanyName: "TheChefz" },
         ];
 
         dummyDrivers.forEach(({ CompanyName }) => {
@@ -70,7 +72,7 @@ const NumberofDrivers = () => {
             companyMap.set(CompanyName, (companyMap.get(CompanyName) || 0) + 1);
           }
         });
-
+        //end of Dummy
         const chartData = Array.from(companyMap, ([companyName, value]) => ({
           name: capitalizeFirstLetter(
             employerMap.get(companyName) || companyName
