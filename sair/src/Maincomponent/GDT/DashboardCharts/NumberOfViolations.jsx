@@ -3,57 +3,98 @@ import { useEffect, useState } from "react";
 import { db } from "../../../firebase";
 import { collection, getDocs } from "firebase/firestore";
 import {
-  LineChart,
-  Line,
-  Area,
   AreaChart,
   ResponsiveContainer,
   XAxis,
   YAxis,
   CartesianGrid,
-  Legend,
   Tooltip,
+  Area,
 } from "recharts";
 
-const NumberofViolations = () => {
+const NumberofViolations = ({ dateType }) => {
   const [data, setData] = useState([]);
+
+  // Hardcoded dummy data for 2025
+  const dummyData = [
+    // Violations for the past 12 months
+    { time: Math.floor(new Date(2025, 0, 1).getTime() / 1000) }, // January
+    { time: Math.floor(new Date(2025, 1, 1).getTime() / 1000) }, // February
+    { time: Math.floor(new Date(2025, 1, 1).getTime() / 1000) }, // February
+    { time: Math.floor(new Date(2025, 1, 1).getTime() / 1000) }, // February
+    { time: Math.floor(new Date(2025, 1, 1).getTime() / 1000) }, // February
+    { time: Math.floor(new Date(2025, 2, 1).getTime() / 1000) }, // March
+    { time: Math.floor(new Date(2025, 3, 1).getTime() / 1000) }, // April
+    { time: Math.floor(new Date(2025, 3, 1).getTime() / 1000) }, // April
+    { time: Math.floor(new Date(2025, 3, 1).getTime() / 1000) }, // April
+    { time: Math.floor(new Date(2025, 4, 1).getTime() / 1000) }, // May
+    { time: Math.floor(new Date(2025, 5, 1).getTime() / 1000) }, // June
+    { time: Math.floor(new Date(2025, 6, 1).getTime() / 1000) }, // July
+    { time: Math.floor(new Date(2025, 7, 1).getTime() / 1000) }, // August
+    { time: Math.floor(new Date(2025, 8, 1).getTime() / 1000) }, // September
+    { time: Math.floor(new Date(2025, 9, 1).getTime() / 1000) }, // October
+    { time: Math.floor(new Date(2025, 10, 1).getTime() / 1000) }, // November
+    { time: Math.floor(new Date(2025, 11, 1).getTime() / 1000) }, // December
+    // Violations for the past 7 days
+    { time: Math.floor(new Date().getTime() / 1000) }, // Today
+    { time: Math.floor(new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Yesterday
+    { time: Math.floor(new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Two days ago
+    { time: Math.floor(new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Three days ago
+    { time: Math.floor(new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Four days ago
+    { time: Math.floor(new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Five days ago
+    { time: Math.floor(new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Six days ago
+  ];
 
   useEffect(() => {
     const fetchViolations = async () => {
       try {
         const querySnapshot = await getDocs(collection(db, "Violation"));
         const violationsMap = new Map();
-        const oneWeekAgo = new Date();
-        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+        
+        // Get the current year and month
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth(); // 0-based index
 
-        // Initialize map with all dates in the past week
-        for (
-          let d = new Date(oneWeekAgo);
-          d <= today;
-          d.setDate(d.getDate() + 1)
-        ) {
-          const formattedDate = d.toLocaleDateString("en-GB", {
-            day: "2-digit",
-            month: "long",
-          });
-          violationsMap.set(formattedDate, 0);
+        // Determine the date range and grouping based on dateType
+        let startDate;
+        if (dateType === "Week") {
+          startDate = new Date();
+          startDate.setDate(today.getDate() - 7); // Last 7 days
+        } else { // Month
+          startDate = new Date(currentYear, 0, 1); // Start from January 1st of the current year
         }
 
+        // Initialize map based on dateType
+        if (dateType === "Week") {
+          for (let i = 0; i < 7; i++) {
+            const d = new Date();
+            d.setDate(today.getDate() - i);
+            const formattedDate = d.toLocaleDateString("en-GB", { day: "2-digit", month: "long" });
+            violationsMap.set(formattedDate, 0);
+          }
+        } else { // Month
+          for (let month = 0; month <= currentMonth; month++) { // Only include passed months
+            const formattedDate = new Date(currentYear, month).toLocaleDateString("en-GB", { year: "numeric", month: "long" });
+            violationsMap.set(formattedDate, 0);
+          }
+        }
+
+        // Process violations from Firestore and group by date
         querySnapshot.forEach((doc) => {
           const { time } = doc.data();
-          if (!time) return; // Ensure time exists
+          if (!time) return;
 
-          const violationDate = new Date(time * 1000); // Convert Unix timestamp
-          violationDate.setHours(0, 0, 0, 0); // Normalize to start of day
+          const violationDate = new Date(time * 1000);
+          violationDate.setHours(0, 0, 0, 0);
 
-          if (violationDate >= oneWeekAgo) {
-            const formattedDate = violationDate.toLocaleDateString("en-GB", {
-              day: "2-digit",
-              month: "long",
-            });
+          if (violationDate >= startDate && violationDate <= today) {
+            const formattedDate = dateType === "Week"
+              ? violationDate.toLocaleDateString("en-GB", { day: "2-digit", month: "long" })
+              : violationDate.toLocaleDateString("en-GB", { year: "numeric", month: "long" });
+            
             violationsMap.set(
               formattedDate,
               (violationsMap.get(formattedDate) || 0) + 1
@@ -61,7 +102,24 @@ const NumberofViolations = () => {
           }
         });
 
-        // Convert Map to an array and sort by date
+        // Process dummy data and group by date
+        dummyData.forEach((violation) => {
+          const violationDate = new Date(violation.time * 1000);
+          violationDate.setHours(0, 0, 0, 0);
+
+          if (violationDate >= startDate && violationDate <= today) {
+            const formattedDate = dateType === "Week"
+              ? violationDate.toLocaleDateString("en-GB", { day: "2-digit", month: "long" })
+              : violationDate.toLocaleDateString("en-GB", { year: "numeric", month: "long" });
+
+            violationsMap.set(
+              formattedDate,
+              (violationsMap.get(formattedDate) || 0) + 1
+            );
+          }
+        });
+
+        // Convert Map to an array
         const chartData = Array.from(violationsMap, ([date, count]) => ({
           date,
           count,
@@ -73,17 +131,15 @@ const NumberofViolations = () => {
       }
     };
 
-    fetchViolations();
-  }, []);
+    fetchViolations(); // Fetch violations data
+  }, [dateType]);
 
   return (
-    <div style={{ width: "100%", height: "400px" }}>
-      <ResponsiveContainer width="100%" height="100%">
+    <div style={{ width: "100%", height: "400px", overflowX: "auto" }}>
+      <ResponsiveContainer width={data.length > 7 ? "150%" : "100%"} height="100%">
         <AreaChart
-          width={730}
-          height={250}
           data={data}
-          margin={{ top: 10, right: 30, left: 0, bottom:60 }}
+          margin={{ top: 10, right: 30, left: 0, bottom: 60 }}
         >
           <defs>
             <linearGradient id="colorPv" x1="0" y1="0" x2="0" y2="1">
@@ -91,13 +147,13 @@ const NumberofViolations = () => {
               <stop offset="95%" stopColor="#82ca9d" stopOpacity={0} />
             </linearGradient>
           </defs>
-         
           <XAxis
             dataKey="date"
-            interval="preserveStartEnd"
+            interval={0} // Show all dates
             angle={-45}
             textAnchor="end"
             label={{ value: "Date", position: "insideBottom", dy: 55 }}
+            tick={{ fontSize: 12 }}
           />
           <YAxis
             allowDecimals={false}

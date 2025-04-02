@@ -41,11 +41,16 @@ const GDTDashBoard = () => {
   const [percentageChangeCrash, setPercentageChangeCrash] = useState(null);
   const [lastCrashTime, setLastCrashTime] = useState(null);
   const [responseBy, setResponseBy] = useState(null);
+  const [FilterByDate, setFilterByDate] = useState("Week");
 
   useEffect(() => {
     fetchData();
   }, []);
-
+  const handleDateFilterChange = (event) => {
+    const isChecked = event.target.checked;
+    const filterByDate = isChecked ? "Month" : "Week"; // Determine the filter based on checked state
+    setFilterByDate(filterByDate); // Update your filter state
+  };
   const capitalizeFirstLetter = (string) => {
     if (!string) return "";
     return string.charAt(0).toUpperCase() + string.slice(1);
@@ -57,7 +62,7 @@ const GDTDashBoard = () => {
         collection(db, "GDT"),
         where("ID", "==", RespondedBy)
       );
-  
+
       const unsubscribe = onSnapshot(gdtQuery, (snapshot) => {
         if (!snapshot.empty) {
           const gdtData = snapshot.docs[0].data();
@@ -67,7 +72,7 @@ const GDTDashBoard = () => {
           setResponseByName("Unknown");
         }
       });
-  
+
       return unsubscribe;
     } catch (error) {
       console.error("Error fetching GDT details:", error);
@@ -76,23 +81,23 @@ const GDTDashBoard = () => {
   };
   const ResponseBy = ({ respondedBy }) => {
     const [responseByName, setResponseByName] = useState("");
-  
+
     useEffect(() => {
-      console.log('RespondedBy ID:', respondedBy);
-      
+      console.log("RespondedBy ID:", respondedBy);
+
       if (respondedBy) {
         const unsubscribe = GDTResponse(respondedBy, setResponseByName);
-        
+
         // Cleanup function to unsubscribe from the listener
         return () => {
-          console.log('Cleaning up listener');
+          console.log("Cleaning up listener");
           unsubscribe && unsubscribe();
         };
       } else {
         setResponseByName("Unknown"); // Reset if no ID
       }
     }, [respondedBy]);
-  
+
     return <span>{responseByName || "Loading..."}</span>; // Show loading while fetching
   };
   const toggleTypeDropdown = (type) => {
@@ -340,7 +345,7 @@ const GDTDashBoard = () => {
           orderBy("time", "desc"),
           limit(1)
         );
-  
+
         const querySnapshot = await getDocs(crashQuery);
         if (!querySnapshot.empty) {
           const lastCrash = querySnapshot.docs[0].data();
@@ -374,7 +379,6 @@ const GDTDashBoard = () => {
         </a>
       </div>
       <main class="Dashboard" style={{ padding: "20px", width: "100%" }}>
- 
         <div
           style={{
             display: "flex",
@@ -391,47 +395,53 @@ const GDTDashBoard = () => {
               boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
               flex: 1,
               textAlign: "center",
-      fontWeight: "bold",
-    }}
-  >
-    <div style={{ fontWeight: "bold", paddingTop:"15px" }}>
-      Started Streaming at: {getLastSundayDateTime()}
-    </div>
-  </div>
-  <div
-  style={{
-    backgroundColor: "#FFFFFF",
-    padding: "20px",
-    borderRadius: "8px",
-    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-    flex: 1,
-    textAlign: "left",
-    fontWeight: "bold",
-  }}
->
-  <div 
-    style={{ 
-      display: "flex", 
-      alignItems: "center", 
-      justifyContent: "space-between",
-      gap: "15px",paddingTop:"15px" 
-    }}
-  >
-    <span>
-      Last Crash Detected: <strong>{lastCrashTime || "No data available"}</strong>
-    </span>
-    <span style={{ color: responseBy ? "black" : "red" }}>
-  {responseBy ? (
-    <>Response By: <strong><ResponseBy respondedBy={responseBy} /></strong></>
-  ) : (
-    <>Needs Response</>
-  )}
-</span>
-  </div>
-</div>
-
-</div>
-<div
+              fontWeight: "bold",
+            }}
+          >
+            <div style={{ fontWeight: "bold", paddingTop: "15px" }}>
+              Started Streaming at: {getLastSundayDateTime()}
+            </div>
+          </div>
+          <div
+            style={{
+              backgroundColor: "#FFFFFF",
+              padding: "20px",
+              borderRadius: "8px",
+              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+              flex: 1,
+              textAlign: "left",
+              fontWeight: "bold",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "15px",
+                paddingTop: "15px",
+              }}
+            >
+              <span>
+                Last Crash Detected:{" "}
+                <strong>{lastCrashTime || "No data available"}</strong>
+              </span>
+              <span style={{ color: responseBy ? "black" : "red" }}>
+                {responseBy ? (
+                  <>
+                    Response By:{" "}
+                    <strong>
+                      <ResponseBy respondedBy={responseBy} />
+                    </strong>
+                  </>
+                ) : (
+                  <>Needs Response</>
+                )}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
           style={{
             backgroundColor: "#05b06d",
             color: "#ffffff",
@@ -445,11 +455,12 @@ const GDTDashBoard = () => {
             textAlign: "center",
             fontWeight: "bold",
             animation: "fadeIn 1s ease-in-out",
-            marginBottom:"20px"
+            marginBottom: "20px",
           }}
         >
           Delivery Companies Statistics
-        </div>   <div
+        </div>{" "}
+        <div
           style={{
             display: "flex",
             justifyContent: "center",
@@ -531,7 +542,6 @@ const GDTDashBoard = () => {
               {item.component}
             </GridItem>
           ))}
-        
         </div>
         <div
           style={{
@@ -541,7 +551,7 @@ const GDTDashBoard = () => {
             width: "100%",
           }}
         ></div>
-          <div
+        <div
           style={{
             backgroundColor: "#05b06d",
             color: "#ffffff",
@@ -553,14 +563,14 @@ const GDTDashBoard = () => {
             boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
             flex: 1,
             textAlign: "center",
-            marginBottom:"0",
+            marginBottom: "0",
             fontWeight: "bold",
             animation: "fadeIn 1s ease-in-out",
           }}
         >
           Traffic Statistics
         </div>
-        <
+        <div
           style={{
             display: "flex",
             gap: "20px",
@@ -590,14 +600,25 @@ const GDTDashBoard = () => {
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
+                width: "100%", // Ensure the container takes full width
               }}
             >
               <div style={{ fontWeight: "bold" }}>Violation Statistics</div>
+
               <div
                 className="searchContainer"
                 ref={violationDropdownRef}
-                style={{ position: "relative" }}
+                style={{
+                  display: "flex",
+                  alignItems: "center", // Align items vertically in the center
+                  position: "relative",
+                }}
               >
+                <label className={d.switch}>
+                  <input type="checkbox" onChange={handleDateFilterChange} />
+                  <span className={d.slider}></span>
+                </label>
+
                 <div
                   className="selectWrapper"
                   style={{
@@ -607,6 +628,7 @@ const GDTDashBoard = () => {
                     borderRadius: "5px",
                     padding: "5px",
                     fontWeight: "normal",
+                    marginLeft: "10px", // Space between the checkbox and the dropdown
                   }}
                 >
                   <div
@@ -643,6 +665,7 @@ const GDTDashBoard = () => {
                       }}
                     />
                   </div>
+
                   {isTypeOpen.violations && (
                     <div
                       className="dropdownMenu"
@@ -684,7 +707,7 @@ const GDTDashBoard = () => {
                   )}
                 </div>
               </div>
-            </div>
+            </div>{" "}
           </div>
           <div
             style={{
@@ -710,9 +733,7 @@ const GDTDashBoard = () => {
                 alignItems: "center",
               }}
             >
-              <div style={{ fontWeight: "bold" }}>
-                 Crash Statistics
-              </div>
+              <div style={{ fontWeight: "bold" }}>Crash Statistics</div>
               <div
                 className="searchContainer"
                 ref={complaintDropdownRef}
@@ -824,27 +845,27 @@ const GDTDashBoard = () => {
             }}
           >
             <GridItem title="Number of Violations">
-              <NumberOfViolations />
+              <NumberOfViolations dateType={FilterByDate} />
             </GridItem>
             <div
-          style={{
-            backgroundColor: "#05b06d",
-            color: "#ffffff",
-            padding: "20px",
-            borderTopLeftRadius: "8px",
-            borderTopRightRadius: "8px",
-            borderBottomLeftRadius: "0",
-            borderBottomRightRadius: "0",
-            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-            flex: 1,
-            textAlign: "center",
-            fontWeight: "bold",
-            marginTop: "20px",
-            animation: "fadeIn 1s ease-in-out",
-          }}
-        >
-          <div style={{ fontWeight: "bold" }}>Violation Statistics</div>
-        </div>
+              style={{
+                backgroundColor: "#05b06d",
+                color: "#ffffff",
+                padding: "20px",
+                borderTopLeftRadius: "8px",
+                borderTopRightRadius: "8px",
+                borderBottomLeftRadius: "0",
+                borderBottomRightRadius: "0",
+                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+                flex: 1,
+                textAlign: "center",
+                fontWeight: "bold",
+                marginTop: "20px",
+                animation: "fadeIn 1s ease-in-out",
+              }}
+            >
+              <div style={{ fontWeight: "bold" }}>Violation Statistics</div>
+            </div>
             <GridItem title="Reckless Violations">
               <RecklessViolation />
             </GridItem>
@@ -863,8 +884,6 @@ const GDTDashBoard = () => {
             </GridItem>
           </div>
         </div>
-        
-        
         {/* Staff Charts */}
         <div
           style={{
@@ -885,7 +904,6 @@ const GDTDashBoard = () => {
         >
           <div style={{ fontWeight: "bold" }}>Staff Response Statistics</div>
         </div>
-
         <div
           style={{
             display: "flex",
@@ -906,9 +924,8 @@ const GDTDashBoard = () => {
             </GridItem>
           </div>
         </div>
-       
-        {/* Geo Charts */} 
-        <div 
+        {/* Geo Charts */}
+        <div
           style={{
             backgroundColor: "#05b06d",
             color: "#ffffff",
@@ -929,7 +946,6 @@ const GDTDashBoard = () => {
             Riyadh Violation and Crash Distribution
           </div>
         </div>
-
         <div
           style={{
             display: "flex",
@@ -937,7 +953,7 @@ const GDTDashBoard = () => {
             width: "100%",
           }}
         >
-        <div
+          <div
             style={{
               flex: 1,
               display: "flex",
@@ -949,7 +965,7 @@ const GDTDashBoard = () => {
               <ViolationCrashGeoChart />
             </GridItem>
           </div>
-          </div>
+        </div>
       </main>
     </div>
   );
