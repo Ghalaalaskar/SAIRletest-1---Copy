@@ -41,20 +41,20 @@ const GDTDashBoard = () => {
   const [percentageChangeCrash, setPercentageChangeCrash] = useState(null);
   const [lastCrashTime, setLastCrashTime] = useState(null);
   const [responseBy, setResponseBy] = useState(null);
-  const [FilterByDate, setFilterByDate] = useState("Week");
-  const [FilterByDateCrash, setFilterByDateCrash] = useState("Week");
+  const [filterByDate, setFilterByDate] = useState("week"); 
+  const [filterByDateCrash, setFilterByDateCrash] = useState("week");
 
   useEffect(() => {
     fetchData();
   }, []);
+
   const handleDateFilterChange = (event) => {
-    const isChecked = event.target.checked;
-    const filterByDate = isChecked ? "Month" : "Week"; // Determine the filter based on checked state
+    const filterByDate = event.target.value; // Get the selected value (Week or Month)
     setFilterByDate(filterByDate); // Update your filter state
-  };
+};
+
   const handleDateFilterChangeCarsh = (event) => {
-    const isChecked = event.target.checked;
-    const filterByDateCrash = isChecked ? "Month" : "Week"; // Determine the filter based on checked state
+    const filterByDateCrash = event.target.value;
     setFilterByDateCrash(filterByDateCrash); // Update your filter state
   };
   const capitalizeFirstLetter = (string) => {
@@ -609,11 +609,31 @@ const GDTDashBoard = () => {
                 width: "100%", // Ensure the container takes full width
               }}
             >
-              <div style={{ fontWeight: "bold", marginRight:"150px" }}>Violation Statistics</div>
-              <label className={d.switch}>
-                <input type="checkbox" onChange={handleDateFilterChange} />
-                <span className={d.slider}></span>
-              </label>
+<div style={{   textAlign: "left", fontWeight: "bold",marginRight:"90px" }}>Violation Statistics</div>
+ {/* First Radio Group */}
+ <div className={d.radioinputs}>
+        <label className={d.radio}>
+          <input
+            type="radio"
+            name="dateFilter1" // Unique name but controlled by state
+            value="week"
+            checked={filterByDate === "week"}
+            onChange={handleDateFilterChange}
+          />
+          <span className={d.name}>Week</span>
+        </label>
+        <label className={d.radio}>
+          <input
+            type="radio"
+            name="dateFilter1"
+            value="Month"
+            checked={filterByDate === "Month"}
+            onChange={handleDateFilterChange}
+          />
+          <span className={d.name}>Month</span>
+        </label>
+      </div>
+
 
               <div
                 className="searchContainer"
@@ -632,10 +652,11 @@ const GDTDashBoard = () => {
                     color: "black",
                     borderRadius: "5px",
                     fontWeight: "normal",
-                    marginLeft: "10px",
+                    marginLeft: "0px",
                     width: "220px", // Fixed width
                     boxSizing: "border-box", // Prevents expansion
                     position: "relative", // For absolute dropdown positioning
+                    marginLeft:"9px"
                   }}
                 >
                   <div
@@ -716,6 +737,7 @@ const GDTDashBoard = () => {
               </div>
             </div>
           </div>
+          
           <div
             style={{
               backgroundColor: "#05b06d",
@@ -740,12 +762,29 @@ const GDTDashBoard = () => {
                 alignItems: "center",
               }}
             >
-              <div style={{ fontWeight: "bold", marginRight:"150px" }}>Crash Statistics</div>
-              <label className={d.switch}>
-                <input type="checkbox" onChange={handleDateFilterChangeCarsh} />
-                <span className={d.slider}></span>
-              </label>
-
+              <div style={{ fontWeight: "bold",marginRight:"110px" }}>Crash Statistics</div>
+              <div className={d.radioinputs2}>
+        <label className={d.radio2}>
+          <input
+            type="radio"
+            name="dateFilter2" // Different name but still controlled by state
+            value="week"
+            checked={filterByDateCrash === "week"}
+            onChange={handleDateFilterChangeCarsh}
+          />
+          <span className={d.name2}>Week</span>
+        </label>
+        <label className={d.radio2}>
+          <input
+            type="radio"
+            name={"dateFilter2"}
+            value="Month"
+            checked={filterByDateCrash === "Month"}
+            onChange={handleDateFilterChangeCarsh}
+          />
+          <span className={d.name2}>Month</span>
+        </label>
+      </div>
               <div
                 className="searchContainer"
                 ref={complaintDropdownRef}
@@ -763,10 +802,11 @@ const GDTDashBoard = () => {
                      color: "black",
                      borderRadius: "5px",
                      fontWeight: "normal",
-                     marginLeft: "10px",
+                     marginLeft: "0px",
                      width: "220px", // Fixed width
                      boxSizing: "border-box", // Prevents expansion
                      position: "relative", // For absolute dropdown positioning
+                       marginLeft:"9px"
                    }}
                 >
                   <div
@@ -866,7 +906,7 @@ const GDTDashBoard = () => {
             }}
           >
             <GridItem title="Number of Violations">
-              <NumberOfViolations dateType={FilterByDate} />
+              <NumberOfViolations dateType={filterByDate} />
             </GridItem>
             <div
               style={{
@@ -901,7 +941,7 @@ const GDTDashBoard = () => {
             }}
           >
             <GridItem title="Number of Crashes">
-              <NumberofCrashes />
+              <NumberofCrashes dateType={filterByDateCrash}/>
             </GridItem>
           </div>
         </div>

@@ -98,7 +98,7 @@ table{
   animation: fadeIn 1s ease-in-out;
 }
 /* From Uiverse.io by victoryamaykin */ 
-.switch {
+/*.switch {
   position: relative;
   display: inline-block;
   width: 120px;
@@ -148,8 +148,9 @@ table{
   -ms-transform: translateX(26px);
   transform: translateX(85px);
  }
- 
+ */
  /*------ ADDED CSS ---------*/
+ /*
  .slider:after {
   content: 'Week';
   color: white;
@@ -165,5 +166,82 @@ table{
  input:checked + .slider:after {
   content: 'Month';
  }
- 
+ */
  /*--------- END --------*/
+ /* ======== Shared Styles for Both Radio Groups ======== */
+.radioinputs, .radioinputs2 {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  border-radius: 0.5rem;
+  background-color: #EEE;
+  box-sizing: border-box;
+  box-shadow: 0 0 0px 1px rgba(0, 0, 0, 0.06);
+  padding: 0.25rem;
+  width: 180px;
+  font-size: 14px;
+  height: 40px;
+  transition: all 0.3s ease-in-out;
+}
+
+/* ======== First Radio Group Styles ======== */
+.radioinputs .radio {
+  flex: 1 1 auto;
+  text-align: center;
+}
+
+.radioinputs .radio input {
+  display: none;
+}
+
+.radioinputs .radio .name {
+  display: flex;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  border: none;
+  padding: 0.5rem 0;
+  color: rgba(51, 65, 85, 1);
+  transition: all 0.15s ease-in-out;
+  height: 33px;
+}
+
+.radioinputs .radio input:checked + .name {
+  background-color: #fff;
+  font-weight: 600;
+}
+
+/* ======== Second Radio Group Styles ======== */
+.radioinputs2 .radio2 {
+  flex: 1 1 auto;
+  text-align: center;
+}
+
+.radioinputs2 .radio2 input {
+  display: none;
+}
+
+.radioinputs2 .radio2 .name2 {
+  display: flex;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  border: none;
+  padding: 0.5rem 0;
+  color: rgba(51, 65, 85, 1);
+  transition: all 0.15s ease-in-out;
+  height: 33px;
+}
+
+.radioinputs2 .radio2 input:checked + .name2 {
+  background-color: #fff;
+  font-weight: 600;
+}
+
+/* ======== Hover Effects for Better UX ======== */
+.radioinputs .radio .name:hover,
+.radioinputs2 .radio2 .name2:hover {
+  background-color: rgba(255, 255, 255, 0.6);
+}

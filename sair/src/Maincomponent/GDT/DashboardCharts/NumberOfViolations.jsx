@@ -57,7 +57,7 @@ const NumberofViolations = ({ dateType }) => {
 
         // Determine the date range and grouping based on dateType
         let startDate;
-        if (dateType === "Week") {
+        if (dateType === "week") {
           startDate = new Date();
           startDate.setDate(today.getDate() - 7); // Last 7 days
         } else { // Month
@@ -65,7 +65,7 @@ const NumberofViolations = ({ dateType }) => {
         }
 
         // Initialize map based on dateType
-        if (dateType === "Week") {
+        if (dateType === "week") {
           for (let i = 0; i < 7; i++) {
             const d = new Date();
             d.setDate(today.getDate() - i);
@@ -88,7 +88,7 @@ const NumberofViolations = ({ dateType }) => {
           violationDate.setHours(0, 0, 0, 0);
 
           if (violationDate >= startDate && violationDate <= today) {
-            const formattedDate = dateType === "Week"
+            const formattedDate = dateType === "week"
               ? violationDate.toLocaleDateString("en-GB", { day: "2-digit", month: "long" })
               : violationDate.toLocaleDateString("en-GB", { year: "numeric", month: "long" });
             
@@ -105,7 +105,7 @@ const NumberofViolations = ({ dateType }) => {
           violationDate.setHours(0, 0, 0, 0);
 
           if (violationDate >= startDate && violationDate <= today) {
-            const formattedDate = dateType === "Week"
+            const formattedDate = dateType === "week"
               ? violationDate.toLocaleDateString("en-GB", { day: "2-digit", month: "long" })
               : violationDate.toLocaleDateString("en-GB", { year: "numeric", month: "long" });
 
