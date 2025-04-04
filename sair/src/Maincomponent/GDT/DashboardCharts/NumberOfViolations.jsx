@@ -14,7 +14,32 @@ import {
 
 const NumberofViolations = ({ dateType, companyName }) => {
   const [data, setData] = useState([]);
-
+  // Hardcoded dummy data for 2025
+  const dummyData = [
+    // Violations for the past 12 months
+    { time: Math.floor(new Date(2025, 0, 1).getTime() / 1000) }, // January
+    { time: Math.floor(new Date(2025, 1, 1).getTime() / 1000) }, // February
+    { time: Math.floor(new Date(2025, 2, 1).getTime() / 1000) }, // March
+    { time: Math.floor(new Date(2025, 3, 1).getTime() / 1000) }, // April
+    { time: Math.floor(new Date(2025, 4, 1).getTime() / 1000) }, // May
+    { time: Math.floor(new Date(2025, 5, 1).getTime() / 1000) }, // June
+    { time: Math.floor(new Date(2025, 6, 1).getTime() / 1000) }, // July
+    { time: Math.floor(new Date(2025, 7, 1).getTime() / 1000) }, // August
+    { time: Math.floor(new Date(2025, 8, 1).getTime() / 1000) }, // September
+    { time: Math.floor(new Date(2025, 9, 1).getTime() / 1000) }, // October
+    { time: Math.floor(new Date(2025, 10, 1).getTime() / 1000) }, // November
+    { time: Math.floor(new Date(2025, 11, 1).getTime() / 1000) }, // December
+    // Violations for the past 7 days
+    { time: Math.floor(new Date().getTime() / 1000) }, // Today
+    { time: Math.floor(new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Yesterday
+    { time: Math.floor(new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Two days ago
+    { time: Math.floor(new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Three days ago
+    { time: Math.floor(new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Four days ago
+    { time: Math.floor(new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Four days ago
+    { time: Math.floor(new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Four days ago
+    { time: Math.floor(new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Five days ago
+    { time: Math.floor(new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Six days ago
+  ];
   useEffect(() => {
     const fetchViolations = async () => {
       try {
