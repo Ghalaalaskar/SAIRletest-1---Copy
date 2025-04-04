@@ -42,6 +42,44 @@ const CustomLegend = () => {
   );
 };
 
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div
+        style={{
+          backgroundColor: "white",
+          padding: "10px",
+          border: "1px solid #ccc",
+          borderRadius: "5px",
+          boxShadow: "0px 0px 5px rgba(0,0,0,0.2)",
+        }}
+      >
+        <p style={{ fontWeight: "bold", marginBottom: "5px" }}>{label}</p>
+        {payload.map((entry, index) => (
+          <p key={index} style={{ color: entry.color, margin: 0 }}>
+            {entry.name}: {entry.value}
+          </p>
+        ))}
+        <button
+          style={{
+            marginTop: "10px",
+            padding: "5px 10px",
+            backgroundColor: "#059855",
+            color: "white",
+            border: "none",
+            borderRadius: "3px",
+            cursor: "pointer",
+          }}
+          onClick={() => alert(`Clicked on ${label}`)}
+        >
+          Full Information
+        </button>
+      </div>
+    );
+  }
+  return null;
+};
+
 const StaffChart = () => {
   const [data, setData] = useState([]);
   const chartContainerRef = useRef(null);
@@ -148,7 +186,7 @@ const StaffChart = () => {
                 height={60}
               />
               <YAxis allowDecimals={false} />
-              <Tooltip />
+              <Tooltip content={<CustomTooltip />} />
               <Bar
                 dataKey="Crash"
                 fill="#2E7D32"
