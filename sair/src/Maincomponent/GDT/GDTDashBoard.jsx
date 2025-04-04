@@ -41,7 +41,7 @@ const GDTDashBoard = () => {
   const [percentageChangeCrash, setPercentageChangeCrash] = useState(null);
   const [lastCrashTime, setLastCrashTime] = useState(null);
   const [responseBy, setResponseBy] = useState(null);
-  const [filterByDate, setFilterByDate] = useState("week"); 
+  const [filterByDate, setFilterByDate] = useState("week");
   const [filterByDateCrash, setFilterByDateCrash] = useState("week");
 
   useEffect(() => {
@@ -51,7 +51,7 @@ const GDTDashBoard = () => {
   const handleDateFilterChange = (event) => {
     const filterByDate = event.target.value; // Get the selected value (Week or Month)
     setFilterByDate(filterByDate); // Update your filter state
-};
+  };
 
   const handleDateFilterChangeCarsh = (event) => {
     const filterByDateCrash = event.target.value;
@@ -609,31 +609,38 @@ const GDTDashBoard = () => {
                 width: "100%", // Ensure the container takes full width
               }}
             >
-<div style={{   textAlign: "left", fontWeight: "bold",marginRight:"90px" }}>Violation Statistics</div>
- {/* First Radio Group */}
- <div className={d.radioinputs}>
-        <label className={d.radio}>
-          <input
-            type="radio"
-            name="dateFilter1" // Unique name but controlled by state
-            value="week"
-            checked={filterByDate === "week"}
-            onChange={handleDateFilterChange}
-          />
-          <span className={d.name}>Week</span>
-        </label>
-        <label className={d.radio}>
-          <input
-            type="radio"
-            name="dateFilter1"
-            value="Month"
-            checked={filterByDate === "Month"}
-            onChange={handleDateFilterChange}
-          />
-          <span className={d.name}>Month</span>
-        </label>
-      </div>
-
+              <div
+                style={{
+                  textAlign: "left",
+                  fontWeight: "bold",
+                  marginRight: "90px",
+                }}
+              >
+                Violation Statistics
+              </div>
+              {/* First Radio Group */}
+              <div className={d.radioinputs}>
+                <label className={d.radio}>
+                  <input
+                    type="radio"
+                    name="dateFilter1" // Unique name but controlled by state
+                    value="week"
+                    checked={filterByDate === "week"}
+                    onChange={handleDateFilterChange}
+                  />
+                  <span className={d.name}>Week</span>
+                </label>
+                <label className={d.radio}>
+                  <input
+                    type="radio"
+                    name="dateFilter1"
+                    value="Month"
+                    checked={filterByDate === "Month"}
+                    onChange={handleDateFilterChange}
+                  />
+                  <span className={d.name}>Month</span>
+                </label>
+              </div>
 
               <div
                 className="searchContainer"
@@ -656,7 +663,7 @@ const GDTDashBoard = () => {
                     width: "220px", // Fixed width
                     boxSizing: "border-box", // Prevents expansion
                     position: "relative", // For absolute dropdown positioning
-                    marginLeft:"9px"
+                    marginLeft: "9px",
                   }}
                 >
                   <div
@@ -737,7 +744,7 @@ const GDTDashBoard = () => {
               </div>
             </div>
           </div>
-          
+
           <div
             style={{
               backgroundColor: "#05b06d",
@@ -762,29 +769,31 @@ const GDTDashBoard = () => {
                 alignItems: "center",
               }}
             >
-              <div style={{ fontWeight: "bold",marginRight:"110px" }}>Crash Statistics</div>
+              <div style={{ fontWeight: "bold", marginRight: "110px" }}>
+                Crash Statistics
+              </div>
               <div className={d.radioinputs2}>
-        <label className={d.radio2}>
-          <input
-            type="radio"
-            name="dateFilter2" // Different name but still controlled by state
-            value="week"
-            checked={filterByDateCrash === "week"}
-            onChange={handleDateFilterChangeCarsh}
-          />
-          <span className={d.name2}>Week</span>
-        </label>
-        <label className={d.radio2}>
-          <input
-            type="radio"
-            name={"dateFilter2"}
-            value="Month"
-            checked={filterByDateCrash === "Month"}
-            onChange={handleDateFilterChangeCarsh}
-          />
-          <span className={d.name2}>Month</span>
-        </label>
-      </div>
+                <label className={d.radio2}>
+                  <input
+                    type="radio"
+                    name="dateFilter2" // Different name but still controlled by state
+                    value="week"
+                    checked={filterByDateCrash === "week"}
+                    onChange={handleDateFilterChangeCarsh}
+                  />
+                  <span className={d.name2}>Week</span>
+                </label>
+                <label className={d.radio2}>
+                  <input
+                    type="radio"
+                    name={"dateFilter2"}
+                    value="Month"
+                    checked={filterByDateCrash === "Month"}
+                    onChange={handleDateFilterChangeCarsh}
+                  />
+                  <span className={d.name2}>Month</span>
+                </label>
+              </div>
               <div
                 className="searchContainer"
                 ref={complaintDropdownRef}
@@ -795,19 +804,19 @@ const GDTDashBoard = () => {
                 }}
               >
                 <div
-                   className="selectWrapper"
-                   style={{
-                     border: "2px solid #4CAF50",
-                     backgroundColor: "#FFFFFF",
-                     color: "black",
-                     borderRadius: "5px",
-                     fontWeight: "normal",
-                     marginLeft: "0px",
-                     width: "220px", // Fixed width
-                     boxSizing: "border-box", // Prevents expansion
-                     position: "relative", // For absolute dropdown positioning
-                       marginLeft:"9px"
-                   }}
+                  className="selectWrapper"
+                  style={{
+                    border: "2px solid #4CAF50",
+                    backgroundColor: "#FFFFFF",
+                    color: "black",
+                    borderRadius: "5px",
+                    fontWeight: "normal",
+                    marginLeft: "0px",
+                    width: "220px", // Fixed width
+                    boxSizing: "border-box", // Prevents expansion
+                    position: "relative", // For absolute dropdown positioning
+                    marginLeft: "9px",
+                  }}
                 >
                   <div
                     className={`customSelect ${
@@ -832,33 +841,33 @@ const GDTDashBoard = () => {
                       complaintFilterType
                     )}
                     <span
-                        style={{
-                          border: "solid #4CAF50",
-                          borderWidth: "0 2px 2px 0",
-                          display: "inline-block",
-                          padding: "4px",
-                          transform: isTypeOpen.complaints
-                            ? "rotate(-135deg)"
-                            : "rotate(45deg)",
-                          transition: "transform 0.2s",
-                        }}
+                      style={{
+                        border: "solid #4CAF50",
+                        borderWidth: "0 2px 2px 0",
+                        display: "inline-block",
+                        padding: "4px",
+                        transform: isTypeOpen.complaints
+                          ? "rotate(-135deg)"
+                          : "rotate(45deg)",
+                        transition: "transform 0.2s",
+                      }}
                     />
                   </div>
                   {isTypeOpen.complaints && (
                     <div
-                    className="dropdownMenu"
-                    style={{
-                      position: "absolute",
-                      zIndex: 1000,
-                      backgroundColor: "#fff",
-                      border: "1px solid #ddd",
-                      borderRadius: "5px",
-                      width: "100%", // Matches select width
-                      top: "100%", // Positions below the select
-                      left: 0, // Ensures alignment
-                      boxSizing: "border-box",
-                      boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-                    }}
+                      className="dropdownMenu"
+                      style={{
+                        position: "absolute",
+                        zIndex: 1000,
+                        backgroundColor: "#fff",
+                        border: "1px solid #ddd",
+                        borderRadius: "5px",
+                        width: "100%", // Matches select width
+                        top: "100%", // Positions below the select
+                        left: 0, // Ensures alignment
+                        boxSizing: "border-box",
+                        boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+                      }}
                     >
                       {companyOptions.map((option) => (
                         <div
@@ -906,7 +915,12 @@ const GDTDashBoard = () => {
             }}
           >
             <GridItem title="Number of Violations">
-              <NumberOfViolations dateType={filterByDate} />
+              <NumberOfViolations
+                dateType={filterByDate}
+                companyName={
+                  violationFilterType
+                }
+              />
             </GridItem>
             <div
               style={{
@@ -941,7 +955,7 @@ const GDTDashBoard = () => {
             }}
           >
             <GridItem title="Number of Crashes">
-              <NumberofCrashes dateType={filterByDateCrash}/>
+              <NumberofCrashes dateType={filterByDateCrash} />
             </GridItem>
           </div>
         </div>

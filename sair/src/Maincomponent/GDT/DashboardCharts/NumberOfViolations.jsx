@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { db } from "../../../firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import {
   AreaChart,
   ResponsiveContainer,
@@ -12,86 +12,91 @@ import {
   Area,
 } from "recharts";
 
-const NumberofViolations = ({ dateType }) => {
+const NumberofViolations = ({ dateType, companyName }) => {
   const [data, setData] = useState([]);
-
-  // Hardcoded dummy data for 2025
-  const dummyData = [
-    // Violations for the past 12 months
-    { time: Math.floor(new Date(2025, 0, 1).getTime() / 1000) }, // January
-    { time: Math.floor(new Date(2025, 1, 1).getTime() / 1000) }, // February
-    { time: Math.floor(new Date(2025, 2, 1).getTime() / 1000) }, // March
-    { time: Math.floor(new Date(2025, 3, 1).getTime() / 1000) }, // April
-    { time: Math.floor(new Date(2025, 4, 1).getTime() / 1000) }, // May
-    { time: Math.floor(new Date(2025, 5, 1).getTime() / 1000) }, // June
-    { time: Math.floor(new Date(2025, 6, 1).getTime() / 1000) }, // July
-    { time: Math.floor(new Date(2025, 7, 1).getTime() / 1000) }, // August
-    { time: Math.floor(new Date(2025, 8, 1).getTime() / 1000) }, // September
-    { time: Math.floor(new Date(2025, 9, 1).getTime() / 1000) }, // October
-    { time: Math.floor(new Date(2025, 10, 1).getTime() / 1000) }, // November
-    { time: Math.floor(new Date(2025, 11, 1).getTime() / 1000) }, // December
-    // Violations for the past 7 days
-    { time: Math.floor(new Date().getTime() / 1000) }, // Today
-    { time: Math.floor(new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Yesterday
-    { time: Math.floor(new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Two days ago
-    { time: Math.floor(new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Three days ago
-    { time: Math.floor(new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Four days ago
-    { time: Math.floor(new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Four days ago
-    { time: Math.floor(new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Four days ago
-    { time: Math.floor(new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Five days ago
-    { time: Math.floor(new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Six days ago
-  ];
 
   useEffect(() => {
     const fetchViolations = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "Violation"));
-        const violationsMap = new Map();
+        const violationSnapshot = await getDocs(collection(db, "Violation"));
+        const driverIDs = new Set();
 
+        violationSnapshot.forEach((doc) => {
+          const { driverID } = doc.data();
+          if (driverID) driverIDs.add(driverID);
+        });
+
+        const driverIDList = [...driverIDs];
+        const driverMap = new Map();
+
+        // Fetch drivers in batches
+        for (let i = 0; i < driverIDList.length; i += 10) {
+          const batch = driverIDList.slice(i, i + 10);
+          const q = query(
+            collection(db, "Driver"),
+            where("DriverID", "in", batch)
+          );
+          const driverSnapshot = await getDocs(q);
+
+          driverSnapshot.forEach((doc) => {
+            const { DriverID, CompanyName } = doc.data();
+            if (DriverID && CompanyName) {
+              driverMap.set(DriverID, CompanyName);
+            }
+          });
+        }
+
+        // Fetch all employers to map CompanyName to ShortCompanyName
+        const employerSnapshot = await getDocs(collection(db, "Employer"));
+        const employerMap = new Map();
+
+        employerSnapshot.forEach((doc) => {
+          const { CompanyName, ShortCompanyName } = doc.data();
+          if (CompanyName && ShortCompanyName) {
+            employerMap.set(CompanyName, ShortCompanyName);
+          }
+        });
+
+        const violationsMap = new Map();
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        
-        // Get the current year and month
-        const currentYear = today.getFullYear();
-        const currentMonth = today.getMonth(); // 0-based index
 
-        // Determine the date range and grouping based on dateType
         let startDate;
         if (dateType === "week") {
           startDate = new Date();
           startDate.setDate(today.getDate() - 7); // Last 7 days
         } else { // Month
-          startDate = new Date(currentYear, 0, 1); // Start from January 1st of the current year
+          startDate = new Date(today.getFullYear(), 0, 1); // Start from January 1st of the current year
         }
 
-        // Initialize map based on dateType
-        if (dateType === "week") {
-          for (let i = 0; i < 7; i++) {
-            const d = new Date();
-            d.setDate(today.getDate() - i);
-            const formattedDate = d.toLocaleDateString("en-GB", { day: "2-digit", month: "long" });
-            violationsMap.set(formattedDate, 0);
-          }
-        } else { // Month
-          for (let month = 0; month <= currentMonth; month++) { // Only include passed months
-            const formattedDate = new Date(currentYear, month).toLocaleDateString("en-GB", { year: "numeric", month: "long" });
-            violationsMap.set(formattedDate, 0);
-          }
+        // Initialize the date range for the chart
+        const dateRange = [];
+        for (let d = new Date(startDate); d <= today; d.setDate(d.getDate() + 1)) {
+          const formattedDate = dateType === "week"
+            ? d.toLocaleDateString("en-GB", { day: "2-digit", month: "long" })
+            : d.toLocaleDateString("en-GB", { year: "numeric", month: "long" });
+          dateRange.push({ date: formattedDate, count: 0 });
         }
 
-        // Process violations from Firestore and group by date
-        querySnapshot.forEach((doc) => {
-          const { time } = doc.data();
+        // Process violations and group by date
+        violationSnapshot.forEach((doc) => {
+          const { time, driverID } = doc.data();
           if (!time) return;
 
           const violationDate = new Date(time * 1000);
           violationDate.setHours(0, 0, 0, 0);
 
           if (violationDate >= startDate && violationDate <= today) {
+            const companyNameFromDriver = driverMap.get(driverID);
+            const shortName = employerMap.get(companyNameFromDriver) || companyNameFromDriver;
+
+            // Filter by company name if provided
+            if (companyName !== "All" && shortName !== companyName) return;
+
             const formattedDate = dateType === "week"
               ? violationDate.toLocaleDateString("en-GB", { day: "2-digit", month: "long" })
               : violationDate.toLocaleDateString("en-GB", { year: "numeric", month: "long" });
-            
+
             violationsMap.set(
               formattedDate,
               (violationsMap.get(formattedDate) || 0) + 1
@@ -99,20 +104,15 @@ const NumberofViolations = ({ dateType }) => {
           }
         });
 
-        // Process dummy data and group by date
-        dummyData.forEach((violation) => {
-          const violationDate = new Date(violation.time * 1000);
-          violationDate.setHours(0, 0, 0, 0);
-
-          if (violationDate >= startDate && violationDate <= today) {
-            const formattedDate = dateType === "week"
-              ? violationDate.toLocaleDateString("en-GB", { day: "2-digit", month: "long" })
-              : violationDate.toLocaleDateString("en-GB", { year: "numeric", month: "long" });
-
-            violationsMap.set(
-              formattedDate,
-              (violationsMap.get(formattedDate) || 0) + 1
-            );
+        // Update the date range with actual counts
+        dateRange.forEach(({ date }) => {
+          if (violationsMap.has(date)) {
+            const count = violationsMap.get(date);
+            // Set the count for the existing date
+            violationsMap.set(date, count);
+          } else {
+            // Ensure it exists with a count of 0
+            violationsMap.set(date, 0);
           }
         });
 
@@ -122,6 +122,7 @@ const NumberofViolations = ({ dateType }) => {
           count,
         })).sort((a, b) => new Date(a.date) - new Date(b.date)); // Sort by date ascending
 
+        console.log("Chart Data:", chartData); // Debugging line
         setData(chartData);
       } catch (error) {
         console.error("Error fetching violations:", error);
@@ -129,12 +130,11 @@ const NumberofViolations = ({ dateType }) => {
     };
 
     fetchViolations(); // Fetch violations data
-  }, [dateType]);
-
+  }, [dateType, companyName]); // Add dependencies
 
   return (
     <div style={{ width: "100%", height: "400px", overflowX: "auto" }}>
-      <ResponsiveContainer width={data.length > 7 ? "150%" : "100%"} height="100%">
+      <ResponsiveContainer width="100%" height="100%">
         <AreaChart
           data={data}
           margin={{ top: 10, right: 30, left: 0, bottom: 60 }}
