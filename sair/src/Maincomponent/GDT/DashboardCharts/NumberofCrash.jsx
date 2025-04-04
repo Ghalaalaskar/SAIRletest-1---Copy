@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { db } from "../../../firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs,query,where } from "firebase/firestore";
 import {
   AreaChart,
   ResponsiveContainer,
@@ -12,96 +12,91 @@ import {
   Area,
 } from "recharts";
 
-const NumberofCrash = ({ dateType }) => {
+const NumberofCrash  = ({ dateType, companyName }) => {
   const [data, setData] = useState([]);
-
-  // Hardcoded dummy data for 2025
-  const dummyData = [
-    // Crashes for the past 12 months
-    { time: Math.floor(new Date(2025, 0, 1).getTime() / 1000) }, // January
-    { time: Math.floor(new Date(2025, 1, 1).getTime() / 1000) }, // February
-    { time: Math.floor(new Date(2025, 1, 1).getTime() / 1000) }, // February
-    { time: Math.floor(new Date(2025, 2, 1).getTime() / 1000) }, // March
-    { time: Math.floor(new Date(2025, 3, 1).getTime() / 1000) }, // April
-    { time: Math.floor(new Date(2025, 3, 1).getTime() / 1000) }, // April
-    { time: Math.floor(new Date(2025, 3, 1).getTime() / 1000) }, // April
-    { time: Math.floor(new Date(2025, 3, 1).getTime() / 1000) }, // April
-
-    { time: Math.floor(new Date(2025, 4, 1).getTime() / 1000) }, // May
-    { time: Math.floor(new Date(2025, 5, 1).getTime() / 1000) }, // June
-    { time: Math.floor(new Date(2025, 6, 1).getTime() / 1000) }, // July
-    { time: Math.floor(new Date(2025, 7, 1).getTime() / 1000) }, // August
-    { time: Math.floor(new Date(2025, 8, 1).getTime() / 1000) }, // September
-    { time: Math.floor(new Date(2025, 9, 1).getTime() / 1000) }, // October
-    { time: Math.floor(new Date(2025, 10, 1).getTime() / 1000) }, // November
-    { time: Math.floor(new Date(2025, 11, 1).getTime() / 1000) }, // December
-    // Crashes for the past 7 days
-    { time: Math.floor(new Date().getTime() / 1000) }, // Today
-    { time: Math.floor(new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Yesterday
-    { time: Math.floor(new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Yesterday
-    { time: Math.floor(new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Two days ago
-    { time: Math.floor(new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Three days ago
-    { time: Math.floor(new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Four days ago
-    { time: Math.floor(new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Four days ago
-    { time: Math.floor(new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Four days ago
-    { time: Math.floor(new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Five days ago
-    { time: Math.floor(new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Five days ago
-    { time: Math.floor(new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Six days ago
-    { time: Math.floor(new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Six days ago
-    { time: Math.floor(new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Six days ago
-    { time: Math.floor(new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).getTime() / 1000) }, // Six days ago
-    ];
 
   useEffect(() => {
     const fetchCrashes = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "Crash"));
-        const crashesMap = new Map();
+        const crashSnapshot = await getDocs(collection(db, "Crash"));
+        const driverIDs = new Set();
 
+        crashSnapshot.forEach((doc) => {
+          const { driverID } = doc.data();
+          if (driverID) driverIDs.add(driverID);
+        });
+
+        const driverIDList = [...driverIDs];
+        const driverMap = new Map();
+
+        // Fetch drivers in batches
+        for (let i = 0; i < driverIDList.length; i += 10) {
+          const batch = driverIDList.slice(i, i + 10);
+          const q = query(
+            collection(db, "Driver"),
+            where("DriverID", "in", batch)
+          );
+          const driverSnapshot = await getDocs(q);
+
+          driverSnapshot.forEach((doc) => {
+            const { DriverID, CompanyName } = doc.data();
+            if (DriverID && CompanyName) {
+              driverMap.set(DriverID, CompanyName);
+            }
+          });
+        }
+
+        // Fetch all employers to map CompanyName to ShortCompanyName
+        const employerSnapshot = await getDocs(collection(db, "Employer"));
+        const employerMap = new Map();
+
+        employerSnapshot.forEach((doc) => {
+          const { CompanyName, ShortCompanyName } = doc.data();
+          if (CompanyName && ShortCompanyName) {
+            employerMap.set(CompanyName, ShortCompanyName);
+          }
+        });
+
+        const crashesMap = new Map();
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        
-        // Get the current year and month
-        const currentYear = today.getFullYear();
-        const currentMonth = today.getMonth(); // 0-based index
 
-        // Determine the date range and grouping based on dateType
         let startDate;
         if (dateType === "week") {
           startDate = new Date();
           startDate.setDate(today.getDate() - 7); // Last 7 days
         } else { // Month
-          startDate = new Date(currentYear, 0, 1); // Start from January 1st of the current year
+          startDate = new Date(today.getFullYear(), 0, 1); // Start from January 1st of the current year
         }
 
-        // Initialize map based on dateType
-        if (dateType === "week") {
-          for (let i = 0; i < 7; i++) {
-            const d = new Date();
-            d.setDate(today.getDate() - i);
-            const formattedDate = d.toLocaleDateString("en-GB", { day: "2-digit", month: "long" });
-            crashesMap.set(formattedDate, 0);
-          }
-        } else { // Month
-          for (let month = 0; month <= currentMonth; month++) { // Only include passed months
-            const formattedDate = new Date(currentYear, month).toLocaleDateString("en-GB", { year: "numeric", month: "long" });
-            crashesMap.set(formattedDate, 0);
-          }
+        // Initialize the date range for the chart
+        const dateRange = [];
+        for (let d = new Date(startDate); d <= today; d.setDate(d.getDate() + 1)) {
+          const formattedDate = dateType === "week"
+            ? d.toLocaleDateString("en-GB", { day: "2-digit", month: "long" })
+            : d.toLocaleDateString("en-GB", { year: "numeric", month: "long" });
+          dateRange.push({ date: formattedDate, count: 0 });
         }
 
-        // Process crash from Firestore and group by date
-        querySnapshot.forEach((doc) => {
-          const { time } = doc.data();
+        // Process crashes and group by date
+        crashSnapshot.forEach((doc) => {
+          const { time, driverID } = doc.data();
           if (!time) return;
 
           const crashDate = new Date(time * 1000);
           crashDate.setHours(0, 0, 0, 0);
 
           if (crashDate >= startDate && crashDate <= today) {
+            const companyNameFromDriver = driverMap.get(driverID);
+            const shortName = employerMap.get(companyNameFromDriver) || companyNameFromDriver;
+
+            // Filter by company name if provided
+            if (companyName !== "All" && shortName !== companyName) return;
+
             const formattedDate = dateType === "week"
               ? crashDate.toLocaleDateString("en-GB", { day: "2-digit", month: "long" })
               : crashDate.toLocaleDateString("en-GB", { year: "numeric", month: "long" });
-            
+
             crashesMap.set(
               formattedDate,
               (crashesMap.get(formattedDate) || 0) + 1
@@ -109,20 +104,15 @@ const NumberofCrash = ({ dateType }) => {
           }
         });
 
-        // Process dummy data and group by date
-        dummyData.forEach((crash) => {
-          const crashDate = new Date(crash.time * 1000);
-          crashDate.setHours(0, 0, 0, 0);
-
-          if (crashDate >= startDate && crashDate <= today) {
-            const formattedDate = dateType === "week"
-              ? crashDate.toLocaleDateString("en-GB", { day: "2-digit", month: "long" })
-              : crashDate.toLocaleDateString("en-GB", { year: "numeric", month: "long" });
-
-              crashesMap.set(
-              formattedDate,
-              (crashesMap.get(formattedDate) || 0) + 1
-            );
+        // Update the date range with actual counts
+        dateRange.forEach(({ date }) => {
+          if (crashesMap.has(date)) {
+            const count = crashesMap.get(date);
+            // Set the count for the existing date
+            crashesMap.set(date, count);
+          } else {
+            // Ensure it exists with a count of 0
+            crashesMap.set(date, 0);
           }
         });
 
@@ -132,6 +122,7 @@ const NumberofCrash = ({ dateType }) => {
           count,
         })).sort((a, b) => new Date(a.date) - new Date(b.date)); // Sort by date ascending
 
+        console.log("Chart Data:", chartData); // Debugging line
         setData(chartData);
       } catch (error) {
         console.error("Error fetching crashes:", error);
@@ -139,7 +130,7 @@ const NumberofCrash = ({ dateType }) => {
     };
 
     fetchCrashes(); // Fetch crashes data
-  }, [dateType]);
+  }, [dateType, companyName]); // Add dependencies
 
 
   return (

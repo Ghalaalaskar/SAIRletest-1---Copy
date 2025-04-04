@@ -955,7 +955,11 @@ const GDTDashBoard = () => {
             }}
           >
             <GridItem title="Number of Crashes">
-              <NumberofCrashes dateType={filterByDateCrash} />
+              <NumberofCrashes dateType={filterByDateCrash}
+               companyName={
+                complaintFilterType
+              }
+              />
             </GridItem>
           </div>
         </div>
