@@ -2,15 +2,8 @@
 import { useEffect, useState } from "react";
 import { db } from "../../../firebase";
 import { collection, getDocs, query, where } from "firebase/firestore";
-import {
-  AreaChart,
-  ResponsiveContainer,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Area,
-} from "recharts";
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+
 
 const NumberofViolations = ({ dateType, companyName }) => {
   const [data, setData] = useState([]);
@@ -135,7 +128,7 @@ const NumberofViolations = ({ dateType, companyName }) => {
   return (
     <div style={{ width: "100%", height: "400px", overflowX: "auto" }}>
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart
+        <LineChart
           data={data}
           margin={{ top: 10, right: 30, left: 0, bottom: 60 }}
         >
@@ -164,14 +157,14 @@ const NumberofViolations = ({ dateType, companyName }) => {
           />
           <CartesianGrid strokeDasharray="3 3" />
           <Tooltip />
-          <Area
+          <Line
             type="monotone"
             dataKey="count"
             stroke="#82ca9d"
             fillOpacity={1}
             fill="url(#colorPv)"
           />
-        </AreaChart>
+        </LineChart>
       </ResponsiveContainer>
     </div>
   );
