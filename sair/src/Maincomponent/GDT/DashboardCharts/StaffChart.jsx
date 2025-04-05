@@ -43,7 +43,9 @@ const CustomLegend = () => {
 };
 
 const CustomTooltip = ({ active, payload, label }) => {
-  if (active && payload && payload.length) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  if ((active || isHovered) && payload && payload.length) {
     return (
       <div
         style={{
@@ -53,6 +55,8 @@ const CustomTooltip = ({ active, payload, label }) => {
           borderRadius: "5px",
           boxShadow: "0px 0px 5px rgba(0,0,0,0.2)",
         }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
       >
         <p style={{ fontWeight: "bold", marginBottom: "5px" }}>{label}</p>
         {payload.map((entry, index) => (
@@ -82,6 +86,10 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 const StaffChart = () => {
   const [data, setData] = useState([]);
+  const [tooltipData, setTooltipData] = useState(null); // tooltip state
+  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
+  const [hoveringTooltip, setHoveringTooltip] = useState(false);
+
   const chartContainerRef = useRef(null);
   const maxVisibleBars = 5; // Show up to 5 bars before scrolling
   const barWidth = 150; // Fixed width per bar
@@ -101,7 +109,7 @@ const StaffChart = () => {
         //count crash response
         CrashQuerySnapshot.forEach((doc) => {
           const { RespondedBy } = doc.data();
-
+          
           if (RespondedBy) {
             if (!StaffCounts.has(RespondedBy)) {
               StaffCounts.set(RespondedBy, {
@@ -109,7 +117,7 @@ const StaffChart = () => {
                 countComplaint: 0,
               });
             }
-            StaffCounts.get(RespondedBy).countCrash += 1; // Increment crash response count
+            StaffCounts.get(RespondedBy).countCrash += 1;
           }
         });
 
@@ -137,12 +145,15 @@ const StaffChart = () => {
             const gdtDocs = await getDocs(gdtQuery);
 
             let firstName = "";
+            let StaffID = "";
             if (!gdtDocs.empty) {
-              firstName = gdtDocs.docs[0].data().Fname || ""; // Extract first name
+              firstName = gdtDocs.docs[0].data().Fname || "";
+              StaffID = gdtDocs.docs[0].data().GDTID || "";
             }
 
             return {
               FirstName: firstName,
+              GDTID: StaffID,
               Crash: StaffCounts.get(GDTID).countCrash,
               Complaint: StaffCounts.get(GDTID).countComplaint,
             };
@@ -163,7 +174,7 @@ const StaffChart = () => {
   const dynamicWidth = needsScroll ? data.length * barWidth : "100%";
 
   return (
-    <div style={{ width: "100%", height: "100%" }}>
+    <div style={{ position: "relative", width: "100%", height: "100%" }}>
       <CustomLegend />
       <div
         ref={chartContainerRef}
@@ -177,21 +188,25 @@ const StaffChart = () => {
             <BarChart
               data={data}
               margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
+              onMouseLeave={() => {
+                if (!hoveringTooltip) setTooltipData(null);
+              }}
             >
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis
-                dataKey="FirstName"
-                textAnchor="middle"
-                interval={0}
-                height={60}
-              />
+              <XAxis dataKey="FirstName" interval={0} height={60} />
               <YAxis allowDecimals={false} />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar
-                dataKey="Crash"
-                fill="#2E7D32"
-                name="Number of Crash Responses"
+              <Tooltip
+                content={({ active, payload, label, coordinate }) => {
+                  if (active && payload && coordinate) {
+                    setTooltipData({ label, payload });
+                    setTooltipPos({ x: coordinate.x, y: coordinate.y });
+                  } else if (!hoveringTooltip) {
+                    setTooltipData(null);
+                  }
+                  return null; // Don't show default tooltip
+                }}
               />
+              <Bar dataKey="Crash" fill="#2E7D32" name="Crash Responses" />
               <Bar
                 dataKey="Complaint"
                 fill="#4CAF50"
@@ -201,6 +216,50 @@ const StaffChart = () => {
           </ResponsiveContainer>
         </div>
       </div>
+
+      {tooltipData && (
+        <div
+          onMouseEnter={() => setHoveringTooltip(true)}
+          onMouseLeave={() => {
+            setHoveringTooltip(false);
+            setTooltipData(null);
+          }}
+          style={{
+            position: "absolute",
+            left: tooltipPos.x + 60,
+            top: tooltipPos.y,
+            backgroundColor: "white",
+            padding: "10px",
+            border: "1px solid #ccc",
+            borderRadius: "5px",
+            boxShadow: "0px 0px 5px rgba(0,0,0,0.2)",
+            zIndex: 10,
+          }}
+        >
+          <p style={{ fontWeight: "bold", marginBottom: "5px" }}>
+            {tooltipData.label}
+          </p>
+          {tooltipData.payload.map((entry, index) => (
+            <p key={index} style={{ color: entry.color, margin: 0 }}>
+              {entry.name}: {entry.value}
+            </p>
+          ))}
+          <button
+            style={{
+              marginTop: "10px",
+              padding: "5px 10px",
+              backgroundColor: "#059855",
+              color: "white",
+              border: "none",
+              borderRadius: "3px",
+              cursor: "pointer",
+            }}
+            onClick={() => alert(`Clicked on ${tooltipData.label}`)}
+          >
+            Full Information
+          </button>
+        </div>
+      )}
     </div>
   );
 };
