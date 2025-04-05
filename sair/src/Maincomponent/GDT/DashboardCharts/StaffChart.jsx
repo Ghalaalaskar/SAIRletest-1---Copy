@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
+import { Modal, Button } from "antd";
 import { db } from "../../../firebase";
 import { useNavigate } from "react-router-dom";
 import { collection, getDocs, where, query } from "firebase/firestore";
@@ -49,6 +50,8 @@ const StaffChart = () => {
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
   const [hoveringTooltip, setHoveringTooltip] = useState(false);
   const navigate = useNavigate();
+  const [modalVisible, setModalVisible] = useState(false);
+  const [staffNameWithNoComplaint, setStaffNameWithNoComplaint] = useState("");
 
   const chartContainerRef = useRef(null);
   const maxVisibleBars = 5; // Show up to 5 bars before scrolling
@@ -135,6 +138,24 @@ const StaffChart = () => {
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
+      {/* Alert when complaint count =0 */}
+      <Modal
+        title="No Complaints Found"
+        open={modalVisible}
+        onCancel={() => setModalVisible(false)}
+        centered
+        style={{ top: "1%" }}
+        className="custom-modal"
+        closeIcon={<span className="custom-modal-close-icon">×</span>}
+        footer={[
+          <Button key="cancel" onClick={() => setModalVisible(false)}>
+            OK
+          </Button>,
+        ]}
+      >
+        <p><strong>{staffNameWithNoComplaint}</strong>, the staff member, has not responded to any complaints yet.</p>
+      </Modal>
+
       <CustomLegend />
       <div
         ref={chartContainerRef}
@@ -220,9 +241,9 @@ const StaffChart = () => {
             }}
             onClick={() => {
               const GDTID = tooltipData?.payload?.[0]?.payload?.GDTID;
-              console.log("Navigating to:", GDTID); 
+              console.log("Navigating to:", GDTID);
               if (GDTID) navigate(`/ChartDetails/CrashResponse/${GDTID}`);
-            }}            
+            }}
           >
             Crash Information
           </button>
@@ -231,7 +252,11 @@ const StaffChart = () => {
               marginTop: "10px",
               marginLeft: "10px",
               padding: "5px 10px",
-              backgroundColor: "#059855",
+              backgroundColor:
+                tooltipData?.payload?.find((p) => p.dataKey === "Complaint")
+                  ?.value === 0
+                  ? "#9e9e9e" // Grey when complaint count = 0
+                  : "#059855",
               color: "white",
               border: "none",
               borderRadius: "3px",
@@ -239,9 +264,18 @@ const StaffChart = () => {
             }}
             onClick={() => {
               const GDTID = tooltipData?.payload?.[0]?.payload?.GDTID;
-              console.log("Navigating to:", GDTID); 
-              if (GDTID) navigate(`/ChartDetails/CrashResponse/${GDTID}`);
-            }}            
+              const complaintCount =
+                tooltipData?.payload?.find((p) => p.dataKey === "Complaint")
+                  ?.value || 0;
+              const staffName = tooltipData?.label;
+
+              if (complaintCount === 0) {
+                setStaffNameWithNoComplaint(staffName);
+                setModalVisible(true);
+              } else {
+                if (GDTID) navigate(`/ChartDetails/ComplaintResponse/${GDTID}`);
+              }
+            }}
           >
             Complaint Information
           </button>
