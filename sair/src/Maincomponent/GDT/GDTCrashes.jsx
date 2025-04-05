@@ -241,32 +241,32 @@ const CrashList = () => {
   };
 
   const filteredCrashes = crashes
-  .filter((crash) => {
-    // Always filter by relevant statuses
-    const isRelevantStatus =
-      crash.Status === "Emergency SOS" || crash.Status === "Denied";
-    if (!isRelevantStatus) return false;
+    .filter((crash) => {
+      // Always filter by relevant statuses
+      const isRelevantStatus =
+        crash.Status === "Emergency SOS" || crash.Status === "Denied";
+      if (!isRelevantStatus) return false;
 
-    // If GDTID is passed, show only crashes responded by that GDT
-    if (GDTID && crash.RespondedBy !== GDTID) return false;
+      // If GDTID is passed, show only crashes responded by that GDT
+      if (GDTID && crash.RespondedBy !== GDTID) return false;
 
-    const crashDate = crash.time
-      ? new Date(crash.time * 1000).toISOString().split("T")[0]
-      : "";
+      const crashDate = crash.time
+        ? new Date(crash.time * 1000).toISOString().split("T")[0]
+        : "";
 
-    const matchesSearchDate = searchDate ? crashDate === searchDate : true;
+      const matchesSearchDate = searchDate ? crashDate === searchDate : true;
 
-    const driverId = crash.driverID;
-    const licensePlate = motorcycles[crash.crashID] || " ";
+      const driverId = crash.driverID;
+      const licensePlate = motorcycles[crash.crashID] || " ";
 
-    const matchesSearchQuery =
-      driverId.includes(searchQuery) ||
-      licensePlate.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSearchQuery =
+        driverId.includes(searchQuery) ||
+        licensePlate.toLowerCase().includes(searchQuery.toLowerCase());
 
-    return matchesSearchQuery && matchesSearchDate;
-  })
-  .filter(filterByStatus)
-  .sort((a, b) => (b.time || 0) - (a.time || 0));
+      return matchesSearchQuery && matchesSearchDate;
+    })
+    .filter(filterByStatus)
+    .sort((a, b) => (b.time || 0) - (a.time || 0));
 
   const formatDate = (time) => {
     const date = new Date(time * 1000);
@@ -500,22 +500,22 @@ const CrashList = () => {
         <div className={s.container}>
           <div className={s.searchHeader}>
             <div>
-              <h2 className={s.title}>Crashes List</h2>
-              {GDTID && (
-                <h4 className={s.subtitle}>
-                  That{" "}
-                  <span
-                    className={s.gdtName}
-                    style={{ textDecoration: "underline", cursor: "pointer" }}
-                    onClick={handleShowPopupStaff}
-                  >
-                    {gdtInfo.Fname} {gdtInfo.Lname}
-                  </span>{" "}
-                  responded to
-                </h4>
-              )}
+              <h2 className={s.title}>
+                Crashes List{" "}
+                {GDTID && (
+                  <>
+                    Responded by{" "}
+                    <span
+                      className={s.gdtName}
+                      style={{ textDecoration: "underline", cursor: "pointer" }}
+                      onClick={handleShowPopupStaff}
+                    >
+                      {gdtInfo.Fname} {gdtInfo.Lname}
+                    </span>
+                  </>
+                )}
+              </h2>
             </div>
-
             <div className={s.searchRightGroup}>
               <div className={s.searchInputs}>
                 <div className={s.searchContainer}>
@@ -544,30 +544,34 @@ const CrashList = () => {
                   />
                 </div>
               </div>
-              <div className={s.searchContainer}>
-                <div className={c.selectWrapper}>
-                  <FaFilter className={c.filterIcon} />
-                  <select
-                    className={c.customSelect}
-                    onChange={(event) => setSelectedStatus(event.target.value)}
-                    defaultValue=""
-                    style={{
-                      width: "280px",
-                      height: "35px", // Widen the select bar
-                      padding: "8px", // Add padding
-                      fontSize: "14px", // Adjust font size
-                      color: "grey",
-                    }}
-                  >
-                    <option value="" disabled>
-                      Filter by Response
-                    </option>
-                    <option value="">All</option>
-                    <option value="Responsed">Responsed</option>
-                    <option value="Unresponsed">Unresponsed</option>
-                  </select>
+              {!GDTID && (
+                <div className={s.searchContainer}>
+                  <div className={c.selectWrapper}>
+                    <FaFilter className={c.filterIcon} />
+                    <select
+                      className={c.customSelect}
+                      onChange={(event) =>
+                        setSelectedStatus(event.target.value)
+                      }
+                      defaultValue=""
+                      style={{
+                        width: "280px",
+                        height: "35px", // Widen the select bar
+                        padding: "8px", // Add padding
+                        fontSize: "14px", // Adjust font size
+                        color: "grey",
+                      }}
+                    >
+                      <option value="" disabled>
+                        Filter by Response
+                      </option>
+                      <option value="">All</option>
+                      <option value="Responsed">Responsed</option>
+                      <option value="Unresponsed">Unresponsed</option>
+                    </select>
+                  </div>
                 </div>
-              </div>
+              )}
               <div
                 className={s.searchContainerdate}
                 style={{ position: "relative" }}
