@@ -898,71 +898,67 @@ const GDTDashBoard = () => {
             </div>
           </div>
         </div>
-        {/* Bottom Section: Charts */}
-        <div
+    {/* Bottom Section: Charts */}
+<div
+  style={{
+    display: "flex",
+    gap: "20px",
+    width: "100%",
+  }}
+>
+  {/* Row: Violations and Crashes side-by-side */}
+  <div style={{ flex: 1 }}>
+    <GridItem title="Number of Violations">
+      <NumberOfViolations
+        dateType={filterByDate}
+        companyName={violationFilterType}
+      />
+    </GridItem>
+  </div>
+
+  <div style={{ flex: 1 }}>
+    <GridItem title="Number of Crashes">
+      <NumberofCrashes
+        dateType={filterByDateCrash}
+        companyName={complaintFilterType}
+      />
+    </GridItem>
+  </div>
+</div>
+
+{/* Row: Reckless Violations alone */}
+<div
           style={{
-            display: "flex",
-            gap: "20px",
-            width: "100%",
+            backgroundColor: "#05b06d",
+            color: "#ffffff",
+            padding: "20px",
+            borderTopLeftRadius: "8px",
+            borderTopRightRadius: "8px",
+            borderBottomLeftRadius: "0",
+            borderBottomRightRadius: "0",
+            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+            flex: 1,
+            textAlign: "center",
+            fontWeight: "bold",
+            marginTop: "20px",
+            animation: "fadeIn 1s ease-in-out",
           }}
         >
-          <div
-            style={{
-              flex: 1,
-              display: "flex",
-              flexDirection: "column",
-              gap: "20px",
-            }}
-          >
-            <GridItem title="Number of Violations">
-              <NumberOfViolations
-                dateType={filterByDate}
-                companyName={
-                  violationFilterType
-                }
-              />
-            </GridItem>
-            <div
-              style={{
-                backgroundColor: "#05b06d",
-                color: "#ffffff",
-                padding: "20px",
-                borderTopLeftRadius: "8px",
-                borderTopRightRadius: "8px",
-                borderBottomLeftRadius: "0",
-                borderBottomRightRadius: "0",
-                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-                flex: 1,
-                textAlign: "center",
-                fontWeight: "bold",
-                marginTop: "20px",
-                animation: "fadeIn 1s ease-in-out",
-              }}
-            >
-              <div style={{ fontWeight: "bold" }}>Violation Statistics</div>
-            </div>
-            <GridItem title="Reckless Violations">
-              <RecklessViolation />
-            </GridItem>
-          </div>
-
-          <div
-            style={{
-              flex: 1,
-              display: "flex",
-              flexDirection: "column",
-              gap: "20px",
-            }}
-          >
-            <GridItem title="Number of Crashes">
-              <NumberofCrashes dateType={filterByDateCrash}
-               companyName={
-                complaintFilterType
-              }
-              />
-            </GridItem>
-          </div>
+          <div style={{ fontWeight: "bold" }}>Violation Statistics</div>
         </div>
+<div
+  style={{
+    width: "100%",
+  }}
+>
+  <GridItem title="Reckless Violations">
+    <RecklessViolation
+      dateType={filterByDate}
+      companyName={violationFilterType}
+    />
+  </GridItem>
+</div>
+
         {/* Staff Charts */}
         <div
           style={{
