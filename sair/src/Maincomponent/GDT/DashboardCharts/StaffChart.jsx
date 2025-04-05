@@ -188,14 +188,31 @@ const StaffChart = () => {
           <ResponsiveContainer width="100%" height={450}>
             <BarChart
               data={data}
-              margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
+              margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
               onMouseLeave={() => {
                 if (!hoveringTooltip) setTooltipData(null);
               }}
             >
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="FirstName" interval={0} height={60} />
-              <YAxis allowDecimals={false} />
+              <XAxis 
+                dataKey="FirstName"
+                interval={0} 
+                height={60} 
+                tick={{ dy: 10 }}
+                label={{
+                  value: "Staff Name",
+                  position: "insideBottom",
+                  dy: 25,
+                }}
+                />
+              <YAxis 
+                allowDecimals={false}
+                label={{
+                  value: "Number of Responses",
+                  angle: -90,
+                  position: "middle",
+                  dx: -20,
+                }} />
               <Tooltip
                 content={({ active, payload, label, coordinate }) => {
                   if (active && payload && coordinate) {
