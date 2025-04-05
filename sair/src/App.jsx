@@ -167,7 +167,7 @@ function App() {
         <Route path="/gdtviolation/detail/:violationId" element={<GDTViolationDetail />} />
         <Route path="/gdtcrashes/:GDTID?" element={<GDTCrashes />} />
         <Route path="/gdtcrash/general/:crashId" element={<GDTCrashGeneral />} />
-        <Route path="/gdtcomplaints" element={<GDTComplaints />} /> 
+        <Route path="/gdtcomplaints/:GDTID?" element={<GDTComplaints />} /> 
         <Route path="/gdtcomplaints/general/:complaintId" element={<GDTComplaintGeneral />} />
         <Route path="/gdtheatmap" element={<GDTHeatmap locations={locations} />}  /> 
         <Route path="/GDTDashBoard" element={<GDTDashBoard />} /> 

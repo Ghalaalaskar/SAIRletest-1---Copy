@@ -323,7 +323,7 @@ const StaffChart = () => {
                 setStaffNameWithNoComplaint(staffName);
                 setComplaintModalVisible(true);
               } else {
-                if (GDTID) navigate(`/ChartDetails/ComplaintResponse/${GDTID}`);
+                if (GDTID) navigate(`/GDTComplaints/${GDTID}`);
               }
             }}
           >
