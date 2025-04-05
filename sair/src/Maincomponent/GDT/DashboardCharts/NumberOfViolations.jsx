@@ -127,46 +127,45 @@ const NumberofViolations = ({ dateType, companyName }) => {
 
   return (
     <div style={{ width: "100%", height: "400px", overflowX: "auto" }}>
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart
-          data={data}
-          margin={{ top: 10, right: 30, left: 0, bottom: 60 }}
-        >
-          <defs>
-            <linearGradient id="colorPv" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8} />
-              <stop offset="95%" stopColor="#82ca9d" stopOpacity={0} />
-            </linearGradient>
-          </defs>
-          <XAxis
-            dataKey="date"
-            interval={0} // Show all dates
-            angle={-45}
-            textAnchor="end"
-            label={{ value: "Date", position: "insideBottom", dy: 55 }}
-            tick={{ fontSize: 12 }}
-          />
-          <YAxis
-            allowDecimals={false}
-            label={{
-              value: "Number of Violations",
-              angle: -90,
-              position: "middle",
-              dx: -20,
-            }}
-          />
-          <CartesianGrid strokeDasharray="3 3" />
-          <Tooltip />
-          <Line
-            type="monotone"
-            dataKey="count"
-            stroke="#82ca9d"
-            fillOpacity={1}
-            fill="url(#colorPv)"
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
+    <ResponsiveContainer width="100%" height="100%">
+      <LineChart
+        data={data}
+        margin={{ top: 10, right: 30, left: 0, bottom: 60 }}
+      >
+        <defs>
+          <linearGradient id="colorPv" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8} />
+            <stop offset="95%" stopColor="#82ca9d" stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <XAxis
+          dataKey="date"
+          interval={0}
+          angle={-45}
+          textAnchor="end"
+          label={{ value: "Date", position: "insideBottom", dy: 55 }}
+          tick={{ fontSize: 12 }}
+        />
+        <YAxis
+          allowDecimals={false}
+          label={{
+            value: "Number of Violations",
+            angle: -90,
+            position: "middle",
+            dx: -20,
+          }}
+        />
+        <CartesianGrid strokeDasharray="3 3" />
+        <Tooltip />
+        <Line
+          type="monotone"
+          dataKey="count"
+          stroke="#82ca9d"
+          dot={true}
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  </div>
   );
 };
 

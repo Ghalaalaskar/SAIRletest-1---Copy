@@ -169,8 +169,7 @@ const NumberofCrash  = ({ dateType, companyName }) => {
             type="monotone"
             dataKey="count"
             stroke="#82ca9d"
-            fillOpacity={1}
-            fill="url(#colorPv)"
+            dot={true}
           />
         </LineChart>
       </ResponsiveContainer>
