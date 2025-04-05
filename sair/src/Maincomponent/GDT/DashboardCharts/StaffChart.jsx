@@ -50,8 +50,10 @@ const StaffChart = () => {
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
   const [hoveringTooltip, setHoveringTooltip] = useState(false);
   const navigate = useNavigate();
-  const [modalVisible, setModalVisible] = useState(false);
+  const [crashModalVisible, setCrashModalVisible] = useState(false);
+  const [complaintModalVisible, setComplaintModalVisible] = useState(false);
   const [staffNameWithNoComplaint, setStaffNameWithNoComplaint] = useState("");
+  const [staffNameWithNoCrash, setStaffNameWithNoCrash] = useState("");
 
   const chartContainerRef = useRef(null);
   const maxVisibleBars = 5; // Show up to 5 bars before scrolling
@@ -141,19 +143,37 @@ const StaffChart = () => {
       {/* Alert when complaint count =0 */}
       <Modal
         title="No Complaints Found"
-        open={modalVisible}
-        onCancel={() => setModalVisible(false)}
+        open={complaintModalVisible}
+        onCancel={() => setComplaintModalVisible(false)}
         centered
         style={{ top: "1%" }}
         className="custom-modal"
         closeIcon={<span className="custom-modal-close-icon">×</span>}
         footer={[
-          <Button key="cancel" onClick={() => setModalVisible(false)}>
+          <Button key="cancel" onClick={() => setComplaintModalVisible(false)}>
             OK
           </Button>,
         ]}
       >
         <p><strong>{staffNameWithNoComplaint}</strong>, the staff member, has not responded to any complaints yet.</p>
+      </Modal>
+
+      {/* Alert when crash count =0 */}
+      <Modal
+        title="No Crash Found"
+        open={crashModalVisible}
+        onCancel={() => setCrashModalVisible(false)}
+        centered
+        style={{ top: "1%" }}
+        className="custom-modal"
+        closeIcon={<span className="custom-modal-close-icon">×</span>}
+        footer={[
+          <Button key="cancel" onClick={() => setCrashModalVisible(false)}>
+            OK
+          </Button>,
+        ]}
+      >
+        <p><strong>{staffNameWithNoCrash}</strong>, the staff member, has not responded to any crash yet.</p>
       </Modal>
 
       <CustomLegend />
@@ -233,7 +253,11 @@ const StaffChart = () => {
             style={{
               marginTop: "10px",
               padding: "5px 10px",
-              backgroundColor: "#059855",
+              backgroundColor:
+                tooltipData?.payload?.find((p) => p.dataKey === "Crash")
+                  ?.value === 0
+                  ? "#9e9e9e" // Grey when crash count = 0
+                  : "#059855",
               color: "white",
               border: "none",
               borderRadius: "3px",
@@ -241,8 +265,17 @@ const StaffChart = () => {
             }}
             onClick={() => {
               const GDTID = tooltipData?.payload?.[0]?.payload?.GDTID;
-              console.log("Navigating to:", GDTID);
-              if (GDTID) navigate(`/ChartDetails/CrashResponse/${GDTID}`);
+              const crashCount =
+                tooltipData?.payload?.find((p) => p.dataKey === "Crash")
+                  ?.value || 0;
+              const staffName = tooltipData?.label;
+
+              if (crashCount === 0) {
+                setStaffNameWithNoCrash(staffName);
+                setCrashModalVisible(true);
+              } else {
+                if (GDTID) navigate(`/GDTcrashes/${GDTID}`);
+              }
             }}
           >
             Crash Information
@@ -271,7 +304,7 @@ const StaffChart = () => {
 
               if (complaintCount === 0) {
                 setStaffNameWithNoComplaint(staffName);
-                setModalVisible(true);
+                setComplaintModalVisible(true);
               } else {
                 if (GDTID) navigate(`/ChartDetails/ComplaintResponse/${GDTID}`);
               }
