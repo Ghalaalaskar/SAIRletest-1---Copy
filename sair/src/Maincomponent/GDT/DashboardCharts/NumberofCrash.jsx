@@ -3,13 +3,13 @@ import { useEffect, useState } from "react";
 import { db } from "../../../firebase";
 import { collection, getDocs,query,where } from "firebase/firestore";
 import {
-  AreaChart,
+  LineChart,
   ResponsiveContainer,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Area,
+  Line,
 } from "recharts";
 
 const NumberofCrash  = ({ dateType, companyName }) => {
@@ -136,7 +136,7 @@ const NumberofCrash  = ({ dateType, companyName }) => {
   return (
     <div style={{ width: "100%", height: "400px", overflowX: "auto" }}>
       <ResponsiveContainer width={data.length > 7 ? "150%" : "100%"} height="100%">
-        <AreaChart
+        <LineChart
           data={data}
           margin={{ top: 10, right: 30, left: 0, bottom: 60 }}
         >
@@ -165,14 +165,13 @@ const NumberofCrash  = ({ dateType, companyName }) => {
           />
           <CartesianGrid strokeDasharray="3 3" />
           <Tooltip />
-          <Area
+          <Line
             type="monotone"
             dataKey="count"
             stroke="#82ca9d"
-            fillOpacity={1}
-            fill="url(#colorPv)"
+            dot={true}
           />
-        </AreaChart>
+        </LineChart>
       </ResponsiveContainer>
     </div>
   );
