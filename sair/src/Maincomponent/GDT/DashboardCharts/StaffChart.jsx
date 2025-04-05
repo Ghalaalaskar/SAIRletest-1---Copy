@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
 import { db } from "../../../firebase";
+import { useNavigate } from "react-router-dom";
 import { collection, getDocs, where, query } from "firebase/firestore";
 import {
   BarChart,
@@ -42,53 +43,12 @@ const CustomLegend = () => {
   );
 };
 
-const CustomTooltip = ({ active, payload, label }) => {
-  const [isHovered, setIsHovered] = useState(false);
-
-  if ((active || isHovered) && payload && payload.length) {
-    return (
-      <div
-        style={{
-          backgroundColor: "white",
-          padding: "10px",
-          border: "1px solid #ccc",
-          borderRadius: "5px",
-          boxShadow: "0px 0px 5px rgba(0,0,0,0.2)",
-        }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        <p style={{ fontWeight: "bold", marginBottom: "5px" }}>{label}</p>
-        {payload.map((entry, index) => (
-          <p key={index} style={{ color: entry.color, margin: 0 }}>
-            {entry.name}: {entry.value}
-          </p>
-        ))}
-        <button
-          style={{
-            marginTop: "10px",
-            padding: "5px 10px",
-            backgroundColor: "#059855",
-            color: "white",
-            border: "none",
-            borderRadius: "3px",
-            cursor: "pointer",
-          }}
-          onClick={() => alert(`Clicked on ${label}`)}
-        >
-          Full Information
-        </button>
-      </div>
-    );
-  }
-  return null;
-};
-
 const StaffChart = () => {
   const [data, setData] = useState([]);
   const [tooltipData, setTooltipData] = useState(null); // tooltip state
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
   const [hoveringTooltip, setHoveringTooltip] = useState(false);
+  const navigate = useNavigate();
 
   const chartContainerRef = useRef(null);
   const maxVisibleBars = 5; // Show up to 5 bars before scrolling
@@ -109,7 +69,7 @@ const StaffChart = () => {
         //count crash response
         CrashQuerySnapshot.forEach((doc) => {
           const { RespondedBy } = doc.data();
-          
+
           if (RespondedBy) {
             if (!StaffCounts.has(RespondedBy)) {
               StaffCounts.set(RespondedBy, {
@@ -148,7 +108,7 @@ const StaffChart = () => {
             let StaffID = "";
             if (!gdtDocs.empty) {
               firstName = gdtDocs.docs[0].data().Fname || "";
-              StaffID = gdtDocs.docs[0].data().GDTID || "";
+              StaffID = gdtDocs.docs[0].data().ID || "";
             }
 
             return {
@@ -206,7 +166,11 @@ const StaffChart = () => {
                   return null; // Don't show default tooltip
                 }}
               />
-              <Bar dataKey="Crash" fill="#2E7D32" name="Crash Responses" />
+              <Bar
+                dataKey="Crash"
+                fill="#2E7D32"
+                name="Number of Crash Responses"
+              />
               <Bar
                 dataKey="Complaint"
                 fill="#4CAF50"
@@ -254,9 +218,32 @@ const StaffChart = () => {
               borderRadius: "3px",
               cursor: "pointer",
             }}
-            onClick={() => alert(`Clicked on ${tooltipData.label}`)}
+            onClick={() => {
+              const GDTID = tooltipData?.payload?.[0]?.payload?.GDTID;
+              console.log("Navigating to:", GDTID); 
+              if (GDTID) navigate(`/ChartDetails/CrashResponse/${GDTID}`);
+            }}            
           >
-            Full Information
+            Crash Information
+          </button>
+          <button
+            style={{
+              marginTop: "10px",
+              marginLeft: "10px",
+              padding: "5px 10px",
+              backgroundColor: "#059855",
+              color: "white",
+              border: "none",
+              borderRadius: "3px",
+              cursor: "pointer",
+            }}
+            onClick={() => {
+              const GDTID = tooltipData?.payload?.[0]?.payload?.GDTID;
+              console.log("Navigating to:", GDTID); 
+              if (GDTID) navigate(`/ChartDetails/CrashResponse/${GDTID}`);
+            }}            
+          >
+            Complaint Information
           </button>
         </div>
       )}
