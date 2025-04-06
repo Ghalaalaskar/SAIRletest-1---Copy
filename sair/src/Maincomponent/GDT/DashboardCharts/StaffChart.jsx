@@ -135,8 +135,11 @@ const StaffChart = () => {
   }, []);
 
   // Determine whether scrolling is needed
-  const needsScroll = data.length > maxVisibleBars;
-  const dynamicWidth = needsScroll ? data.length * barWidth : "100%";
+const BAR_WIDTH = 100; // Width per bar (adjust as needed)
+const MIN_VISIBLE_BARS = 5;
+const needsScroll = data.length > MIN_VISIBLE_BARS;
+const dynamicWidth = needsScroll ? data.length * BAR_WIDTH : "100%";
+
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
@@ -184,8 +187,7 @@ const StaffChart = () => {
           whiteSpace: "nowrap",
         }}
       >
-        <div style={{ width: dynamicWidth }}>
-          <ResponsiveContainer width="100%" height={450}>
+        <ResponsiveContainer width="100%" height={450}>
             <BarChart
               data={data}
               margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
@@ -236,7 +238,6 @@ const StaffChart = () => {
               />
             </BarChart>
           </ResponsiveContainer>
-        </div>
       </div>
 
       {tooltipData && (
