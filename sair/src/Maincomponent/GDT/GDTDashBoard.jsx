@@ -944,7 +944,7 @@ const GDTDashBoard = () => {
             animation: "fadeIn 1s ease-in-out",
           }}
         >
-          <div style={{ fontWeight: "bold" }}>Violation Statistics</div>
+          <div style={{ fontWeight: "bold" }}>Reckless Violation Statistics</div>
         </div>
 <div
   style={{
