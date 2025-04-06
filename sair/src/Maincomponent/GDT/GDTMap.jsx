@@ -32,13 +32,13 @@ const [selectedLocation, setSelectedLocation] = useState(null);
 const [heatmapData, setHeatmapData] = useState([]);
 const [map, setMap] = useState(null);
 // const [isMapLoaded, setIsMapLoaded] = useState(false);
-const [mapCenter, setMapCenter] = useState({ lat: 24.7136, lng: 46.6753 }); // Default center
+const [mapCenter, setMapCenter] = useState({ lat: 24.7136, lng: 46.6953 }); // Center of Riyadh
 const [lastKnownLocations, setLastKnownLocations] = useState(() => {
 const storedLocations = localStorage.getItem("lastKnownLocations");
 return storedLocations ? JSON.parse(storedLocations) : [];
 });
 const [initialLoad, setInitialLoad] = useState(true); // Track if it's the initial load
-const [zoomLevel, setZoomLevel] = useState(14); // Default zoom level
+const [zoomLevel, setZoomLevel] = useState(12); // Default zoom level
 const [driverDetails, setDriverDetails] = useState(null);
 const [motorcycleDetails, setMotorcycleDetails] = useState(null);
 const [isHovered, setIsHovered] = useState(false);
@@ -225,6 +225,7 @@ const center = lastKnownLocations.length > 0
 
 const handleMarkerClick = async (gpsNumber, location) => {
   setExpandedMotorcycleId(null); // Close dropdowns when a marker is clicked
+  setZoomLevel(20); // Set zoom level to 150%
   const clickedMotorcycle = staticMotorcycleData.find(item => item.gpsNumber === gpsNumber);
 
   if (clickedMotorcycle) {
@@ -363,6 +364,7 @@ return matchesSearch && matchesFilter;
 
 console.log('Last Known Locations:', lastKnownLocations);
 console.log('Filtered Motorcycle Data:', filteredMotorcycleData);
+
 
 const staticMotorcycleData = [
   { MotorcycleID: '5000000001', GPSnumber: '123456789012345', lat: 24.7137, lng: 46.6753, driverName: 'Mohammed Al-Farsi', driverID: '4455500001', phoneNumber: '+966512345678', shortCompanyName: 'Jahez', Type: 'T4A', LicensePlate: 'XYZ 123' },
@@ -602,10 +604,10 @@ Full Information
 
 <button
   onClick={() => {
-    const clickedLocation = lastKnownLocations.find(loc => loc.gpsNumber === motorcycleDetails?.GPSnumber);
+    const clickedLocation = lastKnownLocations.find(loc => loc.gpsNumber === item.gpsNumber || loc.GPSnumber === item.GPSnumber);
     if (clickedLocation) {
       setMapCenter({ lat: clickedLocation.lat, lng: clickedLocation.lng }); // Update map center
-      setSelectedLocation(clickedLocation); // Optionally, keep the selected location
+      handleMarkerClick(clickedLocation.gpsNumber, clickedLocation); // This will open the InfoWindow
     }
   }}
   style={{
@@ -617,8 +619,7 @@ Full Information
     cursor: 'pointer'
   }}
 >
-  Go to Location
-</button>
+Show on Map</button>
 
 </div>
 
