@@ -135,11 +135,10 @@ const StaffChart = () => {
   }, []);
 
   // Determine whether scrolling is needed
-const BAR_WIDTH = 100; // Width per bar (adjust as needed)
-const MIN_VISIBLE_BARS = 5;
-const needsScroll = data.length > MIN_VISIBLE_BARS;
-const dynamicWidth = needsScroll ? data.length * BAR_WIDTH : "100%";
-
+  const BAR_WIDTH = 100; // Width per bar (adjust as needed)
+  const MIN_VISIBLE_BARS = 5;
+  const needsScroll = data.length > MIN_VISIBLE_BARS;
+  const dynamicWidth = needsScroll ? data.length * BAR_WIDTH : "100%";
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
@@ -158,7 +157,10 @@ const dynamicWidth = needsScroll ? data.length * BAR_WIDTH : "100%";
           </Button>,
         ]}
       >
-        <p><strong>{staffNameWithNoComplaint}</strong>, the staff member, has not responded to any complaints yet.</p>
+        <p>
+          <strong>{staffNameWithNoComplaint}</strong>, the staff member, has not
+          responded to any complaints yet.
+        </p>
       </Modal>
 
       {/* Alert when crash count =0 */}
@@ -176,18 +178,18 @@ const dynamicWidth = needsScroll ? data.length * BAR_WIDTH : "100%";
           </Button>,
         ]}
       >
-        <p><strong>{staffNameWithNoCrash}</strong>, the staff member, has not responded to any crash yet.</p>
+        <p>
+          <strong>{staffNameWithNoCrash}</strong>, the staff member, has not
+          responded to any crash yet.
+        </p>
       </Modal>
 
       <CustomLegend />
-      <div
-        ref={chartContainerRef}
-        style={{
-          overflowX: needsScroll ? "auto" : "hidden",
-          whiteSpace: "nowrap",
-        }}
-      >
-        <ResponsiveContainer width="100%" height={450}>
+      <div style={{ overflowX: "auto", whiteSpace: "nowrap" }}>
+        {/* <div style={{ width: `${data.length}px` }}> */}
+        {data.length <= 7 ? (
+          // For small datasets — no scroll, fixed width
+          <ResponsiveContainer width="100%" height={450}>
             <BarChart
               data={data}
               margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
@@ -196,25 +198,26 @@ const dynamicWidth = needsScroll ? data.length * BAR_WIDTH : "100%";
               }}
             >
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
+              <XAxis
                 dataKey="FirstName"
-                interval={0} 
-                height={60} 
+                interval={0}
+                height={60}
                 tick={{ dy: 10 }}
                 label={{
                   value: "Staff Name",
                   position: "insideBottom",
                   dy: 25,
                 }}
-                />
-              <YAxis 
+              />
+              <YAxis
                 allowDecimals={false}
                 label={{
                   value: "Number of Responses",
                   angle: -90,
                   position: "middle",
                   dx: -20,
-                }} />
+                }}
+              />
               <Tooltip
                 content={({ active, payload, label, coordinate }) => {
                   if (active && payload && coordinate) {
@@ -238,6 +241,63 @@ const dynamicWidth = needsScroll ? data.length * BAR_WIDTH : "100%";
               />
             </BarChart>
           </ResponsiveContainer>
+        ) : (
+          // For large datasets — scrollable, dynamic width
+          <div style={{ width: `${data.length}px` }}>
+            <BarChart
+              width={data.length * 150}
+              height={450}
+              data={data}
+              margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+              onMouseLeave={() => {
+                if (!hoveringTooltip) setTooltipData(null);
+              }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis
+                dataKey="FirstName"
+                interval={0}
+                height={60}
+                tick={{ dy: 10 }}
+                label={{
+                  value: "Staff Name",
+                  position: "insideBottom",
+                  dy: 25,
+                }}
+              />
+              <YAxis
+                allowDecimals={false}
+                label={{
+                  value: "Number of Responses",
+                  angle: -90,
+                  position: "middle",
+                  dx: -20,
+                }}
+              />
+              <Tooltip
+                content={({ active, payload, label, coordinate }) => {
+                  if (active && payload && coordinate) {
+                    setTooltipData({ label, payload });
+                    setTooltipPos({ x: coordinate.x, y: coordinate.y });
+                  } else if (!hoveringTooltip) {
+                    setTooltipData(null);
+                  }
+                  return null; // Don't show default tooltip
+                }}
+              />
+              <Bar
+                dataKey="Crash"
+                fill="#2E7D32"
+                name="Number of Crash Responses"
+              />
+              <Bar
+                dataKey="Complaint"
+                fill="#4CAF50"
+                name="Number of Complaint Responses"
+              />
+            </BarChart>
+          </div>
+        )}
       </div>
 
       {tooltipData && (
