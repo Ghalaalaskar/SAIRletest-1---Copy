@@ -41,11 +41,22 @@ const GDTDashBoard = () => {
   const [percentageChangeCrash, setPercentageChangeCrash] = useState(null);
   const [lastCrashTime, setLastCrashTime] = useState(null);
   const [responseBy, setResponseBy] = useState(null);
+  const [filterByDate, setFilterByDate] = useState("week");
+  const [filterByDateCrash, setFilterByDateCrash] = useState("week");
 
   useEffect(() => {
     fetchData();
   }, []);
 
+  const handleDateFilterChange = (event) => {
+    const filterByDate = event.target.value; // Get the selected value (Week or Month)
+    setFilterByDate(filterByDate); // Update your filter state
+  };
+
+  const handleDateFilterChangeCarsh = (event) => {
+    const filterByDateCrash = event.target.value;
+    setFilterByDateCrash(filterByDateCrash); // Update your filter state
+  };
   const capitalizeFirstLetter = (string) => {
     if (!string) return "";
     return string.charAt(0).toUpperCase() + string.slice(1);
@@ -57,7 +68,7 @@ const GDTDashBoard = () => {
         collection(db, "GDT"),
         where("ID", "==", RespondedBy)
       );
-  
+
       const unsubscribe = onSnapshot(gdtQuery, (snapshot) => {
         if (!snapshot.empty) {
           const gdtData = snapshot.docs[0].data();
@@ -67,7 +78,7 @@ const GDTDashBoard = () => {
           setResponseByName("Unknown");
         }
       });
-  
+
       return unsubscribe;
     } catch (error) {
       console.error("Error fetching GDT details:", error);
@@ -76,23 +87,23 @@ const GDTDashBoard = () => {
   };
   const ResponseBy = ({ respondedBy }) => {
     const [responseByName, setResponseByName] = useState("");
-  
+
     useEffect(() => {
-      console.log('RespondedBy ID:', respondedBy);
-      
+      console.log("RespondedBy ID:", respondedBy);
+
       if (respondedBy) {
         const unsubscribe = GDTResponse(respondedBy, setResponseByName);
-        
+
         // Cleanup function to unsubscribe from the listener
         return () => {
-          console.log('Cleaning up listener');
+          console.log("Cleaning up listener");
           unsubscribe && unsubscribe();
         };
       } else {
         setResponseByName("Unknown"); // Reset if no ID
       }
     }, [respondedBy]);
-  
+
     return <span>{responseByName || "Loading..."}</span>; // Show loading while fetching
   };
   const toggleTypeDropdown = (type) => {
@@ -340,7 +351,7 @@ const GDTDashBoard = () => {
           orderBy("time", "desc"),
           limit(1)
         );
-  
+
         const querySnapshot = await getDocs(crashQuery);
         if (!querySnapshot.empty) {
           const lastCrash = querySnapshot.docs[0].data();
@@ -374,7 +385,6 @@ const GDTDashBoard = () => {
         </a>
       </div>
       <main class="Dashboard" style={{ padding: "20px", width: "100%" }}>
- 
         <div
           style={{
             display: "flex",
@@ -391,47 +401,53 @@ const GDTDashBoard = () => {
               boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
               flex: 1,
               textAlign: "center",
-      fontWeight: "bold",
-    }}
-  >
-    <div style={{ fontWeight: "bold", paddingTop:"15px" }}>
-      Started Streaming at: {getLastSundayDateTime()}
-    </div>
-  </div>
-  <div
-  style={{
-    backgroundColor: "#FFFFFF",
-    padding: "20px",
-    borderRadius: "8px",
-    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-    flex: 1,
-    textAlign: "left",
-    fontWeight: "bold",
-  }}
->
-  <div 
-    style={{ 
-      display: "flex", 
-      alignItems: "center", 
-      justifyContent: "space-between",
-      gap: "15px",paddingTop:"15px" 
-    }}
-  >
-    <span>
-      Last Crash Detected: <strong>{lastCrashTime || "No data available"}</strong>
-    </span>
-    <span style={{ color: responseBy ? "black" : "red" }}>
-  {responseBy ? (
-    <>Response By: <strong><ResponseBy respondedBy={responseBy} /></strong></>
-  ) : (
-    <>Needs Response</>
-  )}
-</span>
-  </div>
-</div>
-
-</div>
-<div
+              fontWeight: "bold",
+            }}
+          >
+            <div style={{ fontWeight: "bold", paddingTop: "15px" }}>
+              Started Streaming at: {getLastSundayDateTime()}
+            </div>
+          </div>
+          <div
+            style={{
+              backgroundColor: "#FFFFFF",
+              padding: "20px",
+              borderRadius: "8px",
+              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+              flex: 1,
+              textAlign: "left",
+              fontWeight: "bold",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "15px",
+                paddingTop: "15px",
+              }}
+            >
+              <span>
+                Last Crash Detected:{" "}
+                <strong>{lastCrashTime || "No data available"}</strong>
+              </span>
+              <span style={{ color: responseBy ? "black" : "red" }}>
+                {responseBy ? (
+                  <>
+                    Response By:{" "}
+                    <strong>
+                      <ResponseBy respondedBy={responseBy} />
+                    </strong>
+                  </>
+                ) : (
+                  <>Needs Response</>
+                )}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
           style={{
             backgroundColor: "#05b06d",
             color: "#ffffff",
@@ -445,11 +461,12 @@ const GDTDashBoard = () => {
             textAlign: "center",
             fontWeight: "bold",
             animation: "fadeIn 1s ease-in-out",
-            marginBottom:"20px"
+            marginBottom: "20px",
           }}
         >
           Delivery Companies Statistics
-        </div>   <div
+        </div>{" "}
+        <div
           style={{
             display: "flex",
             justifyContent: "center",
@@ -531,7 +548,6 @@ const GDTDashBoard = () => {
               {item.component}
             </GridItem>
           ))}
-        
         </div>
         <div
           style={{
@@ -541,7 +557,7 @@ const GDTDashBoard = () => {
             width: "100%",
           }}
         ></div>
-          <div
+        <div
           style={{
             backgroundColor: "#05b06d",
             color: "#ffffff",
@@ -553,7 +569,7 @@ const GDTDashBoard = () => {
             boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
             flex: 1,
             textAlign: "center",
-            marginBottom:"0",
+            marginBottom: "0",
             fontWeight: "bold",
             animation: "fadeIn 1s ease-in-out",
           }}
@@ -590,13 +606,50 @@ const GDTDashBoard = () => {
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
+                width: "100%", // Ensure the container takes full width
               }}
             >
-              <div style={{ fontWeight: "bold" }}>Violation Statistics</div>
+              <div
+                style={{
+                  textAlign: "left",
+                  fontWeight: "bold",
+                  marginRight: "90px",
+                }}
+              >
+                Violation Statistics
+              </div>
+              {/* First Radio Group */}
+              <div className={d.radioinputs}>
+                <label className={d.radio}>
+                  <input
+                    type="radio"
+                    name="dateFilter1" // Unique name but controlled by state
+                    value="week"
+                    checked={filterByDate === "week"}
+                    onChange={handleDateFilterChange}
+                  />
+                  <span className={d.name}>Week</span>
+                </label>
+                <label className={d.radio}>
+                  <input
+                    type="radio"
+                    name="dateFilter1"
+                    value="Month"
+                    checked={filterByDate === "Month"}
+                    onChange={handleDateFilterChange}
+                  />
+                  <span className={d.name}>Month</span>
+                </label>
+              </div>
+
               <div
                 className="searchContainer"
                 ref={violationDropdownRef}
-                style={{ position: "relative" }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  position: "relative",
+                }}
               >
                 <div
                   className="selectWrapper"
@@ -605,44 +658,48 @@ const GDTDashBoard = () => {
                     backgroundColor: "#FFFFFF",
                     color: "black",
                     borderRadius: "5px",
-                    padding: "5px",
                     fontWeight: "normal",
+                    marginLeft: "0px",
+                    width: "220px", // Fixed width
+                    boxSizing: "border-box", // Prevents expansion
+                    position: "relative", // For absolute dropdown positioning
+                    marginLeft: "9px",
                   }}
                 >
                   <div
-                    className={`customSelect ${
-                      isTypeOpen.violations ? "open" : ""
-                    }`}
+                    className="customSelect"
                     onClick={() => toggleTypeDropdown("violations")}
                     style={{
                       cursor: "pointer",
-                      padding: "5px 10px",
-                      position: "relative",
-                      width: "200px",
+                      padding: "8px 12px",
+                      width: "100%", // Prevents expansion
                       textAlign: "left",
+                      fontSize: "14px",
+                      position: "relative",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
                     }}
                   >
-                    {violationFilterType === "All" ? (
-                      <span>Filter by Company</span>
-                    ) : (
-                      violationFilterType
-                    )}
+                    <span>
+                      {violationFilterType === "All"
+                        ? "Filter by Company"
+                        : violationFilterType}
+                    </span>
                     <span
                       style={{
-                        position: "absolute",
-                        right: "10px",
-                        top: "50%",
-                        transform: "translateY(-50%)",
                         border: "solid #4CAF50",
                         borderWidth: "0 2px 2px 0",
                         display: "inline-block",
-                        padding: "3px",
+                        padding: "4px",
                         transform: isTypeOpen.violations
-                          ? "translateY(-50%) rotate(-135deg)"
-                          : "translateY(-50%) rotate(45deg)",
+                          ? "rotate(-135deg)"
+                          : "rotate(45deg)",
+                        transition: "transform 0.2s",
                       }}
                     />
                   </div>
+
                   {isTypeOpen.violations && (
                     <div
                       className="dropdownMenu"
@@ -651,12 +708,12 @@ const GDTDashBoard = () => {
                         zIndex: 1000,
                         backgroundColor: "#fff",
                         border: "1px solid #ddd",
-                        top: "100%",
-                        left: "0",
-                        right: "0",
-                        textAlign: "left",
                         borderRadius: "5px",
-                        fontWeight: "normal",
+                        width: "100%", // Matches select width
+                        top: "100%", // Positions below the select
+                        left: 0, // Ensures alignment
+                        boxSizing: "border-box",
+                        boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
                       }}
                     >
                       {companyOptions.map((option) => (
@@ -665,9 +722,10 @@ const GDTDashBoard = () => {
                           className="dropdownOption"
                           onClick={() => handleViolationOptionClick(option)}
                           style={{
-                            padding: "10px",
+                            padding: "12px",
                             cursor: "pointer",
                             transition: "background-color 0.3s",
+                            fontSize: "14px",
                           }}
                           onMouseEnter={(e) =>
                             (e.currentTarget.style.backgroundColor = "#f0f0f0")
@@ -686,6 +744,7 @@ const GDTDashBoard = () => {
               </div>
             </div>
           </div>
+
           <div
             style={{
               backgroundColor: "#05b06d",
@@ -710,13 +769,39 @@ const GDTDashBoard = () => {
                 alignItems: "center",
               }}
             >
-              <div style={{ fontWeight: "bold" }}>
-                 Crash Statistics
+              <div style={{ fontWeight: "bold", marginRight: "110px" }}>
+                Crash Statistics
+              </div>
+              <div className={d.radioinputs2}>
+                <label className={d.radio2}>
+                  <input
+                    type="radio"
+                    name="dateFilter2" // Different name but still controlled by state
+                    value="week"
+                    checked={filterByDateCrash === "week"}
+                    onChange={handleDateFilterChangeCarsh}
+                  />
+                  <span className={d.name2}>Week</span>
+                </label>
+                <label className={d.radio2}>
+                  <input
+                    type="radio"
+                    name={"dateFilter2"}
+                    value="Month"
+                    checked={filterByDateCrash === "Month"}
+                    onChange={handleDateFilterChangeCarsh}
+                  />
+                  <span className={d.name2}>Month</span>
+                </label>
               </div>
               <div
                 className="searchContainer"
                 ref={complaintDropdownRef}
-                style={{ position: "relative" }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  position: "relative",
+                }}
               >
                 <div
                   className="selectWrapper"
@@ -725,8 +810,12 @@ const GDTDashBoard = () => {
                     backgroundColor: "#FFFFFF",
                     color: "black",
                     borderRadius: "5px",
-                    padding: "5px",
                     fontWeight: "normal",
+                    marginLeft: "0px",
+                    width: "220px", // Fixed width
+                    boxSizing: "border-box", // Prevents expansion
+                    position: "relative", // For absolute dropdown positioning
+                    marginLeft: "9px",
                   }}
                 >
                   <div
@@ -736,10 +825,14 @@ const GDTDashBoard = () => {
                     onClick={() => toggleTypeDropdown("complaints")}
                     style={{
                       cursor: "pointer",
-                      padding: "5px 10px",
-                      position: "relative",
-                      width: "200px",
+                      padding: "8px 12px",
+                      width: "100%", // Prevents expansion
                       textAlign: "left",
+                      fontSize: "14px",
+                      position: "relative",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
                     }}
                   >
                     {complaintFilterType === "All" ? (
@@ -749,17 +842,14 @@ const GDTDashBoard = () => {
                     )}
                     <span
                       style={{
-                        position: "absolute",
-                        right: "10px",
-                        top: "50%",
-                        transform: "translateY(-50%)",
                         border: "solid #4CAF50",
                         borderWidth: "0 2px 2px 0",
                         display: "inline-block",
-                        padding: "3px",
+                        padding: "4px",
                         transform: isTypeOpen.complaints
-                          ? "translateY(-50%) rotate(-135deg)"
-                          : "translateY(-50%) rotate(45deg)",
+                          ? "rotate(-135deg)"
+                          : "rotate(45deg)",
+                        transition: "transform 0.2s",
                       }}
                     />
                   </div>
@@ -771,12 +861,12 @@ const GDTDashBoard = () => {
                         zIndex: 1000,
                         backgroundColor: "#fff",
                         border: "1px solid #ddd",
-                        top: "100%",
-                        left: "0",
-                        right: "0",
-                        textAlign: "left",
                         borderRadius: "5px",
-                        fontWeight: "normal",
+                        width: "100%", // Matches select width
+                        top: "100%", // Positions below the select
+                        left: 0, // Ensures alignment
+                        boxSizing: "border-box",
+                        boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
                       }}
                     >
                       {companyOptions.map((option) => (
@@ -788,6 +878,7 @@ const GDTDashBoard = () => {
                             padding: "10px",
                             cursor: "pointer",
                             transition: "background-color 0.3s",
+                            fontSize: "14px",
                           }}
                           onMouseEnter={(e) =>
                             (e.currentTarget.style.backgroundColor = "#f0f0f0")
@@ -807,26 +898,36 @@ const GDTDashBoard = () => {
             </div>
           </div>
         </div>
-        {/* Bottom Section: Charts */}
-        <div
-          style={{
-            display: "flex",
-            gap: "20px",
-            width: "100%",
-          }}
-        >
-          <div
-            style={{
-              flex: 1,
-              display: "flex",
-              flexDirection: "column",
-              gap: "20px",
-            }}
-          >
-            <GridItem title="Number of Violations">
-              <NumberOfViolations />
-            </GridItem>
-            <div
+    {/* Bottom Section: Charts */}
+<div
+  style={{
+    display: "flex",
+    gap: "20px",
+    width: "100%",
+  }}
+>
+  {/* Row: Violations and Crashes side-by-side */}
+  <div style={{ flex: 1 }}>
+    <GridItem title="Number of Violations">
+      <NumberOfViolations
+        dateType={filterByDate}
+        companyName={violationFilterType}
+      />
+    </GridItem>
+  </div>
+
+  <div style={{ flex: 1 }}>
+    <GridItem title="Number of Crashes">
+      <NumberofCrashes
+        dateType={filterByDateCrash}
+        companyName={complaintFilterType}
+      />
+    </GridItem>
+  </div>
+</div>
+
+{/* Row: Reckless Violations alone */}
+<div
           style={{
             backgroundColor: "#05b06d",
             color: "#ffffff",
@@ -843,28 +944,21 @@ const GDTDashBoard = () => {
             animation: "fadeIn 1s ease-in-out",
           }}
         >
-          <div style={{ fontWeight: "bold" }}>Violation Statistics</div>
+          <div style={{ fontWeight: "bold" }}>Reckless Violation Statistics</div>
         </div>
-            <GridItem title="Reckless Violations">
-              <RecklessViolation />
-            </GridItem>
-          </div>
+<div
+  style={{
+    width: "100%",
+  }}
+>
+  <GridItem title="Reckless Violations">
+    <RecklessViolation
+      dateType={filterByDate}
+      companyName={violationFilterType}
+    />
+  </GridItem>
+</div>
 
-          <div
-            style={{
-              flex: 1,
-              display: "flex",
-              flexDirection: "column",
-              gap: "20px",
-            }}
-          >
-            <GridItem title="Number of Crashes">
-              <NumberofCrashes />
-            </GridItem>
-          </div>
-        </div>
-        
-        
         {/* Staff Charts */}
         <div
           style={{
@@ -885,7 +979,6 @@ const GDTDashBoard = () => {
         >
           <div style={{ fontWeight: "bold" }}>Staff Response Statistics</div>
         </div>
-
         <div
           style={{
             display: "flex",
@@ -906,9 +999,8 @@ const GDTDashBoard = () => {
             </GridItem>
           </div>
         </div>
-       
-        {/* Geo Charts */} 
-        <div 
+        {/* Geo Charts */}
+        <div
           style={{
             backgroundColor: "#05b06d",
             color: "#ffffff",
@@ -929,7 +1021,6 @@ const GDTDashBoard = () => {
             Riyadh Violation and Crash Distribution
           </div>
         </div>
-
         <div
           style={{
             display: "flex",
@@ -937,7 +1028,7 @@ const GDTDashBoard = () => {
             width: "100%",
           }}
         >
-        <div
+          <div
             style={{
               flex: 1,
               display: "flex",
@@ -949,7 +1040,7 @@ const GDTDashBoard = () => {
               <ViolationCrashGeoChart />
             </GridItem>
           </div>
-          </div>
+        </div>
       </main>
     </div>
   );

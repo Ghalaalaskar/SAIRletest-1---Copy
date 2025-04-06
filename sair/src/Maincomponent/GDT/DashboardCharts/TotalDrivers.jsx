@@ -13,7 +13,14 @@ import {
   Legend,
 } from "recharts";
 
-const COLORS = ["#2E7D32", "#4CAF50", "#FFC107", "#FF5722", "#03A9F4", "#9C27B0"]; // Colors for companies
+const COLORS = [
+  "#2E7D32",
+  "#4CAF50",
+  "#FFC107",
+  "#FF5722",
+  "#03A9F4",
+  "#9C27B0",
+]; // Colors for companies
 
 const capitalizeFirstLetter = (string) => {
   return string.charAt(0).toUpperCase() + string.slice(1);
@@ -45,9 +52,31 @@ const NumberofDrivers = () => {
             employerMap.set(CompanyName, ShortCompanyName);
           }
         });
+        // Dummy data for testing
+        const dummyDrivers = [
+          { CompanyName: "Ninja" },
+          { CompanyName: "Nana" },
+          { CompanyName: "Ninja" },
+          { CompanyName: "Keeta" },
+          { CompanyName: "Nana" },
+          { CompanyName: "Ninja" },
+          { CompanyName: "Keeta" },
+          { CompanyName: "Nana" },
+          { CompanyName: "Nana" },
 
+          { CompanyName: "TheChefz" },
+        ];
+
+        dummyDrivers.forEach(({ CompanyName }) => {
+          if (CompanyName) {
+            companyMap.set(CompanyName, (companyMap.get(CompanyName) || 0) + 1);
+          }
+        });
+        //end of Dummy
         const chartData = Array.from(companyMap, ([companyName, value]) => ({
-          name: capitalizeFirstLetter(employerMap.get(companyName) || companyName),
+          name: capitalizeFirstLetter(
+            employerMap.get(companyName) || companyName
+          ),
           value,
         }));
 
@@ -63,28 +92,40 @@ const NumberofDrivers = () => {
   return (
     <div style={{ width: "100%", height: "400px", position: "relative" }}>
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data}   width={data.length * 150} margin={{ top: 20, right: 30, left: 20, bottom: 50 }}>
+        <BarChart
+          data={data}
+          width={data.length * 150}
+          margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+        >
           <CartesianGrid strokeDasharray="3 3" />
-            
-        {/* X Axis in the middle */}
-        <XAxis 
-          dataKey="name" 
-          tick={{ dy: 10 }} 
-          label={{
-            value: "Delivery Companies",
-            position: "insideBottom",
-            dy: 25,
-          }}
-        />
-        
-          <YAxis allowDecimals={false}  label={{
-            value: "Number of Drivers",
-            angle: -90,
-            position: "middle",
-            dx: -20,
-          }}/>
+
+          {/* X Axis in the middle */}
+          <XAxis
+            dataKey="name"
+            tick={{ dy: 10 }}
+            label={{
+              value: "Delivery Companies",
+              position: "insideBottom",
+              dy: 25,
+            }}
+          />
+
+          <YAxis
+            allowDecimals={false}
+            label={{
+              value: "Number of Drivers",
+              angle: -90,
+              position: "middle",
+              dx: -20,
+            }}
+          />
           <Tooltip />
-          <Bar dataKey="value" fill="#4CAF50"  name="Number of Drivers" barSize={80}>
+          <Bar
+            dataKey="value"
+            fill="#4CAF50"
+            name="Number of Drivers"
+            barSize={80}
+          >
             {data.map((_, index) => (
               <rect key={`bar-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}

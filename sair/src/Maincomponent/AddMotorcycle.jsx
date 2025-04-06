@@ -233,7 +233,7 @@ const generateMotorcycleID = async (gpsNumber) => {
         <a onClick={() => navigate('/add-motorcycle')}>Add Motorcycle</a>
       </div>
 
-      <main className={s.container}>
+<div className={s.container}>
         <h2 className='title'>Add Motorcycle</h2>
         <form onSubmit={handleSubmit}>
           <div className={s.formRow}> 
@@ -342,7 +342,7 @@ const generateMotorcycleID = async (gpsNumber) => {
             </button>
           </div>
         </form>
-      </main>
+      </div>
 
 
 {popupVisible && (

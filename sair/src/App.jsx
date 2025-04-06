@@ -42,6 +42,7 @@ import GDTComplaintGeneral from './Maincomponent/GDT/GDTComplaintGeneral';
 import GDTHeatmap from './Maincomponent/GDT/GDTHeatmap';
 import GDTDashBoard from './Maincomponent/GDT/GDTDashBoard';
 import GDTStafflist from './Maincomponent/GDT/GDTStafflist';
+import CrashResponse from './Maincomponent/GDT/ChartDetails/CrashResponse';
 import GDTDriverlist from './Maincomponent/GDT/GDTDriverlist';
 import GDTProfilepage from './Maincomponent/GDT/GDTProfilepage';
 import GDTAddStaff from './Maincomponent/GDT/GDTAddStaff';
@@ -164,9 +165,9 @@ function App() {
         <Route path="/gdtviolations" element={<GDTViolations />} />
         <Route path="/gdtviolation/general/:violationId" element={<GDTViolationGeneral />} />
         <Route path="/gdtviolation/detail/:violationId" element={<GDTViolationDetail />} />
-        <Route path="/gdtcrashes" element={<GDTCrashes />} />
+        <Route path="/gdtcrashes/:GDTID?" element={<GDTCrashes />} />
         <Route path="/gdtcrash/general/:crashId" element={<GDTCrashGeneral />} />
-        <Route path="/gdtcomplaints" element={<GDTComplaints />} /> 
+        <Route path="/gdtcomplaints/:GDTID?" element={<GDTComplaints />} /> 
         <Route path="/gdtcomplaints/general/:complaintId" element={<GDTComplaintGeneral />} />
         <Route path="/gdtheatmap" element={<GDTHeatmap locations={locations} />}  /> 
         <Route path="/GDTDashBoard" element={<GDTDashBoard />} /> 
@@ -174,6 +175,7 @@ function App() {
         <Route path="/gdtdriverlist" element={<GDTDriverlist />} /> 
         <Route path="/gdtprofile" element={<GDTProfilepage />} /> 
         <Route path="/gdtaddstaff" element={<GDTAddStaff />} />
+        <Route path="/ChartDetails/CrashResponse/:GDTID" element={<CrashResponse />} />
         <Route path="/gdteditstaff/:staffId" element={<GDTEditStaff />} />
         <Route path="/gdtricklessdrives" element={<GDTRicklessDrivers />} />
         <Route path="/gdtdriverdetails/:driverId" element={<GDTDriverDetails />} />

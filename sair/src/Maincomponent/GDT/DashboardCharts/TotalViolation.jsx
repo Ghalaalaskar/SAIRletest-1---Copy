@@ -107,6 +107,28 @@ const TotalViolation = () => {
           }
         });
 
+           // Dummy data for testing
+           const dummyDrivers = [
+            { CompanyName: "TheChefz" },
+            { CompanyName: "Nana" },
+            { CompanyName: "Ninja" },
+            { CompanyName: "Keeta" },
+            { CompanyName: "Nana" },
+            { CompanyName: "Ninja" },
+            { CompanyName: "Keeta" },
+            { CompanyName: "Keeta" },
+            { CompanyName: "Keeta" },
+            { CompanyName: "TheChefz" },
+            { CompanyName: "TheChefz" },
+          ];
+  
+          dummyDrivers.forEach(({ CompanyName }) => {
+            if (CompanyName) {
+              companyMap.set(CompanyName, (companyMap.get(CompanyName) || 0) + 1);
+            }
+          });
+          //end of Dummy
+
         // Step 5: Prepare final chart data with ShortCompanyName
         const chartData = Array.from(companyMap, ([companyName, value]) => ({
           name: capitalizeFirstLetter(
@@ -116,7 +138,7 @@ const TotalViolation = () => {
         }));
 
         console.log("Final Chart Data:", chartData);
-
+        setTotalViolation(chartData.reduce((sum, entry) => sum + entry.value, 0)); // Calculate total count
         setData(chartData);
       } catch (error) {
         console.error("Error fetching data:", error);

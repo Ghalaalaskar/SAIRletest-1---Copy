@@ -14,10 +14,12 @@ import {
 } from "recharts";
 import { Tooltip as AntTooltip } from "antd";
 
+// Function to capitalize the first letter of a string
 const capitalizeFirstLetter = (string) => {
   return string.charAt(0).toUpperCase() + string.slice(1);
 };
 
+// Custom legend component with tooltips
 const CustomLegend = () => {
   return (
     <div style={{ display: "flex", gap: "20px", justifyContent: "center", marginBottom: "10px" }}>
@@ -41,6 +43,7 @@ const RecklessViolation = () => {
         const driverIDs = new Set();
         const companyCounts = new Map();
 
+        // Collect violation data and group by driverID
         violationSnapshot.forEach((doc) => {
           const { driverID, count30 = 0, count50 = 0 } = doc.data();
           if (driverID) driverIDs.add(driverID);
@@ -55,6 +58,7 @@ const RecklessViolation = () => {
         const driverIDList = [...driverIDs];
         const driverMap = new Map();
 
+        // Fetch company names associated with each driver
         for (let i = 0; i < driverIDList.length; i += 10) {
           const batch = driverIDList.slice(i, i + 10);
           const q = query(collection(db, "Driver"), where("DriverID", "in", batch));
@@ -68,6 +72,7 @@ const RecklessViolation = () => {
           });
         }
 
+        // Fetch short company names for display purposes
         const employerSnapshot = await getDocs(collection(db, "Employer"));
         const employerMap = new Map();
         employerSnapshot.forEach((doc) => {
@@ -78,20 +83,32 @@ const RecklessViolation = () => {
         });
 
         const companyMap = new Map();
+
+        // Aggregate violations by company
         driverMap.forEach((companyName, driverID) => {
-          if (!companyMap.has(companyName)) {
-            companyMap.set(companyName, { count30: 0, count50: 0 });
+          const counts = companyCounts.get(driverID);
+          if (counts && (counts.count30 > 0 || counts.count50 > 0)) {
+            if (!companyMap.has(companyName)) {
+              companyMap.set(companyName, { count30: 0, count50: 0 });
+            }
+            companyMap.get(companyName).count30 += counts.count30;
+            companyMap.get(companyName).count50 += counts.count50;
           }
-          const counts = companyCounts.get(driverID) || { count30: 0, count50: 0 };
-          companyMap.get(companyName).count30 += counts.count30;
-          companyMap.get(companyName).count50 += counts.count50;
         });
 
-        const chartData = Array.from(companyMap, ([companyName, counts]) => ({
+        let chartData = Array.from(companyMap, ([companyName, counts]) => ({
           name: capitalizeFirstLetter(employerMap.get(companyName) || companyName),
           count30: counts.count30,
           count50: counts.count50,
         }));
+
+        // Dummy data 
+        const dummyData = [
+          { name: "Keeta", count30: 5, count50: 3 },
+          { name: "Ninja", count30: 8, count50: 6 },
+          { name: "Nana", count30: 4, count50: 2 },
+        ];
+        chartData = [...chartData, ...dummyData];
 
         setData(chartData);
       } catch (error) {

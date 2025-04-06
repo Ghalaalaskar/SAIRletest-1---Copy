@@ -19,6 +19,7 @@ const Adddriverbatch = () => {
   const [fileData, setFileData] = useState([]);
   const [availableMotorcycles, setAvailableMotorcycles] = useState([]);
   const [selectedGPSNumbers, setSelectedGPSNumbers] = useState({}); 
+  const [deletedGPS, setDeletedGPS] = useState(null); // New state for deletedGPS
 
   const [Employer, setEmployer] = useState({ CompanyName: '' });
 
@@ -65,6 +66,9 @@ const Adddriverbatch = () => {
             id: doc.id,
             GPSnumber: doc.data().GPSnumber,
           }));
+          // const filteredBikes = bikes.filter(bike => 
+          //   !Object.values(selectedGPSNumbers).includes(bike.GPSnumber)
+          // );
           setAvailableMotorcycles(bikes);
         });
         return () => unsubscribe();
@@ -75,7 +79,8 @@ const Adddriverbatch = () => {
 
 
   const handleInputChangeGPS = (index, value, driver) => {
-
+    console.log('hhhhhhhhhhhhhhhhhhhhhhhhhhiiiiiiiiiiiiiiii',selectedGPSNumbers);
+    console.log('hhhhhhhhhhhhhhhhhhhhhhhhhhiiiiiiiiiiiiiiii',availableMotorcycles);
 
     setFileData((prevFileData) => {
       const updatedFileData = [...prevFileData];
@@ -86,10 +91,30 @@ const Adddriverbatch = () => {
     });
   
     // Optionally update the selected GPS numbers state if you are tracking them
-    setSelectedGPSNumbers((prevSelected) => ({
-      ...prevSelected,
-      [index]: value,
-    }));
+    // setSelectedGPSNumbers((prevSelected) => ({
+    //   ...prevSelected,
+    //   [index]: value,
+    // }));
+    setSelectedGPSNumbers((prevSelected) => {
+
+      // if (value === 'None') {
+      //   console.log('hhhhhhhhhhhhhhhhhhhhhhhhhhiiiiiiiiiiiiiiii',prevSelected);
+      //   return prevSelected;
+      // }
+    
+      // Check if the value (GPS number) is already selected
+      // if (Object.values(prevSelected).includes(value)) {
+      //   return prevSelected; // Return the previous state if the value already exists (no duplicates)
+      // }
+    
+      // If not, update the state with the new selected GPS number
+      return {
+        ...prevSelected,
+        [index]: value,
+      };
+    });
+    
+
   
 
     setErrorData((prev) => {
@@ -154,31 +179,58 @@ const Adddriverbatch = () => {
     );
   };
 
+
+
   const handleDeleteDrivers = (index) => {
-   
       const updatedFileData = [...fileData];
       const deletedGPS = updatedFileData[index]?.GPSnumber;
-  
+      setDeletedGPS(deletedGPS);
+      console.log('mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm',selectedGPSNumbers);
+        if (deletedGPS && deletedGPS !== 'None') {
+          // Remove from selected list
+          // setSelectedGPSNumbers(prevSelected => {
+          //   const updatedSelected = { ...prevSelected };
+          //   delete updatedSelected[deletedGPS];
+          //   return updatedSelected;
+          // });
+          const updatedSelectedGPSNumbers = { ...selectedGPSNumbers };
+          console.log('mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm',updatedSelectedGPSNumbers);
+
+        delete updatedSelectedGPSNumbers[index];
+        console.log('mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm',updatedSelectedGPSNumbers);
+
+        setSelectedGPSNumbers(updatedSelectedGPSNumbers);
+      console.log('mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm',selectedGPSNumbers);
+          // Add back to availableMotorcycles
+          // setAvailableMotorcycles(prevAvailable => {
+          //   return [...prevAvailable, deletedGPS]; // Add back to available list
+          // });
+        }
+
+      console.log('mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm',selectedGPSNumbers);
+      console.log('mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm',availableMotorcycles);
+
       updatedFileData.splice(index, 1);
       const updatedErrorData = [...errorData];
       updatedErrorData.splice(index, 1);
   
-      console.log('deletedGPS', deletedGPS);
-  
-      if (deletedGPS && deletedGPS !== 'None') {
-          const updatedSelectedGPSNumbers = { ...selectedGPSNumbers };
-          delete updatedSelectedGPSNumbers[deletedGPS]; // Remove from selected list
-          setSelectedGPSNumbers(updatedSelectedGPSNumbers);
-  
-          // Adding the deleted GPS back to available list
-          setAvailableMotorcycles(prevAvailable => [...prevAvailable, deletedGPS]);
-      }
-  
+
+      
     setFileData(updatedFileData);
     setErrorData(updatedErrorData);
     setIsDeletePopupVisible(false);
 };
 
+
+
+useEffect(() => {
+
+  console.log('hhhhhhhhhhhhhhhhhhhhhhhhhhiiiiiiiiiiiiiiii',selectedGPSNumbers);
+  console.log('hhhhhhhhhhhhhhhhhhhhhhhhhhiiiiiiiiiiiiiiii',availableMotorcycles);
+setSelectedGPSNumbers(selectedGPSNumbers);
+
+  // setDeletedGPS(null);
+}, [selectedGPSNumbers]); // Re-run whenever deletedGPS changes
 
   const validateDriverMember = async (driver, index) => {
     const staffErrors = {
@@ -367,18 +419,7 @@ const Adddriverbatch = () => {
     }
   };
 
-  const handleBatchUploadResults = (errorList, successCount) => {
-    if (errorList.length > 0) {
-      const errorMessages = errorList.map((err) => err.message).join('\n');
-      setPopupMessage(errorMessages);
-      setPopupImage(errorImage);
-      setPopupVisible(true);
-    } else {
-      setPopupMessage(`A total of ${successCount} Drivers Added Successfully!`);
-      setPopupImage(successImage);
-      setPopupVisible(true);
-    }
-  };
+  
 
   const sendEmail = (email, driverName, password) => {
     // const templateParams = {
@@ -445,6 +486,7 @@ const Adddriverbatch = () => {
     }
     setFileData([]);
     setSelectedGPSNumbers([]);
+    // setAvailableMotorcycles([])
     setIsButtonDisabled(true);
     setErrorMessage('');
     setIsUploadBoxVisible(true);
@@ -454,40 +496,55 @@ const Adddriverbatch = () => {
     setPopupVisible(false);
   };
 
-  const handleAddDrivers = async () => {
-    const hasErrors = errorData.some((staffErrors) =>
-      Object.values(staffErrors).some((error) => error)
-    );
-    if (hasErrors) {
-      setPopupMessage('Please fix the errors before adding staff.');
+  const handleBatchUploadResults = (errorList, successCount) => {
+    console.log('errorLlllllllllllllllllllllllllist',errorList);
+    if (errorList.length > 0) {
+      const errorMessages = errorList.map((err) => err.message).join('\n');
+      setPopupMessage(errorMessages);
       setPopupImage(errorImage);
       setPopupVisible(true);
-      return;
+    } else {
+      setPopupMessage(`A total of ${successCount} Drivers Added Successfully!`);
+      setPopupImage(successImage);
+      setPopupVisible(true);
     }
-
-    const errorList = [];
-    let successCount = 0;
-    const addedDriversIDs = [];
-    for (const driver of fileData) {
-      try {
-        console.log("driver.GPSnumber:", driver.GPSnumber);
-        const addedDriver = await addDriverToDatabase(driver);
-        addedDriversIDs.push(addedDriver.id); // Store the added driver ID
-        successCount++;
-        // Store the staff ID in sessionStorage
-        sessionStorage.setItem(`driver_${addedDriver.id}`, addedDriver.id);
-      }  catch (error) {
-        errorList.push({
-          message: `Error adding driver ${driver['First name']} ${driver['Last name']}: ${error.message}`,
-        });
-      }
-    }
-// Store added staff IDs in sessionStorage
-const existingIDs = JSON.parse(sessionStorage.getItem('addedDriversIDs')) || [];
-const updatedIDs = [...new Set([...existingIDs, ...addedDriversIDs])]; // Ensure unique IDs
-sessionStorage.setItem('addedDriversIDs', JSON.stringify(updatedIDs));
-    handleBatchUploadResults(errorList, successCount);
   };
+
+
+  const handleAddDrivers = async () => {
+     const hasErrors = errorData.some((staffErrors) =>
+          Object.values(staffErrors).some((error) => error)
+        );
+        if (hasErrors) {
+          setPopupMessage('Please fix the errors before adding drivers.');
+          setPopupImage(errorImage);
+          setPopupVisible(true);
+          return;
+        }
+    
+        const errorList = [];
+        let successCount = 0;
+        const addedDriversIDs = [];
+        for (const staff of fileData) {
+          try {
+            const addedStaff = await addDriverToDatabase(staff);
+            addedDriversIDs.push(addedStaff.id); // Store the added staff ID
+            successCount++;
+            // Store the staff ID in sessionStorage
+            sessionStorage.setItem(`driver${addedStaff.ID}`, addedStaff.ID);
+          }  catch (error) {
+            errorList.push({
+              message: `Error adding driver ${staff['First name']} ${staff['Last name']}: ${error.message}`,
+            });
+          }
+        }
+    // Store added staff IDs in sessionStorage
+    const existingIDs = JSON.parse(sessionStorage.getItem('addedDriversIDs')) || [];
+    const updatedIDs = [...new Set([...existingIDs, ...addedDriversIDs])]; // Ensure unique IDs
+    sessionStorage.setItem('addedDriversIDs', JSON.stringify(updatedIDs));
+        handleBatchUploadResults(errorList, successCount);
+      };
+    
 
   const addDriverToDatabase = async (driver) => {
     const {
@@ -507,12 +564,8 @@ sessionStorage.setItem('addedDriversIDs', JSON.stringify(updatedIDs));
       // Attempt to create user in Firebase Authentication
       const userCredential = await createUserWithEmailAndPassword(auth, Email, password);
       user = userCredential.user; // Store the user if creation succeeds
-    } catch (error) {
-      // If user creation fails, stop and throw the error
-      throw new Error(`${error.message}`);
-    }
+   
 
-    try {
       // Proceed to add to Firestore only if user creation was successful
       const addedDriver = await addDoc(collection(db, 'Driver'), {
         Fname,
@@ -541,30 +594,35 @@ sessionStorage.setItem('addedDriversIDs', JSON.stringify(updatedIDs));
           });
         }
       }
+      sessionStorage.setItem(`driver${addedDriver.id}`, addedDriver.id);
 
       sendEmail(Email, `${Fname} ${Lname}`, password);
       return addedDriver;
 
     } catch (error) {
-      // Handle errors related to Firestore operation
-      throw new Error(`Database operation failed for ${Fname} ${Lname}: ${error.message}`);
+      throw error;
     }
 };
 
-  useEffect(() => {
-    const hasErrors = errorData.some((staffErrors) =>
-      Object.values(staffErrors).some((error) => error)
-    );
+   useEffect(() => {
+      const hasErrors = errorData.some((staffErrors) =>
+        Object.values(staffErrors).some((error) => error)
+      );
+  
+      setIsButtonDisabled(hasErrors);
+      setErrorMessage(
+        hasErrors
+          ? 'Please fix the errors in the table highlighted with red borders.'
+          : ''
+      );
+    }, [errorData, fileData]);
 
-    setIsButtonDisabled(hasErrors);
-    setErrorMessage(
-      hasErrors
-        ? 'Please fix the errors in the table highlighted with red borders.'
-        : ''
-    );
-  }, [errorData, fileData]);
-
-
+    const getFilteredUniqueGPSNumbers = (selectedGPSNumbers) => {
+      // Convert the object to an array, filter out 'None', and remove duplicates
+      const filteredNumbers = Array.from(new Set(Object.values(selectedGPSNumbers).filter(value => value !== 'None')));
+      console.log('fggggggggggggggggggggggggggggggggg',filteredNumbers);
+      return filteredNumbers;
+    };
   
 
   return (
@@ -791,17 +849,15 @@ sessionStorage.setItem('addedDriversIDs', JSON.stringify(updatedIDs));
   }}
   title={errorData?.[index]?.GPSnumber ? errorData?.[index]?.GPSnumberMessage : ''}
 >
-  <option value="" disabled>Select a Motorcycle</option>
+<option value="" disabled>Select a Motorcycle</option>
   <option value="None">None</option>
 
-  {/* Show the previously selected GPS number even if it's not available */}
+  {/* Show previously selected GPS number */}
   {driver?.GPSnumber && driver.GPSnumber !== "None" && (
-    <option value={driver.GPSnumber}>
-      {driver.GPSnumber}
-    </option>
+    <option value={driver.GPSnumber}>{driver.GPSnumber}</option>
   )}
 
-  {/* Show only unselected GPS numbers */}
+  {/* Only show unselected GPS numbers */}
   {availableMotorcycles
     .filter((item) => !Object.values(selectedGPSNumbers).includes(item.GPSnumber))
     .map((item) => (
@@ -811,7 +867,7 @@ sessionStorage.setItem('addedDriversIDs', JSON.stringify(updatedIDs));
     ))}
 
   {/* Display when no motorcycles are available */}
-  {availableMotorcycles.length === Object.values(selectedGPSNumbers).length && (
+  {availableMotorcycles.length === getFilteredUniqueGPSNumbers(selectedGPSNumbers).length && (
     <option disabled>No motorcycles available</option>
   )}
 </select>
@@ -876,7 +932,9 @@ sessionStorage.setItem('addedDriversIDs', JSON.stringify(updatedIDs));
     <Button key="no" onClick={() => setIsDeletePopupVisible(false)}>
       No
     </Button>,
-    <Button key="yes" type="primary" danger onClick={() => handleDeleteDrivers(fileData.indexOf(driverToRemove))}>
+    <Button key="yes" type="primary" danger  onClick={() => {
+      handleDeleteDrivers(fileData.indexOf(driverToRemove)); 
+    }}>
       Yes
     </Button>,
   ]}
