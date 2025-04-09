@@ -2,8 +2,15 @@
 import { useEffect, useState } from "react";
 import { db } from "../../../firebase";
 import { collection, getDocs, query, where } from "firebase/firestore";
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
-
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+} from "recharts";
 
 const NumberofViolations = ({ dateType, companyName }) => {
   const [data, setData] = useState([]);
@@ -67,18 +74,25 @@ const NumberofViolations = ({ dateType, companyName }) => {
           startDate = new Date(targetYear, 0, 1); // Jan 1st of target year
           endDate = new Date(targetYear, 11, 31); // Dec 31st of target year
         }
-        
 
         // Initialize the date range for the chart
         const dateRange = [];
-        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-          const formattedDate = dateType === "week"
-            ? d.toLocaleDateString("en-GB", { day: "2-digit", month: "long" })
-            : d.toLocaleDateString("en-GB", { year: "numeric", month: "long" });
-        
+        for (
+          let d = new Date(startDate);
+          d <= endDate;
+          d.setDate(d.getDate() + 1)
+        ) {
+          const formattedDate =
+            dateType === "week"
+              ? d.toLocaleDateString("en-GB", { day: "2-digit", month: "long" })
+              : d.toLocaleDateString("en-GB", {
+                  year: "numeric",
+                  month: "long",
+                });
+
           dateRange.push({ date: formattedDate, count: 0 });
         }
-        
+
         // Process violations and group by date
         violationSnapshot.forEach((doc) => {
           const { time, driverID } = doc.data();
@@ -89,14 +103,22 @@ const NumberofViolations = ({ dateType, companyName }) => {
 
           if (violationDate >= startDate && violationDate <= endDate) {
             const companyNameFromDriver = driverMap.get(driverID);
-            const shortName = employerMap.get(companyNameFromDriver) || companyNameFromDriver;
+            const shortName =
+              employerMap.get(companyNameFromDriver) || companyNameFromDriver;
 
             // Filter by company name if provided
             if (companyName !== "All" && shortName !== companyName) return;
 
-            const formattedDate = dateType === "week"
-              ? violationDate.toLocaleDateString("en-GB", { day: "2-digit", month: "long" })
-              : violationDate.toLocaleDateString("en-GB", { year: "numeric", month: "long" });
+            const formattedDate =
+              dateType === "week"
+                ? violationDate.toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "long",
+                  })
+                : violationDate.toLocaleDateString("en-GB", {
+                    year: "numeric",
+                    month: "long",
+                  });
 
             violationsMap.set(
               formattedDate,
@@ -134,106 +156,99 @@ const NumberofViolations = ({ dateType, companyName }) => {
   }, [dateType, companyName, offset]);
 
   return (
-    <div style={{ width: "100%", height: "400px" ,  position: "relative" }}>
-<button
-  onClick={() => setOffset((prev) => prev + 1)}
-  style={{
-    position: "absolute",
-    left: "4rem",
-    top: "-7%",
-    transform: "translateY(-50%)",
-    zIndex: 1,
-    fontSize: "20px",
-    backgroundColor: "#f9f9f9",
-    border: "1px solid #ccc",
-    borderRadius: "10%",
-    width: "40px",
-    height: "40px",
-    cursor: "pointer",
-    boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.1)",
-    transition: "all 0.2s ease-in-out",
-  }}
-  onMouseOver={(e) => {
-    e.target.style.backgroundColor = "#e6f5e9";
-  }}
-  onMouseOut={(e) => {
-    e.target.style.backgroundColor = "#f9f9f9";
-  }}
->
-  ◀
-</button>
+    <div style={{ width: "100%", height: "400px", position: "relative" }}>
+      {/* Left Arrow Button (← - Increase Offset) */}
+      <button
+        onClick={() => setOffset((prev) => prev + 1)}
+        style={{
+          position: "absolute",
+          left: "10px",
+          top: "-45px",
+          fontSize: "20px",
+          backgroundColor: "white",
+          color: "black",
+          width: "45px",
+          height: "45px",
+          border: "1px solid #e7eae8",
+          borderRadius: "8px",
+          cursor: "pointer",
+          opacity: 1,
+          zIndex: 2,
+        }}
+        onMouseOver={(e) => {
+          e.target.style.backgroundColor = "#e6f5e9";
+        }}
+        onMouseOut={(e) => {
+          e.target.style.backgroundColor = "#f9f9f9";
+        }}
+      >
+        ←
+      </button>
 
-<button
-  onClick={() => setOffset((prev) => Math.max(prev - 1, 0))}
-  disabled={offset === 0}
-  style={{
-    position: "absolute",
-    right: "2rem",
-    top: "-7%",
-    transform: "translateY(-50%)",
-    zIndex: 1,
-    fontSize: "20px",
-    backgroundColor: offset === 0 ? "#eee" : "#f9f9f9",
-    border: "1px solid #ccc",
-    borderRadius: "10%",
-    width: "40px",
-    height: "40px",
-    cursor: offset === 0 ? "not-allowed" : "pointer",
-    boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.1)",
-    opacity: offset === 0 ? 0.5 : 1,
-    transition: "all 0.2s ease-in-out",
-  }}
-  onMouseOver={(e) => {
-    if (offset !== 0) e.target.style.backgroundColor = "#e6f5e9";
-  }}
-  onMouseOut={(e) => {
-    if (offset !== 0) e.target.style.backgroundColor = "#f9f9f9";
-  }}
->
-  ▶
-</button>
+      {/* Right Arrow Button (→ - Decrease Offset) */}
+      <button
+        onClick={() => setOffset((prev) => Math.max(prev - 1, 0))}
+        disabled={offset === 0}
+        style={{
+          position: "absolute",
+          right: "10px",
+          top: "-45px",
+          fontSize: "20px",
+          backgroundColor: "white",
+          color: "black",
+          width: "45px",
+          height: "45px",
+          backgroundColor: offset === 0 ? "#eee" : "#f9f9f9",
+          border: "1px solid #e7eae8",
+          borderRadius: "8px",
+          cursor: offset === 0 ? "not-allowed" : "pointer",
+          opacity: offset === 0 ? 0.5 : 1,
+          zIndex: 2,
+        }}
+        onMouseOver={(e) => {
+          if (offset !== 0) e.target.style.backgroundColor = "#e6f5e9";
+        }}
+        onMouseOut={(e) => {
+          if (offset !== 0) e.target.style.backgroundColor = "#f9f9f9";
+        }}
+      >
+        →
+      </button>
 
-
-  <ResponsiveContainer width="100%" height="100%">
-    <LineChart
-      data={data}
-      margin={{ top: 10, right: 30, left: 0, bottom: 60 }}
-    >
-
-        <defs>
-          <linearGradient id="colorPv" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8} />
-            <stop offset="95%" stopColor="#82ca9d" stopOpacity={0} />
-          </linearGradient>
-        </defs>
-        <XAxis
-          dataKey="date"
-          interval={0}
-          angle={-45}
-          textAnchor="end"
-          label={{ value: "Date", position: "insideBottom", dy: 55 }}
-          tick={{ fontSize: 12 }}
-        />
-        <YAxis
-          allowDecimals={false}
-          label={{
-            value: "Number of Violations",
-            angle: -90,
-            position: "middle",
-            dx: -20,
-          }}
-        />
-        <CartesianGrid strokeDasharray="3 3" />
-        <Tooltip />
-        <Line
-          type="monotone"
-          dataKey="count"
-          stroke="#82ca9d"
-          dot={true}
-        />
-      </LineChart>
-    </ResponsiveContainer>
-  </div>
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart
+          data={data}
+          margin={{ top: 10, right: 30, left: 0, bottom: 60 }}
+        >
+          <defs>
+            <linearGradient id="colorPv" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8} />
+              <stop offset="95%" stopColor="#82ca9d" stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <XAxis
+            dataKey="date"
+            interval={0}
+            angle={-45}
+            textAnchor="end"
+            label={{ value: "Date", position: "insideBottom", dy: 55 }}
+            tick={{ fontSize: 12 }}
+          />
+          <YAxis
+            allowDecimals={false}
+            label={{
+              value: "Number of Violations",
+              angle: -90,
+              position: "middle",
+              dx: -20,
+            }}
+          />
+          <CartesianGrid strokeDasharray="3 3" />
+          <Tooltip />
+          <Line type="monotone" dataKey="count" stroke="#82ca9d" dot={true} />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
   );
 };
 
