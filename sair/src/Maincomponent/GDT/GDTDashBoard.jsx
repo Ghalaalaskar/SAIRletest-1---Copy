@@ -467,88 +467,88 @@ const GDTDashBoard = () => {
           Delivery Companies Statistics
         </div>{" "}
         <div
+  style={{
+    display: "flex",
+    justifyContent: "space-between", // Use space-between to distribute space
+    gap: "20px",
+    flexWrap: "wrap", // Allows wrapping to the next line if necessary
+    width: "100%",
+  }}
+>
+  {[
+    { title: "Total Drivers", component: <TotalDrivers /> },
+    {
+      title: "Total Violation",
+      component: (
+        <div
           style={{
+            position: "relative",
             display: "flex",
-            justifyContent: "center",
-            gap: "20px",
-            flexWrap: "wrap",
-            width: "100%",
+            alignItems: "center",
           }}
         >
-          {[
-            { title: "Total Drivers", component: <TotalDrivers /> },
-            {
-              title: "Total Violation",
-              component: (
-                <div
-                  style={{
-                    position: "relative",
-                    display: "flex",
-                    alignItems: "center",
-                  }}
-                >
-                  <TotalViolation />
-                  {percentageChange !== null && (
-                    <span
-                      style={{
-                        position: "absolute",
-                        bottom: "0",
-                        right: "0",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "4px",
-                        color: percentageChange >= 0 ? "green" : "red",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      {percentageChange >= 0 ? <FaArrowUp /> : <FaArrowDown />}
-                      {percentageChange}% this week
-                    </span>
-                  )}
-                </div>
-              ),
-            },
-            {
-              title: "Total Crash",
-              component: (
-                <div
-                  style={{
-                    position: "relative",
-                    display: "flex",
-                    alignItems: "center",
-                  }}
-                >
-                  <TotalCrash />
-                  {percentageChange !== null && (
-                    <span
-                      style={{
-                        position: "absolute",
-                        bottom: "0",
-                        right: "0",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "4px",
-                        color: percentageChange >= 0 ? "green" : "red",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      {percentageChangeCrash >= 0 ? (
-                        <FaArrowUp />
-                      ) : (
-                        <FaArrowDown />
-                      )}
-                      {percentageChangeCrash}% this week
-                    </span>
-                  )}
-                </div>
-              ),
-            },
-          ].map((item, index) => (
-            <GridItem key={index} title={item.title}>
-              {item.component}
-            </GridItem>
-          ))}
+          <TotalViolation />
+          {percentageChange !== null && (
+            <span
+              style={{
+                position: "absolute",
+                bottom: "0",
+                right: "0",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+                color: percentageChange >= 0 ? "green" : "red",
+                fontWeight: "bold",
+              }}
+            >
+              {percentageChange >= 0 ? <FaArrowUp /> : <FaArrowDown />}
+              {percentageChange}% this week
+            </span>
+          )}
         </div>
+      ),
+    },
+    {
+      title: "Total Crash",
+      component: (
+        <div
+          style={{
+            position: "relative",
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <TotalCrash />
+          {percentageChangeCrash !== null && (
+            <span
+              style={{
+                position: "absolute",
+                bottom: "0",
+                right: "0",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+                color: percentageChangeCrash >= 0 ? "green" : "red",
+                fontWeight: "bold",
+              }}
+            >
+              {percentageChangeCrash >= 0 ? (
+                <FaArrowUp />
+              ) : (
+                <FaArrowDown />
+              )}
+              {percentageChangeCrash}% this week
+            </span>
+          )}
+        </div>
+      ),
+    },
+  ].map((item, index) => (
+    <GridItem key={index} title={item.title}>
+      {item.component}
+    </GridItem>
+  ))}
+</div>
         <div
           style={{
             display: "flex",
