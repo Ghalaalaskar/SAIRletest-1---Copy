@@ -218,26 +218,34 @@ const StaffChart = () => {
                   dx: -20,
                 }}
               />
-              <Tooltip
-                content={({ active, payload, label, coordinate }) => {
-                  if (active && payload && coordinate) {
-                    setTooltipData({ label, payload });
-                    setTooltipPos({ x: coordinate.x, y: coordinate.y });
-                  } else if (!hoveringTooltip) {
-                    setTooltipData(null);
-                  }
-                  return null; // Don't show default tooltip
-                }}
-              />
               <Bar
                 dataKey="Crash"
                 fill="#2E7D32"
                 name="Number of Crash Responses"
+                style={{ cursor: "pointer" }}
+                onClick={(data) => {
+                  if (data.payload.Crash === 0) {
+                    setStaffNameWithNoCrash(data.payload.FirstName);
+                    setCrashModalVisible(true);
+                  } else {
+                    navigate(`/GDTcrashes/${data.payload.GDTID}`);
+                  }
+                }}
               />
+
               <Bar
                 dataKey="Complaint"
                 fill="#4CAF50"
                 name="Number of Complaint Responses"
+                style={{ cursor: "pointer" }}
+                onClick={(data) => {
+                  if (data.payload.Complaint === 0) {
+                    setStaffNameWithNoComplaint(data.payload.FirstName);
+                    setComplaintModalVisible(true);
+                  } else {
+                    navigate(`/GDTComplaints/${data.payload.GDTID}`);
+                  }
+                }}
               />
             </BarChart>
           </ResponsiveContainer>
@@ -256,6 +264,7 @@ const StaffChart = () => {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 dataKey="FirstName"
+                
                 interval={0}
                 height={60}
                 tick={{ dy: 10 }}
@@ -274,26 +283,34 @@ const StaffChart = () => {
                   dx: -20,
                 }}
               />
-              <Tooltip
-                content={({ active, payload, label, coordinate }) => {
-                  if (active && payload && coordinate) {
-                    setTooltipData({ label, payload });
-                    setTooltipPos({ x: coordinate.x, y: coordinate.y });
-                  } else if (!hoveringTooltip) {
-                    setTooltipData(null);
-                  }
-                  return null; // Don't show default tooltip
-                }}
-              />
               <Bar
                 dataKey="Crash"
                 fill="#2E7D32"
                 name="Number of Crash Responses"
+                style={{ cursor: "pointer" }}
+                onClick={(data) => {
+                  if (data.payload.Crash === 0) {
+                    setStaffNameWithNoCrash(data.payload.FirstName);
+                    setCrashModalVisible(true);
+                  } else {
+                    navigate(`/GDTcrashes/${data.payload.GDTID}`);
+                  }
+                }}
               />
+
               <Bar
                 dataKey="Complaint"
                 fill="#4CAF50"
                 name="Number of Complaint Responses"
+                style={{ cursor: "pointer" }}
+                onClick={(data) => {
+                  if (data.payload.Complaint === 0) {
+                    setStaffNameWithNoComplaint(data.payload.FirstName);
+                    setComplaintModalVisible(true);
+                  } else {
+                    navigate(`/GDTcrashes/${data.payload.GDTID}`);
+                  }
+                }}
               />
             </BarChart>
           </div>
@@ -327,69 +344,6 @@ const StaffChart = () => {
               {entry.name}: {entry.value}
             </p>
           ))}
-          <button
-            style={{
-              marginTop: "10px",
-              padding: "5px 10px",
-              backgroundColor:
-                tooltipData?.payload?.find((p) => p.dataKey === "Crash")
-                  ?.value === 0
-                  ? "#9e9e9e" // Grey when crash count = 0
-                  : "#059855",
-              color: "white",
-              border: "none",
-              borderRadius: "3px",
-              cursor: "pointer",
-            }}
-            onClick={() => {
-              const GDTID = tooltipData?.payload?.[0]?.payload?.GDTID;
-              const crashCount =
-                tooltipData?.payload?.find((p) => p.dataKey === "Crash")
-                  ?.value || 0;
-              const staffName = tooltipData?.label;
-
-              if (crashCount === 0) {
-                setStaffNameWithNoCrash(staffName);
-                setCrashModalVisible(true);
-              } else {
-                if (GDTID) navigate(`/GDTcrashes/${GDTID}`);
-              }
-            }}
-          >
-            Crash Information
-          </button>
-          <button
-            style={{
-              marginTop: "10px",
-              marginLeft: "10px",
-              padding: "5px 10px",
-              backgroundColor:
-                tooltipData?.payload?.find((p) => p.dataKey === "Complaint")
-                  ?.value === 0
-                  ? "#9e9e9e" // Grey when complaint count = 0
-                  : "#059855",
-              color: "white",
-              border: "none",
-              borderRadius: "3px",
-              cursor: "pointer",
-            }}
-            onClick={() => {
-              const GDTID = tooltipData?.payload?.[0]?.payload?.GDTID;
-              const complaintCount =
-                tooltipData?.payload?.find((p) => p.dataKey === "Complaint")
-                  ?.value || 0;
-              const staffName = tooltipData?.label;
-
-              if (complaintCount === 0) {
-                setStaffNameWithNoComplaint(staffName);
-                setComplaintModalVisible(true);
-              } else {
-                if (GDTID) navigate(`/GDTComplaints/${GDTID}`);
-              }
-            }}
-          >
-            Complaint Information
-          </button>
         </div>
       )}
     </div>
