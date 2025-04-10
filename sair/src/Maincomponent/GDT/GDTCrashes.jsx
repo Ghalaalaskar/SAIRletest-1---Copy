@@ -930,7 +930,7 @@ const CrashList = () => {
             dataSource={filteredCrashes}
             rowKey="id"
             // pagination={{ pageSize: 5 }}
-            pagination={false}
+            pagination= {GDTID? false: {pageSize: 5}} 
             onRow={(record) => ({
               style: {
                 backgroundColor:
@@ -964,12 +964,14 @@ const CrashList = () => {
               </Button>
             )}
 
-            <Pagination
+            {GDTID && ( 
+              <Pagination
               defaultCurrent={1}
               total={filteredCrashes.length}
               pageSize={5}
               style={{ marginLeft: "auto" }}
             />
+              )}
           </div>
         </div>
       </main>

@@ -23,6 +23,8 @@ import s from "../../css/ComplaintList.module.css"; // CSS module for ComplaintL
 import c from "../../css/CrashList.module.css";
 import "../../css/CustomModal.css";
 import formstyle from "../../css/Profile.module.css";
+import { ArrowLeftOutlined } from "@ant-design/icons";
+import { Pagination } from "antd";
 
 const GDTComplaintList = () => {
   const { GDTID } = useParams();
@@ -403,11 +405,19 @@ const GDTComplaintList = () => {
     setIsPopupVisibleStaff(false);
   };
 
+  const goBack = () => {
+    navigate(-1);
+  };
+
   return (
     <>
       <Header active="gdtcomplaints" />
       <div className="breadcrumb">
-        <a onClick={() => navigate("/gdt-home")}>Home</a>
+      {GDTID ? (
+          <a onClick={() => navigate("/GDTDashBoard")}>Dash Board</a>
+        ) : (
+          <a onClick={() => navigate("/gdthome")}>Home</a>
+        )}
         <span> / </span>
         <a onClick={() => navigate("/GDTComplaintList")}>Complaints List</a>
       </div>
@@ -809,7 +819,7 @@ const GDTComplaintList = () => {
             columns={columns}
             dataSource={filteredComplaints}
             rowKey="id"
-            pagination={{ pageSize: 5 }}
+            pagination={GDTID? false: {pageSize: 5}}
             onRow={(record) => ({
               style: {
                 backgroundColor:
@@ -819,6 +829,39 @@ const GDTComplaintList = () => {
               },
             })}
           />
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginTop: "16px",
+            }}
+          >
+            {GDTID && (
+              <Button
+                onClick={goBack}
+                style={{
+                  width: "auto",
+                  height: "60px",
+                  fontSize: "15px",
+                  color: "#059855",
+                  borderColor: "#059855",
+                }}
+              >
+                <ArrowLeftOutlined style={{ marginRight: "8px" }} />
+                Go Back
+              </Button>
+            )}
+
+            {GDTID && (
+             <Pagination
+             defaultCurrent={1}
+             total={filteredComplaints.length}
+             pageSize={5}
+             style={{ marginLeft: "auto" }}
+           /> 
+            )}
+          </div>
         </div>
       </main>
     </>
