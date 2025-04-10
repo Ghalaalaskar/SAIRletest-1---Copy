@@ -2,7 +2,7 @@ const express = require("express");
 const admin = require("firebase-admin");
 
 const serviceAccount =
-require("./sair-7310d-firebase-adminsdk-9tvud-7c0824d3ea.json");
+require('C:/Users/joman/OneDrive/Desktop/secrets/sair-7310d-firebase-adminsdk-9tvud-3725cb4010.json'); 
 
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
@@ -15,6 +15,11 @@ const app = express();
 
 // Create an Express server
 const PORT = process.env.PORT || 3000;
+
+let gpsState = {
+    active: [],
+    inactive: []
+  };
 
 // Wialon API credentials
 const WIALON_TOKEN =
@@ -58,38 +63,74 @@ const fetchUnits = async (sessionId) => {
 
 
 const fetchMaxSpeed = async (lat, lon) => {
-    const radius = 10; // 10 meters radius
-    const overpassUrl =
-`http://overpass-api.de/api/interpreter?data=[out:json];(way["maxspeed"](around:${radius},${lat},${lon}););out
-body;`;
+    const radius = 20; // 10 meters radius
+    const query = `[out:json];(way["maxspeed"](around:${radius},${lat},${lon}););out;`;
 
-    try {
-      const response = await axios.get(overpassUrl);
-      const ways = response.data.elements;
+//     const overpassUrl =
+// `http://overpass-api.de/api/interpreter?data=[out:json];(way["maxspeed"](around:${radius},${lat},${lon}););out;`;
+
+const url = `http://overpass-api.de/api/interpreter?data=${query}`;
 
 
-      if (ways.length > 0) {
-        // Get the first way found with a maxspeed tag
-        const firstWay = ways[0];
-        const maxspeed = firstWay.tags.maxspeed || 'No maxspeed found';
-        console.log('Max speed from API in fetchmax:', maxspeed);
+try {
+    const response = await axios.get(url);
+    console.log(response.data);
 
-        return parseMaxSpeed(maxspeed); // Use parseMaxSpeed to convert to a number
-      } else {
-        console.log('no mexspeed');
-        return 0; // Return 0 if no speed limit is found
-      }
-    } catch (error) {
-      console.error('Error fetching max speed:', error);
-      return 0; // Return 0 on error
+    // Handle successful response
+    const ways = response.data.elements;
+
+    if (ways.length > 0) {
+      // Get the first way found with a maxspeed tag
+      const firstWay = ways[0];
+      const maxspeed = firstWay.tags.maxspeed || 'No maxspeed found';
+      console.log('Max speed from API in fetchmax:', maxspeed);
+
+      // Ensure to handle parsing, e.g., if maxspeed is in the form of "50 km/h"
+      return parseMaxSpeed(maxspeed);
+    } else {
+      console.log('No maxspeed found');
+      return 0; // Return 0 if no speed limit is found
     }
+
+  } catch (error) {
+    // Handle errors if something goes wrong
+    console.error('Error fetching max speed:', error);
+    return 0; // Return 0 on error
+  }
+
+
+
+    // try {
+    // //   const response = await axios.get(url);
+    //   const ways = response.data.elements;
+
+
+    //   if (ways.length > 0) {
+    //     // Get the first way found with a maxspeed tag
+    //     const firstWay = ways[0];
+    //     const maxspeed = firstWay.tags.maxspeed || 'No maxspeed found';
+    //     console.log('Max speed from API in fetchmax:', maxspeed);
+
+    //     return parseMaxSpeed(maxspeed); // Use parseMaxSpeed to convert to a number
+    //   } else {
+    //     console.log('no mexspeed');
+    //     return 0; // Return 0 if no speed limit is found
+    //   }
+    // } catch (error) {
+    //   console.error('Error fetching max speed:', error);
+    //   return 0; // Return 0 on error
+    // }
   };
 
 
 
   const parseMaxSpeed = (maxspeed) => {
-    const match = maxspeed.match(/(\d+)\s*(km\/h|mph)?/);
-    return match ? parseInt(match[1], 10) : 0; // Return 0 if no match
+    // If the maxspeed is a string with units (e.g., "50 km/h"), extract the numeric value
+    const match = maxspeed.match(/(\d+)(?:\s*km\/h|\s*mph)?/);
+    if (match) {
+      return parseInt(match[1], 10); // Convert the number to an integer
+    }
+    return 0; // Return 0 if parsing fails
   };
 
   const processUnits1 = async (units,sessionId) => {
@@ -102,10 +143,12 @@ body;`;
             const GPSserialnumber = unit.nm; // Get unit name as GPS serial number
             console.log('gpsnum:', GPSserialnumber);
 
-            const maxSpeed = await fetchMaxSpeed(pos.y, pos.x); //Fetch max speed
+            const maxSpeed = await fetchMaxSpeed(24.75792675638283, 46.68704785917634); //Fetch max speed
             console.log('Max speed from API in process method:', maxSpeed);
 
-            if (maxSpeed !== 0) {
+            if (maxSpeed !== 0 ) {
+                console.log(maxSpeed);
+                console.log('hhhere');
                 const driverSpeed = pos.s; // Get the driver's speed
                 console.log('driverspeed:', driverSpeed);
 
@@ -562,6 +605,143 @@ Model, MotorcycleID, Type);
 };
 
 
+
+const fetchActiveLocations= async (units,sessionId) => {
+    const active = [];
+    const inactive = [];
+
+    for (const unit of units) {
+        const newCrashTime = unit.lmsg.rt;
+
+        const id = unit.id; // Wialon unit ID
+        console.log("Unit ID:", id);
+
+        const pos = unit.pos; // Position object from Wialon
+       console.log('pooooooooooos',pos);
+            const GPSserialnumber = unit.nm; // Unit name in Wialon
+            console.log("GPS Serial Number:", GPSserialnumber);
+            
+
+            // Query for the driver in Firestore
+            const driverQuerySnapshot = await db.collection("Driver")
+                .where("GPSnumber", "==", GPSserialnumber)
+                .get();
+
+            if (driverQuerySnapshot.empty) {
+                console.log(`No driver found for GPS number: ${GPSserialnumber}. Skipping.`);
+            } else {
+                const driverid = driverQuerySnapshot.docs[0].data().DriverID;
+                console.log("Driver ID:", driverid);
+
+                // Query for motorcycle details
+                const motorcycleQuerySnapshot = await db.collection("Motorcycle")
+                    .where("GPSnumber", "==", GPSserialnumber)
+                    .get();
+
+                if (!motorcycleQuerySnapshot.empty) {
+                    
+                    
+                    const latitude = pos ? pos.y : null;
+                    const longitude = pos ? pos.x : null;
+                    
+                    const now = Math.floor(Date.now() / 1000); // Current Unix time in seconds
+                    const oneHourInSeconds = 60 * 60; // 3600
+                    // const to = now; // Current Unix timestamp
+                   // const from = to - oneHourInSeconds; // Unix timestamp one hour ago
+
+                    const to = newCrashTime; // Current time
+                    const from = to - 500; 
+
+                    console.log("Fetching messages from:", from, "to:", to);
+
+                        const messages = await fetchMessages2(sessionId, id, from, to);
+                        // let poss = messages[0].pos;
+                        const oldPos = messages?.[0]?.pos;
+                        console.log(messages[0]);
+
+
+// console.log(poss);
+console.log('oldpos',oldPos)
+
+
+
+                        if (oldPos === null || oldPos===0|| !messages.length>0) {
+                            console.log('here');
+                            if(pos===null){
+                                inactive.push({ 
+                                    lat: null,
+                                    lng: null,
+                                    gpsNumber: GPSserialnumber});
+
+                                
+                            }
+                            else{
+                                active.push({
+                                    lat: latitude,
+                                    lng: longitude,
+                                    gpsNumber: GPSserialnumber});
+
+                            }
+
+                           
+
+                        } else {
+                            if(oldPos.y === latitude && oldPos.x=== longitude){
+                                inactive.push({ 
+                                    lat: null,
+                                    lng: null,
+                                    gpsNumber: GPSserialnumber});
+
+                            }
+                            else{
+                                active.push({
+                                    lat: latitude,
+                                    lng: longitude,
+                                    gpsNumber: GPSserialnumber});
+
+                            }
+                            
+
+                            }
+                            gpsState = { active, inactive };
+    console.log('gpsState',gpsState);
+                }
+            }
+        
+    }
+
+}
+
+
+
+  
+  
+
+const fetchMessages2 = async (sessionId, unitId, from, to) => {
+    const url = `${WIALON_BASE_URL}/wialon/ajax.html?sid=${sessionId}&svc=messages/load_interval&params={"itemId":${unitId},"timeFrom":${from},"timeTo":${to},"flags":1,"flagsMask":1,"loadCount":100}`;
+    
+    try {
+        const response = await axios.post(url, null, {
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+        });
+
+        // Check if messages exist in the response
+        if (response.data && response.data.messages) {
+            console.log("Messages retrieved successfully:", response.data.messages);
+            return response.data.messages;
+        } else {
+            console.log("No messages found for the given interval.");
+            return [];
+        }
+    } catch (error) {
+        console.error("Error fetching messages from Wialon API:", error.message);
+        return [];
+    }
+};
+
+
 const fetchMessages = async (sessionId, unitId, from, to) => {
     const url =
 `${WIALON_BASE_URL}/wialon/ajax.html?sid=${sessionId}&svc=messages/load_interval&params={"itemId":${unitId},"timeFrom":${from},"timeTo":${to},"flags":0,"flagsMask":0,"loadCount":100}`;
@@ -769,9 +949,11 @@ const monitorWialon = async () => {
   try {
     const sessionId = await loginToWialon();
     const units = await fetchUnits(sessionId);
-    processUnits1(units,sessionId);
-    processUnits2(units,sessionId);
-    processUnits3(units,sessionId);
+    // processUnits1(units,sessionId);
+    // // processUnits2(units,sessionId);
+    // // processUnits3(units,sessionId);
+    await fetchActiveLocations(units, sessionId);
+
   } catch (error) {
     console.error("Error monitoring Wialon:", error.message);
   }
