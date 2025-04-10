@@ -22,6 +22,8 @@ import formstyle from "../../css/Profile.module.css";
 import { useParams } from "react-router-dom";
 import "../../css/CustomModal.css";
 import { Tooltip } from "antd";
+import { ArrowLeftOutlined } from "@ant-design/icons";
+import { Pagination } from "antd";
 
 const CrashList = () => {
   const { GDTID } = useParams();
@@ -53,6 +55,10 @@ const CrashList = () => {
   const [searchQuery, setSearchQuery] = useState(""); // Single search input
   const gdtUID = sessionStorage.getItem("gdtUID");
   const [modalVisible, setModalVisible] = useState(false);
+
+  const goBack = () => {
+    navigate(-1);
+  };
 
   // State to track viewed crashes
   const [viewedCrashes, setViewedCrashes] = useState(() => {
@@ -492,7 +498,11 @@ const CrashList = () => {
     <>
       <Header active="gdtcrashes" />
       <div className="breadcrumb">
-        <a onClick={() => navigate("/gdthome")}>Home</a>
+        {GDTID ? (
+          <a onClick={() => navigate("/GDTDashBoard")}>Dash Board</a>
+        ) : (
+          <a onClick={() => navigate("/gdthome")}>Home</a>
+        )}
         <span> / </span>
         <a onClick={() => navigate("/gdtcrashes")}>Crashes List</a>
       </div>
@@ -919,7 +929,8 @@ const CrashList = () => {
             columns={columns}
             dataSource={filteredCrashes}
             rowKey="id"
-            pagination={{ pageSize: 5 }}
+            // pagination={{ pageSize: 5 }}
+            pagination={false}
             onRow={(record) => ({
               style: {
                 backgroundColor:
@@ -929,6 +940,37 @@ const CrashList = () => {
               },
             })}
           />
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginTop: "16px",
+            }}
+          >
+            {GDTID && (
+              <Button
+                onClick={goBack}
+                style={{
+                  width: "auto",
+                  height: "60px",
+                  fontSize: "15px",
+                  color: "#059855",
+                  borderColor: "#059855",
+                }}
+              >
+                <ArrowLeftOutlined style={{ marginRight: "8px" }} />
+                Go Back
+              </Button>
+            )}
+
+            <Pagination
+              defaultCurrent={1}
+              total={filteredCrashes.length}
+              pageSize={5}
+              style={{ marginLeft: "auto" }}
+            />
+          </div>
         </div>
       </main>
     </>
