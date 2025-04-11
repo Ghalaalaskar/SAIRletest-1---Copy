@@ -11,7 +11,9 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
+  Cell,
 } from "recharts";
+import { useNavigate } from "react-router-dom";
 
 const COLORS = [
   "#2E7D32",
@@ -29,6 +31,7 @@ const capitalizeFirstLetter = (string) => {
 const NumberofDrivers = () => {
   const [data, setData] = useState([]);
   const [totalDrivers, setTotalDrivers] = useState(0);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchDrivers = async () => {
@@ -78,6 +81,7 @@ const NumberofDrivers = () => {
             employerMap.get(companyName) || companyName
           ),
           value,
+          companyName,
         }));
 
         setData(chartData);
@@ -96,6 +100,12 @@ const NumberofDrivers = () => {
           data={data}
           width={data.length * 150}
           margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+          onClick={(state) => {
+            const company = state?.activePayload?.[0]?.payload?.companyName;
+            if (company) {
+              navigate(`/GDTdriverlist/${encodeURIComponent(company)}`);
+            }
+          }}
         >
           <CartesianGrid strokeDasharray="3 3" />
 
@@ -125,6 +135,7 @@ const NumberofDrivers = () => {
             fill="#4CAF50"
             name="Number of Drivers"
             barSize={80}
+            style={{ cursor: "pointer" }}
           >
             {data.map((_, index) => (
               <rect key={`bar-${index}`} fill={COLORS[index % COLORS.length]} />

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { db } from "../../firebase";
 import { useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { SearchOutlined } from "@ant-design/icons";
 import { Table, Modal } from "antd";
 import Header from "./GDTHeader";
@@ -24,6 +25,7 @@ const DriverList = () => {
   const [notificationMessage, setNotificationMessage] = useState("");
   const [isNotificationVisible, setIsNotificationVisible] = useState(false);
   const [isSuccess, setIsSuccess] = useState(true);
+  const { companyName } = useParams();
 
   const navigate = useNavigate();
 
@@ -55,7 +57,14 @@ const DriverList = () => {
     return unsubscribe;
   };
 
-  const filteredData = driverData.filter((driver) => {
+  const filteredData = driverData
+  .filter((driver) => {
+    // Company filter if a companyName is passed (navigate from dashboard)
+    if (companyName && driver.CompanyName !== companyName) {
+      return false;
+    }
+
+    // Search filter
     const fullName = `${driver.Fname || ""} ${driver.Lname || ""}`.toLowerCase();
     const driverID = driver.DriverID?.toLowerCase() || "";
     const query = searchQuery.toLowerCase();
