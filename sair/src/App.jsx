@@ -172,7 +172,7 @@ function App() {
         <Route path="/gdtheatmap" element={<GDTHeatmap locations={locations} />}  /> 
         <Route path="/GDTDashBoard" element={<GDTDashBoard />} /> 
         <Route path="/gdtstafflist" element={<GDTStafflist />} /> 
-        <Route path="/gdtdriverlist" element={<GDTDriverlist />} /> 
+        <Route path="/gdtdriverlist/:company?" element={<GDTDriverlist />} /> 
         <Route path="/gdtprofile" element={<GDTProfilepage />} /> 
         <Route path="/gdtaddstaff" element={<GDTAddStaff />} />
         <Route path="/ChartDetails/CrashResponse/:GDTID" element={<CrashResponse />} />
