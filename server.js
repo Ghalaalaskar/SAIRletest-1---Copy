@@ -1,5 +1,6 @@
 const express = require("express");
 const admin = require("firebase-admin");
+const cors = require('cors');
 
 const serviceAccount =
 require('C:/Users/joman/OneDrive/Desktop/secrets/sair-7310d-firebase-adminsdk-9tvud-3725cb4010.json'); 
@@ -12,6 +13,7 @@ const db = admin.firestore();
 
 const axios = require("axios");
 const app = express();
+app.use(cors()); // Enable CORS for all routes
 
 // Create an Express server
 const PORT = process.env.PORT || 3000;
@@ -607,12 +609,20 @@ Model, MotorcycleID, Type);
 
 
 const fetchActiveLocations= async (units,sessionId) => {
-    const active = [];
-    const inactive = [];
+
+    // gpsState.active = [];
+    // gpsState.inactive = [];
+    let newActive = [...gpsState.active];
+let newInactive = [...gpsState.inactive];
+    
+    // Helper functions
+    const activeMap = new Map(gpsState.active.map(item => [item.gpsNumber, item]));
+    const inactiveMap = new Map(gpsState.inactive.map(item => [item.gpsNumber, item]));
+    
 
     for (const unit of units) {
-        const newCrashTime = unit.lmsg.rt;
-
+        const nowTime = unit.lmsg.rt; 
+        console.log('newwwwwwwwwwwwww',nowTime);
         const id = unit.id; // Wialon unit ID
         console.log("Unit ID:", id);
 
@@ -642,19 +652,40 @@ const fetchActiveLocations= async (units,sessionId) => {
                     
                     
                     const latitude = pos ? pos.y : null;
-                    const longitude = pos ? pos.x : null;
-                    
-                    const now = Math.floor(Date.now() / 1000); // Current Unix time in seconds
-                    const oneHourInSeconds = 60 * 60; // 3600
-                    // const to = now; // Current Unix timestamp
-                   // const from = to - oneHourInSeconds; // Unix timestamp one hour ago
+                    const longitude = pos ? pos.x : null;   
 
-                    const to = newCrashTime; // Current time
-                    const from = to - 500; 
+                    
+
+                    const url = `${WIALON_BASE_URL}/wialon/ajax.html?sid=${sessionId}&svc=core/search_items&params=${encodeURIComponent(JSON.stringify({
+                        spec: {
+                          itemsType: "avl_unit",
+                          propName: "sys_name",
+                          propValueMask: GPSserialnumber,
+                          sortType: "sys_name"
+                        },
+                        force: 1,
+                        flags: 2097152,  
+                        from: 0,
+                        to: 0
+                      }))}`;
+                      
+                      const res = await fetch(url);
+                      const data = await res.json();
+                      console.log('Unit data:', data.items);
+                      const online=data.items[0].netconn ;
+                      console.log(online); 
+                      
+                    const now = Math.floor(Date.now() / 1000); // Current Unix time in seconds
+                    const to = nowTime; // Current Unix timestamp       nowTime 
+                   const from = to - 3600; // Unix timestamp one hour ago
+const fr= from+100;
+                    // const to = newCrashTime; // Current time
+                    // const from = to - 500; 
 
                     console.log("Fetching messages from:", from, "to:", to);
 
                         const messages = await fetchMessages2(sessionId, id, from, to);
+                        console.log(messages);
                         // let poss = messages[0].pos;
                         const oldPos = messages?.[0]?.pos;
                         console.log(messages[0]);
@@ -662,49 +693,76 @@ const fetchActiveLocations= async (units,sessionId) => {
 
 // console.log(poss);
 console.log('oldpos',oldPos)
+const currentData = {
+    lat: latitude,
+    lng: longitude,
+    gpsNumber: GPSserialnumber
+  };
+const shouldBeInactive = !messages.length>0 || oldPos === null || oldPos === 0 || (online === 0) || (oldPos.y === latitude && oldPos.x === longitude);
+// First remove from both maps (if it exists)
+activeMap.delete(GPSserialnumber);
+inactiveMap.delete(GPSserialnumber);
+
+// Then add to the correct map
+if (shouldBeInactive) {
+  inactiveMap.set(GPSserialnumber, currentData);
+} else {
+  activeMap.set(GPSserialnumber, currentData);
+}
 
 
+                        // if (oldPos === null || oldPos===0|| !messages.length>0) {
+                        //     console.log('here');
+                           
+                            
+                        //     if(online==0){  
+                        //         gpsState.inactive.push({ 
+                        //             lat: latitude,
+                        //             lng: longitude,
+                        //             gpsNumber: GPSserialnumber});  
+                        //     }
+                        //     else{
+                        //         gpsState.active.push({
+                        //             lat: latitude,
+                        //             lng: longitude,
+                        //             gpsNumber: GPSserialnumber});
 
-                        if (oldPos === null || oldPos===0|| !messages.length>0) {
-                            console.log('here');
-                            if(pos===null){
-                                inactive.push({ 
-                                    lat: null,
-                                    lng: null,
-                                    gpsNumber: GPSserialnumber});
-
-                                
-                            }
-                            else{
-                                active.push({
-                                    lat: latitude,
-                                    lng: longitude,
-                                    gpsNumber: GPSserialnumber});
-
-                            }
+                        //     }
 
                            
 
-                        } else {
-                            if(oldPos.y === latitude && oldPos.x=== longitude){
-                                inactive.push({ 
-                                    lat: null,
-                                    lng: null,
-                                    gpsNumber: GPSserialnumber});
+                        // } else {
+                        //     if(online==0){  
+                        //         gpsState.inactive.push({ 
+                        //             lat: latitude,
+                        //             lng: longitude,
+                        //             gpsNumber: GPSserialnumber});  
+                        //     }
+                        //     else{
+                        //     if(oldPos.y === latitude && oldPos.x=== longitude){
+                        //         console.log('gggggggggggggggggggggggggg');
+                        //         gpsState.inactive.push({ 
+                        //             lat: latitude,
+                        //             lng: longitude,
+                        //             gpsNumber: GPSserialnumber});
 
-                            }
-                            else{
-                                active.push({
-                                    lat: latitude,
-                                    lng: longitude,
-                                    gpsNumber: GPSserialnumber});
+                        //     }
+                        //     else{
+                        //         gpsState.active.push({
+                        //             lat: latitude,
+                        //             lng: longitude,
+                        //             gpsNumber: GPSserialnumber});
 
-                            }
+                        //     }
+
                             
 
-                            }
-                            gpsState = { active, inactive };
+                            
+
     console.log('gpsState',gpsState);
+   // Convert back to arrays, preserving insertion order
+gpsState.active = Array.from(activeMap.values());
+gpsState.inactive = Array.from(inactiveMap.values());
                 }
             }
         
@@ -965,6 +1023,10 @@ const startMonitoring = () => {
     await monitorWialon();
   }, 10000);
 };
+
+app.get('/api/gps-state', (req, res) => {
+    res.json(gpsState); // Send the gpsState object as a response
+  });
 
 // Start monitoring and Express server
 app.listen(PORT, () => {

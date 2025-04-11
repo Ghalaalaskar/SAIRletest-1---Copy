@@ -7,7 +7,10 @@ import { db } from '../../firebase';
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { SearchOutlined } from '@ant-design/icons';
 import { FaFilter } from 'react-icons/fa';
+import q from "../../css/Violations.module.css";
+
 import s from "../../css/ComplaintList.module.css"; // CSS module for ComplaintList
+import axios from 'axios';
 
 const containerStyle = {
 width: '74%', // Set the map width
@@ -27,6 +30,13 @@ marginLeft:'8px',
 // ];
 
 const GDTMap = ({ locations }) => {
+  const [gpsState, setGpsState] = useState({ active: [], inactive: [] });
+  const [error, setError] = useState(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const [selectedValues, setSelectedValues] = useState([]);
+const [filters, setFilters] = useState({ company: [], status: [] });
+
 const navigate = useNavigate();
 const [selectedLocation, setSelectedLocation] = useState(null);
 const [heatmapData, setHeatmapData] = useState([]);
@@ -51,34 +61,84 @@ const [searchQuery, setSearchQuery] = useState("");
 const [uniqueCompanyNames, setUniqueCompanyNames] = useState([]);
 const [selectedStatus, setSelectedStatus] = useState("");
 
+
+
+const combinedOptions = [
+  // Companies
+  ...[...uniqueCompanyNames].sort().map(name => ({
+    value: name,
+    label: name,
+    category: "Company"
+  })),
+   // Statuses
+   { value: "Active", label: "Active", category: "Status" },
+   { value: "Inactive", label: "Inactive", category: "Status" },
+ ];
+
 const capitalizeFirstLetter = (string) => {
 if (!string) return '';
 return string.charAt(0).toUpperCase() + string.slice(1);
 };
 
+const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
+
+  // Function to fetch GPS state from the server
+  const fetchGpsState = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/gps-state'); // need to change port!!!!!!!!
+      if (!response.ok) {
+        console.log('nnnnnnnnnnnnnnnnnnnnnnnn');
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+      setGpsState(data); // Update the state with the fetched data
+      console.log('ioooooooooooooooooooo',data);
+    } catch (error) {
+      setError(error.message); // Set error if the request fails
+    }
+  };
+
+  // Call fetchGpsState when the component mounts
+  useEffect(() => {
+    // Fetch immediately when component mounts
+    fetchGpsState();
+  
+    // Then keep fetching every 10 seconds
+    const interval = setInterval(() => {
+      fetchGpsState();
+    }, 5000); // 10 seconds
+  
+    // Cleanup the interval when component unmounts
+    return () => clearInterval(interval);
+  }, []);
+
 console.log("GDTMap Component");
 const updateMapData = useCallback(() => {
-  if (locations.length > 0 && window.google && window.google.maps) {
+  if (( gpsState.active.length > 0 || gpsState.inactive.length > 0) && window.google && window.google.maps) {
     const newHeatmapData = [
-      ...locations
-        .filter(loc => loc && !isNaN(loc.lat) && !isNaN(loc.lng))
-        .map(loc => new window.google.maps.LatLng(loc.lat, loc.lng)),
+      ...gpsState.active
+      .filter(loc => loc && !isNaN(loc.lat) && !isNaN(loc.lng))
+      .map(loc => new window.google.maps.LatLng(loc.lat, loc.lng)),
+    ...gpsState.inactive
+      .filter(loc => loc && !isNaN(loc.lat) && !isNaN(loc.lng))
+      .map(loc => new window.google.maps.LatLng(loc.lat, loc.lng)),
       ...staticMotorcycleData // Add static motorcycle data coordinates for heatmap
         .map(staticLoc => new window.google.maps.LatLng(staticLoc.lat, staticLoc.lng)),
     ];
     setHeatmapData(newHeatmapData);
 
     if (initialLoad) {
-      setLastKnownLocations(locations);
-      setMapCenter({ lat: locations[0].lat, lng: locations[0].lng });
+      const firstAvailable = gpsState.active[0] || gpsState.inactive[0];
+      setLastKnownLocations([...gpsState.active, ...gpsState.inactive]);
+      setMapCenter({ lat: firstAvailable.lat, lng: firstAvailable.lng });      
       setInitialLoad(false);
     }
   }
-}, [locations, initialLoad]);
+}, [gpsState, initialLoad]);
 
 useEffect(() => {
-updateMapData();
-}, [locations, updateMapData]);
+  updateMapData();
+}, [gpsState, updateMapData]);
 
 useEffect(() => {
 window.gm_authFailure = function() {
@@ -120,7 +180,7 @@ console.log("Google Maps API Loaded Successfully");
 }, []);
 
 const fetchMotorcycleAndDriverData = async () => {
-const gpsNumbers = locations.map(loc => loc.gpsNumber);
+  const gpsNumbers = [...gpsState.active, ...gpsState.inactive].map(loc => loc.gpsNumber);
 
 const motorcyclePromises = gpsNumbers.map(gpsNumber => {
   const motorcycleQuery = query(
@@ -183,10 +243,11 @@ const combinedMotorcycleData = [...motorcyclesWithDrivers, ...staticMotorcycleDa
 setMotorcycleData(combinedMotorcycleData);};
 
 useEffect(() => {
-if (locations.length > 0) {
-fetchMotorcycleAndDriverData();
-}
-}, [locations]);
+  if (gpsState.active.length > 0 ||gpsState.inactive.length > 0) {
+    fetchMotorcycleAndDriverData();
+  }
+}, [gpsState]);
+
 
 useEffect(() => {
 const fetchUniqueCompanyNames = () => {
@@ -357,37 +418,118 @@ const filteredMotorcycleData = motorcycleData.filter(item => {
 const matchesSearch = item.driverName.toLowerCase().includes(searchQuery.toLowerCase()) ||
 item.driverID.toLowerCase().includes(searchQuery.toLowerCase());
 const matchesFilter = selectedStatus === "" || item.shortCompanyName === selectedStatus;
+console.log("Filtering based on:", selectedStatus);
+
+console.log('vvvvvvvvvvvvvvvvvvvvvvvvvvv');
+  console.log(lastKnownLocations);
+
 
 return matchesSearch && matchesFilter;
 });
 
 
+
+const handleSelect = (value) => {
+  const newSelection = selectedValues.includes(value)
+    ? selectedValues.filter((v) => v !== value)
+    : [...selectedValues, value];
+
+  setSelectedValues(newSelection);
+
+  const newCompany = newSelection.filter(val => uniqueCompanyNames.includes(val));
+  const newStatus = newSelection.filter(val => val === "Active" || val === "Inactive");
+
+  setFilters({ company: newCompany, status: newStatus });
+};
+
+
+const filteredMotorcycles = motorcycleData.filter(m => {
+  const matchesSearch = m.driverName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+m.driverID.toLowerCase().includes(searchQuery.toLowerCase());
+  // Filter by company (if selected)
+  const companyMatch =
+    filters.company.length === 0 || filters.company.includes(m.shortCompanyName);
+
+  // Filter by status (active or inactive)
+  const statusMatch =
+    filters.status.length === 0 ||
+    filters.status.some(status => {
+      if (status === "Active") {
+        // Check if the motorcycle's gpsNumber is in the active array
+        return gpsState.active.some(item => item.gpsNumber === m.gpsNumber);
+      } else if (status === "Inactive") {
+        // Check if the motorcycle's gpsNumber is in the inactive array
+        return gpsState.inactive.some(item => item.gpsNumber === m.gpsNumber);
+      }
+      return false; // Return false if status doesn't match "Active" or "Inactive"
+    });
+  return matchesSearch&&companyMatch && statusMatch;
+});
+
+
+const fullHeatmapData = [...gpsState.active, ...gpsState.inactive].map(loc => { //...staticMotorcycleData
+  const matchingMotorcycle = motorcycleData.find(m => m.gpsNumber === loc.gpsNumber);
+  return {
+    ...loc,
+    shortCompanyName: matchingMotorcycle?.shortCompanyName || null,
+    motorcycleID: matchingMotorcycle?.motorcycleID || null,
+  };
+});
+
+const filteredHeatmapData = fullHeatmapData.filter(m => {
+  const companyMatch =
+    filters.company.length === 0 || filters.company.includes(m.shortCompanyName);
+
+  const statusMatch =
+    filters.status.length === 0 ||
+    filters.status.some(status => {
+      if (status === "Active") {
+        return gpsState.active.some(item => item.gpsNumber === m.gpsNumber);
+      } else if (status === "Inactive") {
+        return gpsState.inactive.some(item => item.gpsNumber === m.gpsNumber);
+      }
+      return false;
+    });
+    const hasValidLatLng = typeof m.lat === 'number' && typeof m.lng === 'number';
+
+    // ✅ Make sure the location exists (so the marker will be shown too)
+    const locationExists = lastKnownLocations.some(loc => loc.gpsNumber === m.gpsNumber);
+  
+    return companyMatch && statusMatch && hasValidLatLng && locationExists;
+  });
+
+
+
 console.log('Last Known Locations:', lastKnownLocations);
+console.log('bbbbbbbbbbbbbbbbbbbbbbbb',gpsState);
+
 console.log('Filtered Motorcycle Data:', filteredMotorcycleData);
+
+console.log('Filtered Motorcycle Data:', filteredHeatmapData);
 
 
 const staticMotorcycleData = [
-  { MotorcycleID: '5000000001', GPSnumber: '123456789012345', lat: 24.7137, lng: 46.6753, driverName: 'Mohammed Al-Farsi', driverID: '4455500001', phoneNumber: '+966512345678', shortCompanyName: 'Jahez', Type: 'T4A', LicensePlate: 'XYZ 123' },
-  { MotorcycleID: '5000000002', GPSnumber: '123456789012346', lat: 24.7137, lng: 46.6753, driverName: 'Ali Al-Mansour', driverID: '6664446892', phoneNumber: '+966512345679', shortCompanyName: 'Hungerstation', Type: 'A3', LicensePlate: 'XYZ 124' },
-  { MotorcycleID: '5000000003', GPSnumber: '123456789012347', lat: 24.7137, lng: 46.6753, driverName: 'Omar Al-Salem', driverID: '12358790983', phoneNumber: '+966512345680', shortCompanyName: 'Jahez', Type: 'VX', LicensePlate: 'XYZ 125' },
-  { MotorcycleID: '5000000004', GPSnumber: '123456789012348', lat: 24.7137, lng: 46.6753, driverName: 'Yusuf Al-Jabir', driverID: '9865743564', phoneNumber: '+966512345681', shortCompanyName: 'Hungerstation', Type: '6XX', LicensePlate: 'XYZ 126' },
-  { MotorcycleID: '5000000005', GPSnumber: '123456789012349', lat: 24.7150, lng: 46.6758, driverName: 'Sami Al-Dossary', driverID: '19354675895', phoneNumber: '+966512345682', shortCompanyName: 'Jahez', Type: 'TD', LicensePlate: 'XYZ 127' },
-  { MotorcycleID: '5000000006', GPSnumber: '123456789012350', lat: 24.7153, lng: 46.6780, driverName: 'Fahad Al-Hamdan', driverID: '1357865476', phoneNumber: '+966512345683', shortCompanyName: 'Hungerstation', Type: 'E', LicensePlate: 'XYZ 128' },
-  { MotorcycleID: '5000000007', GPSnumber: '123456789012351', lat: 24.7210, lng: 46.6765, driverName: 'Zaid Al-Fahad', driverID: '1265879886', phoneNumber: '+966512345684', shortCompanyName: 'Jahez', Type: 'CXC', LicensePlate: 'XYZ 129' },
-  { MotorcycleID: '5000000008', GPSnumber: '123456789012352', lat: 24.7300, lng: 46.6700, driverName: 'Nasser Al-Qassem', driverID: '3456008643', phoneNumber: '+966512345685', shortCompanyName: 'Hungerstation', Type: 'PO1', LicensePlate: 'XYZ 130' },
-  { MotorcycleID: '5000000009', GPSnumber: '123456789012353', lat: 24.7340, lng: 46.8900, driverName: 'Salman Al-Harbi', driverID: '8363939449', phoneNumber: '+966512345686', shortCompanyName: 'Jahez', Type: 'HW', LicensePlate: 'XYZ 131' },
-  { MotorcycleID: '5000000010', GPSnumber: '123456789012354', lat: 24.7400, lng: 46.8000, driverName: 'Khalid Al-Badri', driverID: '1136988810', phoneNumber: '+966512345687', shortCompanyName: 'Hungerstation', Type: 'T4', LicensePlate: 'XYZ 132' },
-  { MotorcycleID: '5000000011', GPSnumber: '123456789012355', lat: 24.7500, lng: 46.6000, driverName: 'Faisal Al-Amin', driverID: '4457355111', phoneNumber: '+966512345688', shortCompanyName: 'Jahez', Type: 'CXC', LicensePlate: 'XYZ 133' },
+//   { MotorcycleID: '5000000001', GPSnumber: '123456789012345', lat: 24.7137, lng: 46.6753, driverName: 'Mohammed Al-Farsi', driverID: '4455500001', phoneNumber: '+966512345678', shortCompanyName: 'Jahez', Type: 'T4A', LicensePlate: 'XYZ 123' },
+//   { MotorcycleID: '5000000002', GPSnumber: '123456789012346', lat: 24.7137, lng: 46.6753, driverName: 'Ali Al-Mansour', driverID: '6664446892', phoneNumber: '+966512345679', shortCompanyName: 'Hungerstation', Type: 'A3', LicensePlate: 'XYZ 124' },
+//   { MotorcycleID: '5000000003', GPSnumber: '123456789012347', lat: 24.7137, lng: 46.6753, driverName: 'Omar Al-Salem', driverID: '12358790983', phoneNumber: '+966512345680', shortCompanyName: 'Jahez', Type: 'VX', LicensePlate: 'XYZ 125' },
+//   { MotorcycleID: '5000000004', GPSnumber: '123456789012348', lat: 24.7137, lng: 46.6753, driverName: 'Yusuf Al-Jabir', driverID: '9865743564', phoneNumber: '+966512345681', shortCompanyName: 'Hungerstation', Type: '6XX', LicensePlate: 'XYZ 126' },
+//   { MotorcycleID: '5000000005', GPSnumber: '123456789012349', lat: 24.7150, lng: 46.6758, driverName: 'Sami Al-Dossary', driverID: '19354675895', phoneNumber: '+966512345682', shortCompanyName: 'Jahez', Type: 'TD', LicensePlate: 'XYZ 127' },
+//   { MotorcycleID: '5000000006', GPSnumber: '123456789012350', lat: 24.7153, lng: 46.6780, driverName: 'Fahad Al-Hamdan', driverID: '1357865476', phoneNumber: '+966512345683', shortCompanyName: 'Hungerstation', Type: 'E', LicensePlate: 'XYZ 128' },
+//   { MotorcycleID: '5000000007', GPSnumber: '123456789012351', lat: 24.7210, lng: 46.6765, driverName: 'Zaid Al-Fahad', driverID: '1265879886', phoneNumber: '+966512345684', shortCompanyName: 'Jahez', Type: 'CXC', LicensePlate: 'XYZ 129' },
+//   { MotorcycleID: '5000000008', GPSnumber: '123456789012352', lat: 24.7300, lng: 46.6700, driverName: 'Nasser Al-Qassem', driverID: '3456008643', phoneNumber: '+966512345685', shortCompanyName: 'Hungerstation', Type: 'PO1', LicensePlate: 'XYZ 130' },
+//   { MotorcycleID: '5000000009', GPSnumber: '123456789012353', lat: 24.7340, lng: 46.8900, driverName: 'Salman Al-Harbi', driverID: '8363939449', phoneNumber: '+966512345686', shortCompanyName: 'Jahez', Type: 'HW', LicensePlate: 'XYZ 131' },
+//   { MotorcycleID: '5000000010', GPSnumber: '123456789012354', lat: 24.7400, lng: 46.8000, driverName: 'Khalid Al-Badri', driverID: '1136988810', phoneNumber: '+966512345687', shortCompanyName: 'Hungerstation', Type: 'T4', LicensePlate: 'XYZ 132' },
+//   { MotorcycleID: '5000000011', GPSnumber: '123456789012355', lat: 24.7500, lng: 46.6000, driverName: 'Faisal Al-Amin', driverID: '4457355111', phoneNumber: '+966512345688', shortCompanyName: 'Jahez', Type: 'CXC', LicensePlate: 'XYZ 133' },
 ];
 
 return (
 <div style={{ display: 'flex', height: '80vh' }}>
 <div style={{ width: '400px', padding: '10px', borderRight: '1px solid #ccc', backgroundColor: '#f9f9f9' , overflowY: 'auto', maxHeight: '590px' }}>
 <h4 style={{ color: 'green', fontSize: '25px', marginBottom: '10px' }}>Motorcycle List</h4>
-<div style={{ flexDirection: 'column', marginBottom: '10px', alignItems: 'flex-start' }}>
+<div style={{ flexDirection: 'column', marginBottom: '20px', alignItems: 'flex-start' }}>
 {/* Search Bar */}
 
-<div className={s.searchInputs} style={{ width: '100%' }}>
+<div className={s.searchInputs} style={{ width: '100%' ,marginBottom: '10px'}}>
 
 <div className={s.searchContainer} style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
 
@@ -431,61 +573,106 @@ outline: 'none', // Remove outline on focus
 
 {/* Filter Dropdown */}
 
-<div className={s.searchContainer} style={{ marginTop:'5px'}} >
 
-<div className={s.selectWrapper} style={{ width: '100%',height:'25px'}}>
+  <div className={q.searchContainer} >
+                <div className={`${q.selectWrapper} ${q.dropdownContainer}`} style={{  width: '355px' }}>
+                  <FaFilter className={q.filterIcon}  style={{  marginLeft:'13px' }}/>
+                  <div style={{ position: 'relative', width: '510px'}}>
+                    <div
+                      onClick={toggleDropdown}
+                      style={{
+                        padding: '8px',
+                        backgroundColor: 'transparent', // Make background transparent
+                        cursor: 'pointer',
+                        borderRadius: '4px',
+                        transition: 'border 0.3s',
+                        color: 'grey', // Set text color to grey
+                        lineHeight: '1.0', 
+                        fontSize:'14px',
+                        
+                      }}
+                    >
+                    {selectedValues.length > 0 ? selectedValues.join(', ') : 'Filter map'}
 
-<FaFilter className={s.filterIcon} style={{ marginRight: '5px' }}/>
+                    </div>
 
-<select
-
-className={s.customSelect}
-
-onChange={(event) => setSelectedStatus(event.target.value)}
-
-defaultValue=""
-
-style={{
-
-width: "230px",
-
-height: "35px",
-
-padding: "4px",
-
-fontSize: "14px",
-
-color: 'grey',
-
-border: '1px none #059855',
-
-borderRadius: '4px'
-
-}}
-
->
-
-<option value="" disabled>Filter by Company Name</option>
-
-<option value="">All</option>
-
-{uniqueCompanyNames.map((name, index) => (
-
-<option key={index} value={name}>{name}</option>
-
+{dropdownOpen && (
+  <div
+    style={{
+      position: 'absolute',
+      background: 'white',
+      border: '1px solid #ccc',
+      borderRadius: '4px',
+      zIndex: 1000,
+      width: '350px',
+      left: '-40px',
+    }}
+  >
+    <div style={{ padding: '10px', fontWeight: 'bold' }}>Company</div>
+    {combinedOptions
+  .filter(combinedOptions => combinedOptions.category === "Company")
+  .map(combinedOptions => (
+    <div key={combinedOptions.value} style={{ padding: '10px', cursor: 'pointer' }}>
+      <label style={{ display: 'flex', alignItems: 'center' }}>
+        <input
+          type="checkbox"
+          checked={selectedValues.includes(combinedOptions.value)}
+          onChange={() => handleSelect(combinedOptions.value)}
+          style={{ marginRight: '10px' }}
+        />
+        {combinedOptions.label}
+      </label>
+  </div>
 ))}
 
-</select>
+<div style={{ padding: '10px', fontWeight: 'bold' }}>Status</div>
+{combinedOptions.filter(combinedOptions => combinedOptions.category === "Status").map((combinedOptions) => (
+  <div key={combinedOptions.value} style={{ padding: '10px', cursor: 'pointer' }}>
+    <label style={{ display: 'flex', alignItems: 'center' }}>
+      <input
+        type="checkbox"
+        checked={selectedValues.includes(combinedOptions.value)}
+        onChange={() => handleSelect(combinedOptions.value)}
+        style={{ marginRight: '10px' }}
+      />
+      {combinedOptions.label}
+    </label>
+  </div>
+))}
 
-</div>
 
+    <div style={{ padding: '10px', textAlign: 'center' }}>
+      <button
+        onClick={() => {
+          setSelectedValues([]);
+          setFilters({ company: [], status: [] });
+          toggleDropdown();
+        }}
+        style={{
+          backgroundColor: 'transparent',
+          color: 'blue',
+          border: 'none',
+          borderRadius: '4px',
+          padding: '8px 0',
+          cursor: 'pointer',
+          width: '100%',
+          textAlign: 'left',
+        }}
+      >
+        Reset Filter
+      </button>
+    </div>
+  </div>
+)}
 </div>
+                </div>
+              </div>
 
 </div>
 
 <ul style={{ listStyleType: 'none', padding: '0' }}>
 
-{filteredMotorcycleData.map((item, index) => {
+{filteredMotorcycles.map((item, index) => {
       // Check if the current item is static
       const isStaticMotorcycle = staticMotorcycleData.some(staticItem => staticItem.MotorcycleID === item.motorcycleID) || 
                                   staticMotorcycleData.some(staticItem => staticItem.MotorcycleID === item.MotorcycleID);
@@ -533,7 +720,8 @@ transition: 'color 0.3s',
 onMouseEnter={(e) => e.currentTarget.style.color = '#059855'}
 
 onMouseLeave={(e) => e.currentTarget.style.color = 'grey'}
-
+ 
+ 
 >
 
 {expandedMotorcycleIds.includes(motorcycleIDToUse) ? (
@@ -650,10 +838,10 @@ onClick={() => setSelectedLocation(null)}
 >
 
 
-    {heatmapData.length > 0 && (
+    {filteredHeatmapData.length > 0 && (
       <HeatmapLayer
-        data={heatmapData}
-        options={{
+      data={filteredHeatmapData.map(loc => new window.google.maps.LatLng(loc.lat, loc.lng))}
+      options={{
           radius: 30,
           opacity: 0.7,
           gradient: [
@@ -666,12 +854,16 @@ onClick={() => setSelectedLocation(null)}
           ],
         }}
       />
-    )}*
+    )}
 
-    {/* Render markers only if zoom level is 15 or higher */}
-    {/*lastKnownLocations.map((location, index) =>(    here is the old code without zooming*/}
-    {zoomLevel >= 16 && filteredMotorcycleData.map((item, index) => {
+
+
+{zoomLevel >= 16 && filteredHeatmapData.map((item, index) => {
   const location = lastKnownLocations.find(loc => loc.gpsNumber === item.gpsNumber);
+  if(location!=null){
+    console.log('hhhhhhhhhhhhhhhhhhh');
+    console.log(location);
+  }
   if (!location) {
     console.warn(`No location found for motorcycle ID: ${item.motorcycleID}`);
     return null; 
@@ -695,6 +887,62 @@ onClick={() => setSelectedLocation(null)}
     onClick={() => handleMarkerClick(item.gpsNumber, item)} // Handle click for static motorcycle
   />
 ))}
+
+
+
+
+
+
+
+
+
+{/* Render markers only if zoom level is 15 or higher 
+    {/*lastKnownLocations.map((location, index) =>(    here is the old code without zooming 
+    {zoomLevel >= 16 && filteredMotorcycleData.map((item, index) => {
+  const location = lastKnownLocations.find(loc => loc.gpsNumber === item.gpsNumber);
+  if (!location) {
+    console.warn(No location found for motorcycle ID: ${item.motorcycleID});
+    return null; 
+  }
+  return (
+    <>
+      {/* Render markers for inactive motorcycles 
+      {gpsState.inactive.map((item, index) => (
+        <MarkerF
+          key={inactive-${index}}
+          position={{ lat: item.lat, lng: item.lng }}
+          icon={motorcycleIcon} // you can use a different icon for inactive if needed
+          onClick={() => handleMarkerClick(item.gpsNumber, item)}
+        />
+      ))}
+  
+      {/* Render markers for active motorcycles 
+      {gpsState.active.map((item, index) => (
+        <MarkerF
+          key={active-${index}}
+          position={{ lat: item.lat, lng: item.lng }}
+          icon={motorcycleIcon} // or use a green icon for active
+          onClick={() => handleMarkerClick(item.gpsNumber, item)}
+        />
+      ))}
+})}
+
+{/* Render markers for static motorcycles regardless of zoom level 
+{zoomLevel >= 16 && staticMotorcycleData.map((item, index) => (
+  <MarkerF
+    key={static-${index}}
+    position={{ lat: item.lat, lng: item.lng }}
+    icon={motorcycleIcon}
+    onClick={() => handleMarkerClick(item.gpsNumber, item)} // Handle click for static motorcycle
+  />
+))}*/}
+
+
+
+
+
+
+
 
 {selectedLocation && (
   <InfoWindowF

@@ -366,7 +366,7 @@ const fetchDrivers = useCallback(async () => {
       const unsubscribeComplaint = onSnapshot(complaintCollection, (snapshot) => {
         
         const storedReadComplaints = JSON.parse(localStorage.getItem(`readComplaintsgdt_${GDTUID}`)) || {}; // Get read crashes from localStorage
-console.log('storedReadComplaints',storedReadComplaints);
+// console.log('storedReadComplaints',storedReadComplaints);
         const complaintList = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
