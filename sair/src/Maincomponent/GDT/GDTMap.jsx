@@ -130,7 +130,12 @@ const updateMapData = useCallback(() => {
     if (initialLoad) {
       const firstAvailable = gpsState.active[0] || gpsState.inactive[0];
       setLastKnownLocations([...gpsState.active, ...gpsState.inactive]);
-      setMapCenter({ lat: firstAvailable.lat, lng: firstAvailable.lng });      
+      if (filteredMotorcycles.length > 0) {
+        const firstMotorcycle = filteredMotorcycles[0];
+        console.log('pppppppppppppppppp',firstMotorcycle);
+        setMapCenter({ lat: firstMotorcycle.lat, lng: firstMotorcycle.lng });
+      }
+            // setMapCenter({ lat: firstAvailable.lat, lng: firstAvailable.lng });      
       setInitialLoad(false);
     }
   }
