@@ -104,9 +104,7 @@ const RecklessViolation = () => {
 
         // Dummy data 
         const dummyData = [
-          { name: "Keeta", count30: 5, count50: 3 },
-          { name: "Ninja", count30: 8, count50: 6 },
-          { name: "Nana", count30: 4, count50: 2 },
+        
         ];
         chartData = [...chartData, ...dummyData];
 
