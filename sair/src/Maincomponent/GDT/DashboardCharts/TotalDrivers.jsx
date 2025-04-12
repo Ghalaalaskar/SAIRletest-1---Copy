@@ -57,17 +57,7 @@ const NumberofDrivers = () => {
         });
         // Dummy data for testing
         const dummyDrivers = [
-          { CompanyName: "Ninja" },
-          { CompanyName: "Nana" },
-          { CompanyName: "Ninja" },
-          { CompanyName: "Keeta" },
-          { CompanyName: "Nana" },
-          { CompanyName: "Ninja" },
-          { CompanyName: "Keeta" },
-          { CompanyName: "Nana" },
-          { CompanyName: "Nana" },
-
-          { CompanyName: "TheChefz" },
+ 
         ];
 
         dummyDrivers.forEach(({ CompanyName }) => {

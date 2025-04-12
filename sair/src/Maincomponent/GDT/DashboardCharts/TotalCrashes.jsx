@@ -106,20 +106,7 @@ const TotalCrash = () => {
         });
         // Dummy data for testing
         const dummyDrivers = [
-          { CompanyName: "TheChefz" },
-          { CompanyName: "Nana" },
-          { CompanyName: "Ninja" },
-          { CompanyName: "Keeta" },
-          { CompanyName: "Nana" },
-          { CompanyName: "Ninja" },
-          { CompanyName: "Keeta" },
-          { CompanyName: "Keeta" },
-          { CompanyName: "Keeta" },
-          { CompanyName: "TheChefz" },
-          { CompanyName: "TheChefz" },
-          { CompanyName: "Barq" },
-          { CompanyName: "Barq" },
-          { CompanyName: "Barq" },
+
         ];
 
         dummyDrivers.forEach(({ CompanyName }) => {
