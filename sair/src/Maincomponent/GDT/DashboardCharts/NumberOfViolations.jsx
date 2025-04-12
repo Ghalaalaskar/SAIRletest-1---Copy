@@ -77,20 +77,23 @@ const NumberofViolations = ({ dateType, companyName }) => {
 
         // Initialize the date range for the chart
         const dateRange = [];
-        for (
-          let d = new Date(startDate);
-          d <= endDate;
-          d.setDate(d.getDate() + 1)
-        ) {
-          const formattedDate =
-            dateType === "week"
-              ? d.toLocaleDateString("en-GB", { day: "2-digit", month: "long" })
-              : d.toLocaleDateString("en-GB", {
-                  year: "numeric",
-                  month: "long",
-                });
-
-          dateRange.push({ date: formattedDate, count: 0 });
+        if (dateType === "week") {
+          for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+            const formattedDate = d.toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "long",
+            });
+            dateRange.push({ date: formattedDate, count: 0 });
+          }
+        } else {
+          const months = Array.from({ length: 12 }, (_, i) =>
+            new Date(startDate.getFullYear(), i, 1).toLocaleDateString("en-GB", {
+              month: "long",
+            })
+          );
+          months.forEach((month) => {
+            dateRange.push({ date: month, count: 0 });
+          });
         }
 
         // Process violations and group by date
@@ -116,7 +119,6 @@ const NumberofViolations = ({ dateType, companyName }) => {
                     month: "long",
                   })
                 : violationDate.toLocaleDateString("en-GB", {
-                    year: "numeric",
                     month: "long",
                   });
 
@@ -139,11 +141,21 @@ const NumberofViolations = ({ dateType, companyName }) => {
           }
         });
 
-        // Convert Map to an array and sort it in ascending order
-        const chartData = Array.from(violationsMap, ([date, count]) => ({
-          date,
-          count,
-        })).sort((a, b) => new Date(a.date) - new Date(b.date)); // Sort by date ascending
+     // Convert Map to an array
+     let chartData = Array.from(violationsMap, ([date, count]) => ({
+      date,
+      count,
+      // Add a sortOrder property for proper month sorting
+      sortOrder: dateType === "week" 
+        ? new Date(date.split(" ")[1] + " " + date.split(" ")[0] + ", " + startDate.getFullYear()).getTime() 
+        : new Date(date + " 1, " + startDate.getFullYear()).getTime()
+    }));
+    
+    // Sort by sortOrder (chronological order)
+    chartData.sort((a, b) => a.sortOrder - b.sortOrder);
+    
+    // Remove the sortOrder property before rendering
+    chartData = chartData.map(({ date, count }) => ({ date, count }));
 
         console.log("Chart Data:", chartData); // Debugging line
         setData(chartData);
@@ -231,7 +243,14 @@ const NumberofViolations = ({ dateType, companyName }) => {
             interval={0}
             angle={-45}
             textAnchor="end"
-            label={{ value: "Date", position: "insideBottom", dy: 55 }}
+            label={{
+              value:
+                dateType === "week"
+                  ? "Date"
+                  : `Date (Year ${new Date().getFullYear() - offset})`,
+              position: "insideBottom",
+              dy: 55,
+            }}
             tick={{ fontSize: 12 }}
           />
           <YAxis

@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import Header from "./GDTHeader";
 import d from "../../css/Dashboard.module.css";
 import "../../css/CustomModal.css";
-import { useNavigate } from "react-router-dom";
+import { useNavigate,Link } from "react-router-dom";
 import StaffChart from "./DashboardCharts/StaffChart";
 import ViolationCrashGeoChart from "./DashboardCharts/ViolationCrashGeoChart";
 import NumberOfViolations from "./DashboardCharts/NumberOfViolations";
@@ -43,7 +43,7 @@ const GDTDashBoard = () => {
   const [responseBy, setResponseBy] = useState(null);
   const [filterByDate, setFilterByDate] = useState("week");
   const [filterByDateCrash, setFilterByDateCrash] = useState("week");
-
+  const [lastCrash, setLastCrash] = useState(null); 
   useEffect(() => {
     fetchData();
   }, []);
@@ -94,17 +94,13 @@ const GDTDashBoard = () => {
       if (respondedBy) {
         const unsubscribe = GDTResponse(respondedBy, setResponseByName);
 
-        // Cleanup function to unsubscribe from the listener
-        return () => {
-          console.log("Cleaning up listener");
-          unsubscribe && unsubscribe();
-        };
+    
       } else {
         setResponseByName("Unknown"); // Reset if no ID
       }
     }, [respondedBy]);
 
-    return <span>{responseByName || "Loading..."}</span>; // Show loading while fetching
+    return <span>{responseByName}</span>; // Show loading while fetching
   };
   const toggleTypeDropdown = (type) => {
     setIsTypeOpen((prev) => ({
@@ -351,11 +347,14 @@ const GDTDashBoard = () => {
           orderBy("time", "desc"),
           limit(1)
         );
-
+    
         const querySnapshot = await getDocs(crashQuery);
         if (!querySnapshot.empty) {
           const lastCrash = querySnapshot.docs[0].data();
           setLastCrashTime(new Date(lastCrash.time * 1000).toLocaleString());
+          setLastCrash({
+            id: querySnapshot.docs[0].id, // Capture the document ID
+          });
           setResponseBy(lastCrash.RespondedBy); // Set the responder's ID
         } else {
           console.log("No crashes detected.");
@@ -441,7 +440,10 @@ const GDTDashBoard = () => {
                     </strong>
                   </>
                 ) : (
-                  <>Needs Response</>
+                  <>
+             <Link to={`/gdtcrash/general/${lastCrash?.id}`} 
+             style={{ color:"red", textDecoration: "underline"  }}
+             > Needs Response</Link></>
                 )}
               </span>
             </div>
