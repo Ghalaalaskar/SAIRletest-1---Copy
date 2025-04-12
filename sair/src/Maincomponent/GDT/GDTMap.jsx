@@ -85,7 +85,8 @@ const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
   // Function to fetch GPS state from the server
   const fetchGpsState = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/gps-state'); // need to change port!!!!!!!!
+      const response = await fetch('http://localhost:3000/api/gps-state'); // need to change port after host the server!!     const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/gps-state`);   هنا بعد ما نرفع السيرفر نحط ال url
+
       if (!response.ok) {
         console.log('nnnnnnnnnnnnnnnnnnnnnnnn');
         throw new Error('Network response was not ok');
@@ -129,7 +130,7 @@ const updateMapData = useCallback(() => {
 
     if (initialLoad) {
       const firstAvailable = gpsState.active[0] || gpsState.inactive[0];
-      setLastKnownLocations([...gpsState.active, ...gpsState.inactive]);
+      setLastKnownLocations([...gpsState.active, ...gpsState.inactive, ...staticMotorcycleData]);
       if (filteredMotorcycles.length > 0) {
         const firstMotorcycle = filteredMotorcycles[0];
         console.log('pppppppppppppppppp',firstMotorcycle);
@@ -448,6 +449,20 @@ const handleSelect = (value) => {
 };
 
 
+const staticMotorcycleData = [
+  { MotorcycleID: '5000000001', gpsNumber: '123456789012345', lat: 24.7137, lng: 46.6753, driverName: 'Mohammed Al-Farsi', driverID: '4455500001', phoneNumber: '+966512345678', shortCompanyName: 'Jahez', Type: 'T4A', LicensePlate: 'XYZ 123' },
+  { MotorcycleID: '5000000002', gpsNumber: '123456789012346', lat: 24.7137, lng: 46.6753, driverName: 'Ali Al-Mansour', driverID: '6664446892', phoneNumber: '+966512345679', shortCompanyName: 'Hungerstation', Type: 'A3', LicensePlate: 'XYZ 124' },
+  { MotorcycleID: '5000000003', gpsNumber: '123456789012347', lat: 24.7137, lng: 46.6753, driverName: 'Omar Al-Salem', driverID: '12358790983', phoneNumber: '+966512345680', shortCompanyName: 'Jahez', Type: 'VX', LicensePlate: 'XYZ 125' },
+  { MotorcycleID: '5000000004', gpsNumber: '123456789012348', lat: 24.7137, lng: 46.6753, driverName: 'Yusuf Al-Jabir', driverID: '9865743564', phoneNumber: '+966512345681', shortCompanyName: 'Hungerstation', Type: '6XX', LicensePlate: 'XYZ 126' },
+  { MotorcycleID: '5000000005', gpsNumber: '123456789012349', lat: 24.7150, lng: 46.6758, driverName: 'Sami Al-Dossary', driverID: '19354675895', phoneNumber: '+966512345682', shortCompanyName: 'Jahez', Type: 'TD', LicensePlate: 'XYZ 127' },
+  { MotorcycleID: '5000000006', gpsNumber: '123456789012350', lat: 24.7153, lng: 46.6780, driverName: 'Fahad Al-Hamdan', driverID: '1357865476', phoneNumber: '+966512345683', shortCompanyName: 'Hungerstation', Type: 'E', LicensePlate: 'XYZ 128' },
+  { MotorcycleID: '5000000007', gpsNumber: '123456789012351', lat: 24.7210, lng: 46.6765, driverName: 'Zaid Al-Fahad', driverID: '1265879886', phoneNumber: '+966512345684', shortCompanyName: 'Jahez', Type: 'CXC', LicensePlate: 'XYZ 129' },
+  { MotorcycleID: '5000000008', gpsNumber: '123456789012352', lat: 24.7300, lng: 46.6700, driverName: 'Nasser Al-Qassem', driverID: '3456008643', phoneNumber: '+966512345685', shortCompanyName: 'Hungerstation', Type: 'PO1', LicensePlate: 'XYZ 130' },
+  { MotorcycleID: '5000000009', gpsNumber: '123456789012353', lat: 24.7340, lng: 46.8900, driverName: 'Salman Al-Harbi', driverID: '8363939449', phoneNumber: '+966512345686', shortCompanyName: 'Jahez', Type: 'HW', LicensePlate: 'XYZ 131' },
+  { MotorcycleID: '5000000010', gpsNumber: '123456789012354', lat: 24.7400, lng: 46.8000, driverName: 'Khalid Al-Badri', driverID: '1136988810', phoneNumber: '+966512345687', shortCompanyName: 'Hungerstation', Type: 'T4', LicensePlate: 'XYZ 132' },
+  { MotorcycleID: '5000000011', gpsNumber: '123456789012355', lat: 24.7500, lng: 46.6000, driverName: 'Faisal Al-Amin', driverID: '4457355111', phoneNumber: '+966512345688', shortCompanyName: 'Jahez', Type: 'CXC', LicensePlate: 'XYZ 133' },
+];
+
 const filteredMotorcycles = motorcycleData.filter(m => {
   const matchesSearch = m.driverName.toLowerCase().includes(searchQuery.toLowerCase()) ||
 m.driverID.toLowerCase().includes(searchQuery.toLowerCase());
@@ -464,7 +479,8 @@ m.driverID.toLowerCase().includes(searchQuery.toLowerCase());
         return gpsState.active.some(item => item.gpsNumber === m.gpsNumber);
       } else if (status === "Inactive") {
         // Check if the motorcycle's gpsNumber is in the inactive array
-        return gpsState.inactive.some(item => item.gpsNumber === m.gpsNumber);
+        return gpsState.inactive.some(item => item.gpsNumber === m.gpsNumber)||
+        staticMotorcycleData.some(item => item.gpsNumber === m.gpsNumber)
       }
       return false; // Return false if status doesn't match "Active" or "Inactive"
     });
@@ -472,7 +488,8 @@ m.driverID.toLowerCase().includes(searchQuery.toLowerCase());
 });
 
 
-const fullHeatmapData = [...gpsState.active, ...gpsState.inactive].map(loc => { //...staticMotorcycleData
+
+const fullHeatmapData = [...gpsState.active, ...gpsState.inactive,...staticMotorcycleData].map(loc => { 
   const matchingMotorcycle = motorcycleData.find(m => m.gpsNumber === loc.gpsNumber);
   return {
     ...loc,
@@ -490,16 +507,20 @@ const filteredHeatmapData = fullHeatmapData.filter(m => {
     filters.status.some(status => {
       if (status === "Active") {
         return gpsState.active.some(item => item.gpsNumber === m.gpsNumber);
-      } else if (status === "Inactive") {
-        return gpsState.inactive.some(item => item.gpsNumber === m.gpsNumber);
+      }else if (status === "Inactive") {
+        // Check if the motorcycle's gpsNumber is in the inactive array
+        return gpsState.inactive.some(item => item.gpsNumber === m.gpsNumber)||
+        staticMotorcycleData.some(item => item.gpsNumber === m.gpsNumber)
       }
       return false;
     });
     const hasValidLatLng = typeof m.lat === 'number' && typeof m.lng === 'number';
 
     // ✅ Make sure the location exists (so the marker will be shown too)
-    const locationExists = lastKnownLocations.some(loc => loc.gpsNumber === m.gpsNumber);
-  
+    const locationExists =
+    lastKnownLocations.some(loc => loc.gpsNumber === m.gpsNumber) ||
+    staticMotorcycleData.some(item => item.gpsNumber === m.gpsNumber);
+
     return companyMatch && statusMatch && hasValidLatLng && locationExists;
   });
 
@@ -513,19 +534,6 @@ console.log('Filtered Motorcycle Data:', filteredMotorcycleData);
 console.log('Filtered Motorcycle Data:', filteredHeatmapData);
 
 
-const staticMotorcycleData = [
-//   { MotorcycleID: '5000000001', GPSnumber: '123456789012345', lat: 24.7137, lng: 46.6753, driverName: 'Mohammed Al-Farsi', driverID: '4455500001', phoneNumber: '+966512345678', shortCompanyName: 'Jahez', Type: 'T4A', LicensePlate: 'XYZ 123' },
-//   { MotorcycleID: '5000000002', GPSnumber: '123456789012346', lat: 24.7137, lng: 46.6753, driverName: 'Ali Al-Mansour', driverID: '6664446892', phoneNumber: '+966512345679', shortCompanyName: 'Hungerstation', Type: 'A3', LicensePlate: 'XYZ 124' },
-//   { MotorcycleID: '5000000003', GPSnumber: '123456789012347', lat: 24.7137, lng: 46.6753, driverName: 'Omar Al-Salem', driverID: '12358790983', phoneNumber: '+966512345680', shortCompanyName: 'Jahez', Type: 'VX', LicensePlate: 'XYZ 125' },
-//   { MotorcycleID: '5000000004', GPSnumber: '123456789012348', lat: 24.7137, lng: 46.6753, driverName: 'Yusuf Al-Jabir', driverID: '9865743564', phoneNumber: '+966512345681', shortCompanyName: 'Hungerstation', Type: '6XX', LicensePlate: 'XYZ 126' },
-//   { MotorcycleID: '5000000005', GPSnumber: '123456789012349', lat: 24.7150, lng: 46.6758, driverName: 'Sami Al-Dossary', driverID: '19354675895', phoneNumber: '+966512345682', shortCompanyName: 'Jahez', Type: 'TD', LicensePlate: 'XYZ 127' },
-//   { MotorcycleID: '5000000006', GPSnumber: '123456789012350', lat: 24.7153, lng: 46.6780, driverName: 'Fahad Al-Hamdan', driverID: '1357865476', phoneNumber: '+966512345683', shortCompanyName: 'Hungerstation', Type: 'E', LicensePlate: 'XYZ 128' },
-//   { MotorcycleID: '5000000007', GPSnumber: '123456789012351', lat: 24.7210, lng: 46.6765, driverName: 'Zaid Al-Fahad', driverID: '1265879886', phoneNumber: '+966512345684', shortCompanyName: 'Jahez', Type: 'CXC', LicensePlate: 'XYZ 129' },
-//   { MotorcycleID: '5000000008', GPSnumber: '123456789012352', lat: 24.7300, lng: 46.6700, driverName: 'Nasser Al-Qassem', driverID: '3456008643', phoneNumber: '+966512345685', shortCompanyName: 'Hungerstation', Type: 'PO1', LicensePlate: 'XYZ 130' },
-//   { MotorcycleID: '5000000009', GPSnumber: '123456789012353', lat: 24.7340, lng: 46.8900, driverName: 'Salman Al-Harbi', driverID: '8363939449', phoneNumber: '+966512345686', shortCompanyName: 'Jahez', Type: 'HW', LicensePlate: 'XYZ 131' },
-//   { MotorcycleID: '5000000010', GPSnumber: '123456789012354', lat: 24.7400, lng: 46.8000, driverName: 'Khalid Al-Badri', driverID: '1136988810', phoneNumber: '+966512345687', shortCompanyName: 'Hungerstation', Type: 'T4', LicensePlate: 'XYZ 132' },
-//   { MotorcycleID: '5000000011', GPSnumber: '123456789012355', lat: 24.7500, lng: 46.6000, driverName: 'Faisal Al-Amin', driverID: '4457355111', phoneNumber: '+966512345688', shortCompanyName: 'Jahez', Type: 'CXC', LicensePlate: 'XYZ 133' },
-];
 
 return (
 <div style={{ display: 'flex', height: '80vh' }}>
@@ -580,8 +588,8 @@ outline: 'none', // Remove outline on focus
 
 
   <div className={q.searchContainer} >
-                <div className={`${q.selectWrapper} ${q.dropdownContainer}`} style={{  width: '355px' }}>
-                  <FaFilter className={q.filterIcon}  style={{  marginLeft:'13px' }}/>
+                <div className={`${q.selectWrapper} ${q.dropdownContainer}`} style={{  width: '355px' ,marginLeft:'-11px'}}>
+                  <FaFilter className={q.filterIcon}  style={{  marginLeft:'20px' }}/>
                   <div style={{ position: 'relative', width: '510px'}}>
                     <div
                       onClick={toggleDropdown}
@@ -677,8 +685,9 @@ outline: 'none', // Remove outline on focus
 
 <ul style={{ listStyleType: 'none', padding: '0' }}>
 
-{filteredMotorcycles.map((item, index) => {
-      // Check if the current item is static
+{[...filteredMotorcycles]
+  .sort((a, b) => (a.driverName || '').localeCompare(b.driverName || ''))
+  .map((item, index) => {      
       const isStaticMotorcycle = staticMotorcycleData.some(staticItem => staticItem.MotorcycleID === item.motorcycleID) || 
                                   staticMotorcycleData.some(staticItem => staticItem.MotorcycleID === item.MotorcycleID);
 
