@@ -33,6 +33,9 @@ const ViolationList = () => {
       type: [],
       status: [],
     });
+    const [currentPage, setCurrentPage] = useState(1);
+const pageSize = 5; // Set your desired page size
+
 const [dropdownOpen, setDropdownOpen] = useState(false);
 const [selectedValues, setSelectedValues] = useState([]);
 const options = [
@@ -330,7 +333,11 @@ const options = [
       ),
     },
   ];
-
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+  // Slice the filtered violations for current page
+const paginatedViolations = filteredViolations.slice((currentPage - 1) * pageSize, currentPage * pageSize);
   return (
     <>
       <Header active="gdtviolations" />
@@ -555,45 +562,40 @@ const options = [
 </div>
             </div>
           </div>
-          <Table
+<Table
   columns={columns}
-  dataSource={filteredViolations}
+  dataSource={paginatedViolations}
   rowKey="id"
   rowClassName={(record) =>
     clickedViolations.includes(record.id) ? "" : s.highlightRow
   }
-  pagination={false}
+  pagination={false} // Disable internal pagination
 />
-          {/* Flex container for button and pagination */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginTop: "16px",
-            }}
-          >
-            <Button
-              onClick={handleViewViolations}
-              style={{
-                width: "auto",
-                height: "60px",
-                fontSize: "15px",
-                color: "#059855",
-                borderColor: "#059855",
-              }}
-            >
-              <i className="fas fa-eye" style={{ marginRight: "8px" }}></i>
-              View Reckless Drivers
-            </Button>
 
-            <Pagination
-              defaultCurrent={1}
-              total={filteredViolations.length}
-              pageSize={5} // Number of items per page
-              style={{ marginLeft: "auto" }} // Align pagination to the right
-            />
-          </div>
+{/* Flex container for button and pagination */}
+<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px' }}>
+  <Button
+    onClick={handleViewViolations}
+    style={{
+      width: "auto",
+      height: "60px",
+      fontSize: "15px",
+      color: "#059855",
+      borderColor: "#059855",
+    }}
+  >
+    <i className="fas fa-eye" style={{ marginRight: "8px" }}></i>
+    View Reckless Drivers
+  </Button>
+
+  <Pagination
+    current={currentPage}
+    total={filteredViolations.length}
+    pageSize={pageSize}
+    onChange={handlePageChange}
+    style={{ marginLeft: '20px' }} // Add margin for spacing
+  />
+</div>
 
           {/* Popup for no violations */}
           <Modal
