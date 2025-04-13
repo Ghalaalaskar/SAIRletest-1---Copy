@@ -175,7 +175,7 @@ const NumberofViolations = ({ dateType, companyName }) => {
         style={{
           position: "absolute",
           left: "10px",
-          top: "-45px",
+          top: "360px",
           fontSize: "20px",
           backgroundColor: "white",
           color: "black",
@@ -204,7 +204,7 @@ const NumberofViolations = ({ dateType, companyName }) => {
         style={{
           position: "absolute",
           right: "10px",
-          top: "-45px",
+          top: "360px",
           fontSize: "20px",
           backgroundColor: "white",
           color: "black",
