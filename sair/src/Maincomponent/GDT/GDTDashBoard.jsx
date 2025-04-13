@@ -10,6 +10,7 @@ import NumberofCrashes from "./DashboardCharts/NumberofCrash";
 import TotalDrivers from "./DashboardCharts/TotalDrivers";
 import RecklessViolation from "./DashboardCharts/RecklessViolation";
 import TotalViolation from "./DashboardCharts/TotalViolation";
+import TotalComplaints from "./DashboardCharts/TotalComplaints";
 import TotalCrash from "./DashboardCharts/TotalCrashes";
 import {
   collection,
@@ -37,8 +38,11 @@ const GDTDashBoard = () => {
   const complaintDropdownRef = useRef(null);
   const [thisWeekViolations, setThisWeekViolations] = useState(0);
   const [lastWeekViolations, setLastWeekViolations] = useState(0);
+  const [thisWeekComplaints, setThisWeekComplaints] = useState(0);
+  const [lastWeekViolationsComplaints, setLastWeekComplaints] = useState(0);
   const [percentageChange, setPercentageChange] = useState(null);
   const [percentageChangeCrash, setPercentageChangeCrash] = useState(null);
+  const [percentageChangeComplaints, setPercentageChangeComplaints] = useState(null);
   const [lastCrashTime, setLastCrashTime] = useState(null);
   const [responseBy, setResponseBy] = useState(null);
   const [filterByDate, setFilterByDate] = useState("week");
@@ -282,7 +286,61 @@ const GDTDashBoard = () => {
       console.error("Error fetching violation data:", error);
     }
   };
+  //To calculate the precentage
+  const fetchComplaintsData = async () => {
+    try {
+      const today = new Date();
 
+      // Start of this week (Sunday at 00:00:00)
+      const thisWeekStart = new Date(today);
+      thisWeekStart.setDate(today.getDate() - today.getDay());
+      thisWeekStart.setHours(0, 0, 0, 0);
+
+      // Start of last week (Previous Sunday at 00:00:00)
+      const lastWeekStart = new Date(thisWeekStart);
+      lastWeekStart.setDate(thisWeekStart.getDate() - 7);
+
+      // End of last week (Saturday at 23:59:59)
+      const lastWeekEnd = new Date(thisWeekStart);
+      lastWeekEnd.setSeconds(-1); // Makes it Saturday 23:59:59
+
+      // Convert JavaScript Date to Unix timestamp (in seconds)
+      const thisWeekStartUnix = Math.floor(thisWeekStart.getTime() / 1000);
+      const lastWeekStartUnix = Math.floor(lastWeekStart.getTime() / 1000);
+      const lastWeekEndUnix = Math.floor(lastWeekEnd.getTime() / 1000);
+
+      // Queries for this week's and last week's violations
+      const thisWeekQuery = query(
+        collection(db, "Complaint"),
+        where("time", ">=", thisWeekStartUnix) // Use 'time' field
+      );
+
+      const lastWeekQuery = query(
+        collection(db, "Complaint"),
+        where("time", ">=", lastWeekStartUnix), // Use 'time' field
+        where("time", "<=", lastWeekEndUnix)
+      );
+
+      const thisWeekSnapshot = await getDocs(thisWeekQuery);
+      const lastWeekSnapshot = await getDocs(lastWeekQuery);
+
+      const thisWeekCount = thisWeekSnapshot.size;
+      const lastWeekCount = lastWeekSnapshot.size;
+
+      setThisWeekComplaints(thisWeekCount);
+      setLastWeekComplaints(lastWeekCount);
+
+      // Calculate percentage change
+      if (lastWeekCount > 0) {
+        const change = ((thisWeekCount - lastWeekCount) / lastWeekCount) * 100;
+        setPercentageChangeComplaints(change.toFixed(2));
+      } else {
+        setPercentageChangeComplaints(thisWeekCount > 0 ? 100 : 0);
+      }
+    } catch (error) {
+      console.error("Error fetching violation data:", error);
+    }
+  };
   //To calculate the percentage
   const fetchCrashData = async () => {
     try {
@@ -540,6 +598,41 @@ const GDTDashBoard = () => {
                 <FaArrowDown />
               )}
               {percentageChangeCrash}% this week
+            </span>
+          )}
+        </div>
+      ),
+    },
+    {
+      title: "Total Complaints",
+      component: (
+        <div
+          style={{
+            position: "relative",
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <TotalComplaints />
+          {percentageChangeComplaints !== null && (
+            <span
+              style={{
+                position: "absolute",
+                bottom: "0",
+                right: "0",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+                color: percentageChangeComplaints >= 0 ? "green" : "red",
+                fontWeight: "bold",
+              }}
+            >
+              {percentageChangeComplaints >= 0 ? (
+                <FaArrowUp />
+              ) : (
+                <FaArrowDown />
+              )}
+              {percentageChangeComplaints}% this week
             </span>
           )}
         </div>
