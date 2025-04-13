@@ -581,10 +581,10 @@ const paginatedViolations = filteredViolations.slice((currentPage - 1) * pageSiz
       height: "60px",
       fontSize: "15px",
       color: "#059855",
-      borderColor: "#059855",
+      borderColor: "#059855",marginBottom:"10px" 
     }}
   >
-    <i className="fas fa-eye" style={{ marginRight: "8px" }}></i>
+    <i className="fas fa-eye" style={{ marginRight: "8px",marginBottom:"10px" }}></i>
     View Reckless Drivers
   </Button>
 
