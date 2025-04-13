@@ -538,37 +538,6 @@ const GDTDashBoard = () => {
   {[
     { title: "Total Drivers", component: <TotalDrivers /> },
     {
-      title: "Total Violation",
-      component: (
-        <div
-          style={{
-            position: "relative",
-            display: "flex",
-            alignItems: "center",
-          }}
-        >
-          <TotalViolation />
-          {percentageChange !== null && (
-            <span
-              style={{
-                position: "absolute",
-                bottom: "0",
-                right: "0",
-                display: "flex",
-                alignItems: "center",
-                gap: "4px",
-                color: percentageChange >= 0 ? "green" : "red",
-                fontWeight: "bold",
-              }}
-            >
-              {percentageChange >= 0 ? <FaArrowUp /> : <FaArrowDown />}
-              {percentageChange}% this week
-            </span>
-          )}
-        </div>
-      ),
-    },
-    {
       title: "Total Crash",
       component: (
         <div
@@ -598,6 +567,37 @@ const GDTDashBoard = () => {
                 <FaArrowDown />
               )}
               {percentageChangeCrash}% this week
+            </span>
+          )}
+        </div>
+      ),
+    },
+    {
+      title: "Total Violation",
+      component: (
+        <div
+          style={{
+            position: "relative",
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <TotalViolation />
+          {percentageChange !== null && (
+            <span
+              style={{
+                position: "absolute",
+                bottom: "0",
+                right: "0",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+                color: percentageChange >= 0 ? "green" : "red",
+                fontWeight: "bold",
+              }}
+            >
+              {percentageChange >= 0 ? <FaArrowUp /> : <FaArrowDown />}
+              {percentageChange}% this week
             </span>
           )}
         </div>
