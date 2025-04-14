@@ -44,6 +44,30 @@ const CustomLegend = () => {
   );
 };
 
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div
+        style={{
+          backgroundColor: "white",
+          padding: "10px",
+          border: "1px solid #ccc",
+          borderRadius: "5px",
+          boxShadow: "0px 0px 5px rgba(0,0,0,0.2)",
+        }}
+      >
+        <p style={{ fontWeight: "bold", marginBottom: "5px" }}>{label}</p>
+        {payload.map((entry, index) => (
+          <p key={index} style={{ color: entry.color, margin: 0 }}>
+            {entry.name}: {entry.value}
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
+
 const StaffChart = () => {
   const [data, setData] = useState([]);
   const [tooltipData, setTooltipData] = useState(null); // tooltip state
@@ -218,6 +242,7 @@ const StaffChart = () => {
                   dx: -20,
                 }}
               />
+              <Tooltip content={<CustomTooltip />} />
               <Bar
                 dataKey="Crash"
                 fill="#2E7D32"
