@@ -44,6 +44,30 @@ const CustomLegend = () => {
   );
 };
 
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div
+        style={{
+          backgroundColor: "white",
+          padding: "10px",
+          border: "1px solid #ccc",
+          borderRadius: "5px",
+          boxShadow: "0px 0px 5px rgba(0,0,0,0.2)",
+        }}
+      >
+        <p style={{ fontWeight: "bold", marginBottom: "5px" }}>{label}</p>
+        {payload.map((entry, index) => (
+          <p key={index} style={{ color: entry.color, margin: 0 }}>
+            {entry.name}: {entry.value}
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
+
 const StaffChart = () => {
   const [data, setData] = useState([]);
   const [tooltipData, setTooltipData] = useState(null); // tooltip state
@@ -62,19 +86,20 @@ const StaffChart = () => {
   useEffect(() => {
     const fetchResponse = async () => {
       try {
-        const CrashQuerySnapshot = await getDocs(
+        const crashQuery = query(
           collection(db, "Crash"),
           where("Status", "==", "Emergency SOS")
         );
-        const ComplaintQuerySnapshot = await getDocs(
-          collection(db, "Complaint")
-        );
+        const CrashQuerySnapshot = await getDocs(crashQuery);
+  
+        const complaintQuery = query(collection(db, "Complaint"));
+        const ComplaintQuerySnapshot = await getDocs(complaintQuery);
+  
         const StaffCounts = new Map();
-
-        //count crash response
+  
+        // Count crash responses only if RespondedBy is not null
         CrashQuerySnapshot.forEach((doc) => {
           const { RespondedBy } = doc.data();
-
           if (RespondedBy) {
             if (!StaffCounts.has(RespondedBy)) {
               StaffCounts.set(RespondedBy, {
@@ -85,8 +110,8 @@ const StaffChart = () => {
             StaffCounts.get(RespondedBy).countCrash += 1;
           }
         });
-
-        //count complaint response
+  
+        // Count complaint responses only if RespondedBy is not null
         ComplaintQuerySnapshot.forEach((doc) => {
           const { RespondedBy } = doc.data();
           if (RespondedBy) {
@@ -99,23 +124,23 @@ const StaffChart = () => {
             StaffCounts.get(RespondedBy).countComplaint += 1;
           }
         });
-
-        // Get GDT (Staff) first names from Firestore
+  
+        // Fetch staff names for each unique GDTID
         const staffData = await Promise.all(
           Array.from(StaffCounts.keys()).map(async (GDTID) => {
             const gdtQuery = query(
               collection(db, "GDT"),
               where("ID", "==", GDTID)
-            ); // Match ID field
+            );
             const gdtDocs = await getDocs(gdtQuery);
-
+  
             let firstName = "";
             let StaffID = "";
             if (!gdtDocs.empty) {
               firstName = gdtDocs.docs[0].data().Fname || "";
               StaffID = gdtDocs.docs[0].data().ID || "";
             }
-
+  
             return {
               FirstName: firstName,
               GDTID: StaffID,
@@ -124,15 +149,15 @@ const StaffChart = () => {
             };
           })
         );
-        // Convert map values to array and update state
+  
         setData(staffData);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
-
+  
     fetchResponse();
-  }, []);
+  }, []);  
 
   // Determine whether scrolling is needed
   const BAR_WIDTH = 100; // Width per bar (adjust as needed)
@@ -218,6 +243,7 @@ const StaffChart = () => {
                   dx: -20,
                 }}
               />
+              <Tooltip content={<CustomTooltip />} />
               <Bar
                 dataKey="Crash"
                 fill="#2E7D32"

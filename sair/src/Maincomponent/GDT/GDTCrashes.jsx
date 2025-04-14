@@ -254,7 +254,10 @@ const CrashList = () => {
       if (!isRelevantStatus) return false;
 
       // If GDTID is passed, show only crashes responded by that GDT
-      if (GDTID && crash.RespondedBy !== GDTID) return false;
+      if (GDTID) {
+        if (!crash.RespondedBy) return false; // Exclude null/undefined
+        if (crash.RespondedBy !== GDTID) return false;
+      }
 
       const crashDate = crash.time
         ? new Date(crash.time * 1000).toISOString().split("T")[0]
