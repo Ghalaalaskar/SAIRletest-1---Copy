@@ -220,8 +220,7 @@ const DriverList = () => {
 
       <main>
         <div className={s.container}>
-          <h2 className={s.title}>
-                {company && (
+          <h2 className={s.title}> Driver List {"For "}{company && (
                   <>
                     <span
                       className={s.gdtName}
@@ -230,10 +229,9 @@ const DriverList = () => {
                     >
                       {comanyInfo.ShortName}
                     </span>
-                    {" "}
+                    
                   </>
                 )}
-              Driver List
               </h2>
 
           <div className={s.searchInputs}>
