@@ -54,6 +54,10 @@ import GDTAddStaffBatch from"./Maincomponent/GDT/GDTAddStaffBatch";
 import RicklessDrivers from './Maincomponent/ricklessdrives';
 import NotificationsList from './Maincomponent/NotificationsList';
 import GDTNotificationsList from './Maincomponent/GDT/GDTNotificationsList';
+import HeatMap from './Maincomponent/HeatMap';
+import EmployerHeatMap from './Maincomponent/EmployerHeatMap';
+
+
 const libraries = ["visualization"];  
 
 function App() {
@@ -185,7 +189,10 @@ function App() {
         <Route path="/notificationslist" element={<NotificationsList />} />
         <Route path="/gdtnotificationslist" element={<GDTNotificationsList />} />
         <Route path="/Adddriverbatch" element={<Adddriverbatch />} />
+        <Route path="/EmployerHeatMap" element={<EmployerHeatMap />} />
+        <Route path="/HeatMap" element={<HeatMap />} />
 
+        
       </Routes>
     </Router>
     </LoadScript>
