@@ -652,7 +652,7 @@ const GDTDashBoard = () => {
             width: "100%",
           }}
         ></div>
-        <div
+        {/* <div
           style={{
             backgroundColor: "#05b06d",
             color: "#ffffff",
@@ -670,12 +670,12 @@ const GDTDashBoard = () => {
           }}
         >
           Traffic Statistics
-        </div>
+        </div> */}
         <div
           style={{
             display: "flex",
             gap: "20px",
-            marginTop: "20px",
+            marginTop: "10px",
             width: "100%",
           }}
         >
@@ -1020,41 +1020,18 @@ const GDTDashBoard = () => {
     </GridItem>
   </div>
 </div>
-
-{/* Row: Reckless Violations alone */}
-<div
-          style={{
-            backgroundColor: "#05b06d",
-            color: "#ffffff",
-            padding: "20px",
-            borderTopLeftRadius: "8px",
-            borderTopRightRadius: "8px",
-            borderBottomLeftRadius: "0",
-            borderBottomRightRadius: "0",
-            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-            flex: 1,
-            textAlign: "center",
-            fontWeight: "bold",
-            marginTop: "20px",
-            animation: "fadeIn 1s ease-in-out",
-          }}
-        >
-          <div style={{ fontWeight: "bold" }}>Reckless Violation Statistics</div>
-        </div>
-<div
-  style={{
-    width: "100%",
-  }}
->
-  <GridItem title="Reckless Violations">
-    <RecklessViolation
-      dateType={filterByDate}
-      companyName={violationFilterType}
-    />
-  </GridItem>
-</div>
-
-        {/* Staff Charts */}
+    {/* Row: Reckless Violations and Staff Response side-by-side */}
+    <div
+      style={{
+        display: "flex",
+        gap: "20px",
+        width: "100%",
+        marginTop: "50px",
+        marginBottom: "50px",
+      }}
+    >
+      {/* Reckless Violations Section */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
         <div
           style={{
             backgroundColor: "#05b06d",
@@ -1064,36 +1041,44 @@ const GDTDashBoard = () => {
             borderTopRightRadius: "8px",
             borderBottomLeftRadius: "0",
             borderBottomRightRadius: "0",
-            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-            flex: 1,
             textAlign: "center",
             fontWeight: "bold",
-            marginTop: "20px",
             animation: "fadeIn 1s ease-in-out",
           }}
         >
-          <div style={{ fontWeight: "bold" }}>Staff Response Statistics</div>
+          Reckless Violation Statistics
         </div>
+        <GridItem title="Reckless Violations">
+          <RecklessViolation
+            dateType={filterByDate}
+            companyName={violationFilterType}
+          />
+        </GridItem>
+      </div>
+
+      {/* Staff Response Section */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
         <div
           style={{
-            display: "flex",
-            gap: "20px",
-            width: "100%",
+            backgroundColor: "#05b06d",
+            color: "#ffffff",
+            padding: "20px",
+            borderTopLeftRadius: "8px",
+            borderTopRightRadius: "8px",
+            borderBottomLeftRadius: "0",
+            borderBottomRightRadius: "0",
+            textAlign: "center",
+            fontWeight: "bold",
+            animation: "fadeIn 1s ease-in-out",
           }}
         >
-          <div
-            style={{
-              flex: 1,
-              display: "flex",
-              flexDirection: "column",
-              gap: "20px",
-            }}
-          >
-            <GridItem title="Staff Response Chart">
-              <StaffChart />
-            </GridItem>
-          </div>
+          Staff Response Statistics
         </div>
+        <GridItem title="Staff Response Chart">
+          <StaffChart />
+        </GridItem>
+      </div>
+    </div>
         {/* Geo Charts */}
         <div
           style={{
