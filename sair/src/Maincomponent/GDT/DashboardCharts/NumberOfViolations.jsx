@@ -19,7 +19,12 @@ const NumberofViolations = ({ dateType, companyName }) => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [isYearOpen, setIsYearOpen] = useState(false);
   const dropdownRef = useRef(null);
-
+  useEffect(() => {
+    if (dateType !== "week") {
+      setSelectedYear(new Date().getFullYear()); // Reset to current year when not in "week" mode
+    }
+  }, [dateType]);
+  
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
