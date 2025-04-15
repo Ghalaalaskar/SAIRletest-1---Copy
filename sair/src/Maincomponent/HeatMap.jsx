@@ -37,6 +37,7 @@ const [error, setError] = useState(null);
 const [dropdownOpen, setDropdownOpen] = useState(false);
 const [selectedValues, setSelectedValues] = useState([]);
 const [filters, setFilters] = useState({ company: [], status: [] });
+const [mapRefreshKey, setMapRefreshKey] = useState(0);
 
 const [filterStatus, setFilterStatus] = useState("All");
 const [isTypeOpen, setIsTypeOpen] = useState(false);
@@ -58,6 +59,8 @@ const [driverDetails, setDriverDetails] = useState(null);
 const [motorcycleDetails, setMotorcycleDetails] = useState(null);
 const [isHovered, setIsHovered] = useState(false);
 const [shortCompanyName, setShortCompanyName] = useState('');
+const [CompanyName, setCompanyName] = useState('');
+
 const [expandedMotorcycleIds, setExpandedMotorcycleIds] = useState([]);
 const [expandedMotorcycleId, setExpandedMotorcycleId] = useState([]);
 const [activeMotorcycleId, setActiveMotorcycleId] = useState(null);
@@ -73,8 +76,8 @@ const employerUID = sessionStorage.getItem('employerUID');
 
   useEffect(() => {
     const fetchShortCompanyName = async () => {
-      console.log('in heatmap employer',shortCompanyName);
-      if (!shortCompanyName) { // Only fetch if it's not set
+      console.log('in heatmap employer',CompanyName);
+      if (!CompanyName) { // Only fetch if it's not set
         const employerUID = sessionStorage.getItem('employerUID');
         if (employerUID) {
           try {
@@ -82,8 +85,8 @@ const employerUID = sessionStorage.getItem('employerUID');
             const docSnap = await getDoc(userDocRef);
             if (docSnap.exists()) {
               const data = docSnap.data();
-              setShortCompanyName(data.ShortCompanyName || '');
-              console.log('in headerr',shortCompanyName);
+              setCompanyName(data.ShortCompanyName || '');
+              console.log('in map',CompanyName);
             }
           } catch (error) {
             console.error('Error fetching short company name:', error);
@@ -93,7 +96,7 @@ const employerUID = sessionStorage.getItem('employerUID');
     };
 
     fetchShortCompanyName();
-  }, [shortCompanyName, setShortCompanyName]);
+  }, [CompanyName, setCompanyName]);
 
 
   const toggleTypeDropdown = () => {
@@ -127,6 +130,7 @@ const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
   // Function to fetch GPS state from the server
   const fetchGpsState = async () => {
     try {
+      console.log(' Data:', CompanyName); 
       const response = await fetch('http://localhost:3000/api/gps-state'); // need to change port after host the server!!     const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/gps-state`);   هنا بعد ما نرفع السيرفر نحط ال url
 
       if (!response.ok) {
@@ -134,12 +138,84 @@ const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
         throw new Error('Network response was not ok');
       }
       const data = await response.json();
-      const filteredData = data.filter(item => item.ShortCompanyName === shortCompanyName);
 
-      setGpsState(filteredData); // Update the state with the fetched data       
-      console.log('ioooooooooooooooooooo',filteredData);
+      console.log('Fetched data:', data);
+  
+      const activeGpsData = Array.isArray(data?.active) ? data.active : [];
+      const inactiveGpsData = Array.isArray(data?.inactive) ? data.inactive : [];
+  
+  console.log(activeGpsData);
+  console.log(inactiveGpsData);
+      // Combine both arrays
+      const combinedGpsData = [...activeGpsData, ...inactiveGpsData];
+  
+      // Extract gpsNumbers from the combined data
+      const gpsNumbers = combinedGpsData.map(loc => loc.gpsNumber);
+  
+      // Fetch Driver data based on gpsNumbers
+      const driverPromises = gpsNumbers.map(gpsNumber => {
+        const driverQuery = query(
+          collection(db, 'Driver'),  // Query the "Driver" collection
+          where('GPSnumber', '==', gpsNumber) // Filter by GPSnumber
+        );
+        return getDocs(driverQuery); // Use getDocs to retrieve matching documents
+      });
+  
+      // Wait for all driver data to be fetched
+      const driverSnapshots = await Promise.all(driverPromises);
+  
+      // Filter matching data
+      const filteredData = [];
+  
+      // Process driver data and match companyName
+      for (let i = 0; i < driverSnapshots.length; i++) {
+        const snapshot = driverSnapshots[i];
+
+  if (snapshot.docs.length === 0) continue; // Skip if no driver doc
+
+  const driverData = snapshot.docs[0].data();
+
+  if (driverData && driverData.CompanyName) {
+    const employerQuery = query(
+      collection(db, "Employer"),
+      where("CompanyName", "==", driverData.CompanyName)
+    );
+    const employerSnapshot = await getDocs(employerQuery);
+
+    if (!employerSnapshot.empty) {
+      const employerData = employerSnapshot.docs[0].data();
+      const shortCompanyName = employerData?.ShortCompanyName;
+
+      console.log("shortCompanyName:", shortCompanyName);
+      console.log("CompanyName from UI:", CompanyName);
+
+      if (shortCompanyName === CompanyName) {
+        filteredData.push({
+          gpsNumber: gpsNumbers[i],
+          lat: combinedGpsData[i].lat,
+          lng: combinedGpsData[i].lng,
+          status: activeGpsData[i] ? 'Active' : 'Inactive',
+        });
+      }}
+        }
+      }
+  
+      // Separate data into active and inactive arrays
+      const activeData = filteredData.filter(item => item.status === 'Active');
+      const inactiveDataFiltered = filteredData.filter(item => item.status === 'Inactive');
+  
+      // Update state with filtered data
+      setGpsState({
+        active: activeData,
+        inactive: inactiveDataFiltered,
+      });
+      // Log filtered data for validation
+
+      console.log('Filtered Data:', filteredData); // Log filtered data for validation
+  
     } catch (error) {
-      setError(error.message); // Set error if the request fails
+      console.error('Error fetching or filtering data:', error.message);
+      setError(error.message); // Handle errors if needed
     }
   };
 
@@ -148,7 +224,7 @@ const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
   // Call fetchGpsState when the component mounts
   useEffect(() => {
     // Fetch immediately when component mounts
-    if (!shortCompanyName) return;
+    if (!CompanyName) return;
 
         fetchGpsState();
       
@@ -156,11 +232,11 @@ const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
     // Then keep fetching every 10 seconds
     const interval = setInterval(() => {
       fetchGpsState();
-    }, 5000); // 10 seconds
+    }, 3000); //  seconds
   
     // Cleanup the interval when component unmounts
     return () => clearInterval(interval);
-  }, [shortCompanyName]);
+  }, [CompanyName]);
 
 console.log(" Employer HeatMap Component");
 const updateMapData = useCallback(() => {
@@ -173,14 +249,17 @@ const updateMapData = useCallback(() => {
       .filter(loc => loc && !isNaN(loc.lat) && !isNaN(loc.lng))
       .map(loc => new window.google.maps.LatLng(loc.lat, loc.lng)),
       ...staticMotorcycleData // Add static motorcycle data coordinates for heatmap
-        .filter(sloc => sloc.shortCompanyName === shortCompanyName)
+        .filter(sloc => sloc.shortCompanyName === CompanyName)
         .map(staticLoc => new window.google.maps.LatLng(staticLoc.lat, staticLoc.lng)),
     ];
     setHeatmapData(newHeatmapData);
 
     if (initialLoad) {
       const firstAvailable = gpsState.active[0] || gpsState.inactive[0];
-      setLastKnownLocations([...gpsState.active, ...gpsState.inactive, ...staticMotorcycleData]);
+      const filteredStaticMotorcycles = staticMotorcycleData.filter(
+        (motorcycle) => motorcycle.shortCompanyName === CompanyName
+      );
+      setLastKnownLocations([...gpsState.active, ...gpsState.inactive, ...filteredStaticMotorcycles]);
       if (filteredMotorcycles.length > 0) {
         const firstMotorcycle = filteredMotorcycles[0];
         console.log('pppppppppppppppppp',firstMotorcycle);
@@ -263,7 +342,7 @@ const employerPromises = gpsNumbers.map(async (gpsNumber) => {
   const driverSnapshot = await getDocs(driverQuery);
   if (!driverSnapshot.empty) {
     const employerQuery = doc(db, 'Employer', employerUID);
-    return getDocs(employerQuery);
+    return getDoc(employerQuery);
   }
   return null; // If no driver found, return null
 });
@@ -275,7 +354,6 @@ const employerSnapshots = await Promise.all(employerPromises);
 const motorcyclesWithDrivers = motorcycleSnapshots.map((snapshot, index) => {
   const motorcycleData = snapshot.docs[0]?.data();
   const driverData = driverSnapshots[index].docs[0]?.data();
-  const employerData = employerSnapshots[index]?.docs[0]?.data();
 
   return {
     motorcycleID: motorcycleData?.MotorcycleID || 'N/A',
@@ -290,7 +368,7 @@ const motorcyclesWithDrivers = motorcycleSnapshots.map((snapshot, index) => {
 
 // Combine the static motorcycle data
 const filteredStaticMotorcycles = staticMotorcycleData.filter(
-    (motorcycle) => motorcycle.shortCompanyName === shortCompanyName
+    (motorcycle) => motorcycle.shortCompanyName === CompanyName
   );
   
 const combinedMotorcycleData = [...motorcyclesWithDrivers, ...filteredStaticMotorcycles];
@@ -299,7 +377,7 @@ setMotorcycleData(combinedMotorcycleData);};
 
 useEffect(() => {
     const filteredStaticMotorcycles = staticMotorcycleData.filter(
-        (motorcycle) => motorcycle.shortCompanyName === shortCompanyName
+        (motorcycle) => motorcycle.shortCompanyName === CompanyName
       );
   if (gpsState.active.length > 0 || gpsState.inactive.length > 0 || filteredStaticMotorcycles.length > 0) {
     fetchMotorcycleAndDriverData();
@@ -333,7 +411,7 @@ const handleMarkerClick = async (gpsNumber, location) => {
   setExpandedMotorcycleId(null); // Close dropdowns when a marker is clicked
   setZoomLevel(20); // Set zoom level to 150%
   const filteredStaticMotorcycles = staticMotorcycleData.filter(
-    (motorcycle) => motorcycle.shortCompanyName === shortCompanyName
+    (motorcycle) => motorcycle.shortCompanyName === CompanyName
   );
   const clickedMotorcycle = filteredStaticMotorcycles.find(item => item.gpsNumber === gpsNumber);
 
@@ -341,7 +419,7 @@ const handleMarkerClick = async (gpsNumber, location) => {
     // Handle static motorcycle
     setMotorcycleDetails({
       MotorcycleID: clickedMotorcycle.MotorcycleID || "N/A",
-      GPSnumber: clickedMotorcycle.GPSnumber || "N/A",
+      GPSnumber: clickedMotorcycle.gpsNumber || "N/A",  //it was GPSNumber!
       Type: clickedMotorcycle.Type || "N/A",
       LicensePlate: clickedMotorcycle.LicensePlate || "N/A",
     });
@@ -374,9 +452,9 @@ const handleMarkerClick = async (gpsNumber, location) => {
 
       const employerQuery = doc(db, 'Employer', employerUID);
 
-      const employerSnapshot = await getDocs(employerQuery);
-      if (!employerSnapshot.empty) {
-        const employerData = employerSnapshot.docs[0].data();
+      const employerSnapshot = await getDoc(employerQuery);
+      if (!employerSnapshot.exists()) {
+        const employerData = employerSnapshot.data();
       } else {
       }
 
@@ -482,17 +560,17 @@ const handleSelect = (value) => {
 
 
 const staticMotorcycleData = [
-  { MotorcycleID: '5000000001', gpsNumber: '123456789012345', lat: 24.7137, lng: 46.6753, driverName: 'Mohammed Al-Farsi', driverID: '4455500001', phoneNumber: '+966512345678', shortCompanyName: 'Jahez', Type: 'T4A', LicensePlate: 'XYZ 123' },
-  { MotorcycleID: '5000000002', gpsNumber: '123456789012346', lat: 24.7137, lng: 46.6753, driverName: 'Ali Al-Mansour', driverID: '6664446892', phoneNumber: '+966512345679', shortCompanyName: 'Hungerstation', Type: 'A3', LicensePlate: 'XYZ 124' },
-  { MotorcycleID: '5000000003', gpsNumber: '123456789012347', lat: 24.7137, lng: 46.6753, driverName: 'Omar Al-Salem', driverID: '12358790983', phoneNumber: '+966512345680', shortCompanyName: 'Jahez', Type: 'VX', LicensePlate: 'XYZ 125' },
-  { MotorcycleID: '5000000004', gpsNumber: '123456789012348', lat: 24.7137, lng: 46.6753, driverName: 'Yusuf Al-Jabir', driverID: '9865743564', phoneNumber: '+966512345681', shortCompanyName: 'Hungerstation', Type: '6XX', LicensePlate: 'XYZ 126' },
-  { MotorcycleID: '5000000005', gpsNumber: '123456789012349', lat: 24.7150, lng: 46.6758, driverName: 'Sami Al-Dossary', driverID: '19354675895', phoneNumber: '+966512345682', shortCompanyName: 'Jahez', Type: 'TD', LicensePlate: 'XYZ 127' },
-  { MotorcycleID: '5000000006', gpsNumber: '123456789012350', lat: 24.7153, lng: 46.6780, driverName: 'Fahad Al-Hamdan', driverID: '1357865476', phoneNumber: '+966512345683', shortCompanyName: 'Hungerstation', Type: 'E', LicensePlate: 'XYZ 128' },
-  { MotorcycleID: '5000000007', gpsNumber: '123456789012351', lat: 24.7210, lng: 46.6765, driverName: 'Zaid Al-Fahad', driverID: '1265879886', phoneNumber: '+966512345684', shortCompanyName: 'Jahez', Type: 'CXC', LicensePlate: 'XYZ 129' },
-  { MotorcycleID: '5000000008', gpsNumber: '123456789012352', lat: 24.7300, lng: 46.6700, driverName: 'Nasser Al-Qassem', driverID: '3456008643', phoneNumber: '+966512345685', shortCompanyName: 'Hungerstation', Type: 'PO1', LicensePlate: 'XYZ 130' },
-  { MotorcycleID: '5000000009', gpsNumber: '123456789012353', lat: 24.7340, lng: 46.8900, driverName: 'Salman Al-Harbi', driverID: '8363939449', phoneNumber: '+966512345686', shortCompanyName: 'Jahez', Type: 'HW', LicensePlate: 'XYZ 131' },
-  { MotorcycleID: '5000000010', gpsNumber: '123456789012354', lat: 24.7400, lng: 46.8000, driverName: 'Khalid Al-Badri', driverID: '1136988810', phoneNumber: '+966512345687', shortCompanyName: 'Hungerstation', Type: 'T4', LicensePlate: 'XYZ 132' },
-  { MotorcycleID: '5000000011', gpsNumber: '123456789012355', lat: 24.7500, lng: 46.6000, driverName: 'Faisal Al-Amin', driverID: '4457355111', phoneNumber: '+966512345688', shortCompanyName: 'Jahez', Type: 'CXC', LicensePlate: 'XYZ 133' },
+  { MotorcycleID: '5000000001', gpsNumber: '123456789012345', lat: 24.7137, lng: 46.6753, driverName: 'Mohammed Al-Farsi', driverID: '4455500001', phoneNumber: '+966512345678', shortCompanyName: 'Jahez', Type: 'T4A', LicensePlate: 'XYZ 123',status:'Active' },
+  { MotorcycleID: '5000000002', gpsNumber: '123456789012346', lat: 24.7137, lng: 46.6753, driverName: 'Ali Al-Mansour', driverID: '6664446892', phoneNumber: '+966512345679', shortCompanyName: 'Hungerstation', Type: 'A3', LicensePlate: 'XYZ 124',status:'Active' },
+  { MotorcycleID: '5000000003', gpsNumber: '123456789012347', lat: 24.7137, lng: 46.6753, driverName: 'Omar Al-Salem', driverID: '12358790983', phoneNumber: '+966512345680', shortCompanyName: 'Jahez', Type: 'VX', LicensePlate: 'XYZ 125' ,status:'Active'},
+  { MotorcycleID: '5000000004', gpsNumber: '123456789012348', lat: 24.7137, lng: 46.6753, driverName: 'Yusuf Al-Jabir', driverID: '9865743564', phoneNumber: '+966512345681', shortCompanyName: 'Hungerstation', Type: '6XX', LicensePlate: 'XYZ 126',status:'Active' },
+  { MotorcycleID: '5000000005', gpsNumber: '123456789012349', lat: 24.7150, lng: 46.6758, driverName: 'Sami Al-Dossary', driverID: '19354675895', phoneNumber: '+966512345682', shortCompanyName: 'Jahez', Type: 'TD', LicensePlate: 'XYZ 127' ,status:'Active'},
+  { MotorcycleID: '5000000006', gpsNumber: '123456789012350', lat: 24.7153, lng: 46.6780, driverName: 'Fahad Al-Hamdan', driverID: '1357865476', phoneNumber: '+966512345683', shortCompanyName: 'Hungerstation', Type: 'E', LicensePlate: 'XYZ 128',status:'Inactive' },
+  { MotorcycleID: '5000000007', gpsNumber: '123456789012351', lat: 24.7210, lng: 46.6765, driverName: 'Zaid Al-Fahad', driverID: '1265879886', phoneNumber: '+966512345684', shortCompanyName: 'Jahez', Type: 'CXC', LicensePlate: 'XYZ 129' ,status:'Inactive'},
+  { MotorcycleID: '5000000008', gpsNumber: '123456789012352', lat: 24.7300, lng: 46.6700, driverName: 'Nasser Al-Qassem', driverID: '3456008643', phoneNumber: '+966512345685', shortCompanyName: 'Hungerstation', Type: 'PO1', LicensePlate: 'XYZ 130',status:'Inactive' },
+  { MotorcycleID: '5000000009', gpsNumber: '123456789012353', lat: 24.7340, lng: 46.8900, driverName: 'Salman Al-Harbi', driverID: '8363939449', phoneNumber: '+966512345686', shortCompanyName: 'Jahez', Type: 'HW', LicensePlate: 'XYZ 131' ,status:'Inactive'},
+  { MotorcycleID: '5000000010', gpsNumber: '123456789012354', lat: 24.7400, lng: 46.8000, driverName: 'Khalid Al-Badri', driverID: '1136988810', phoneNumber: '+966512345687', shortCompanyName: 'Hungerstation', Type: 'T4', LicensePlate: 'XYZ 132' ,status:'Inactive'},
+  { MotorcycleID: '5000000011', gpsNumber: '123456789012355', lat: 24.7500, lng: 46.6000, driverName: 'Faisal Al-Amin', driverID: '4457355111', phoneNumber: '+966512345688', shortCompanyName: 'Jahez', Type: 'CXC', LicensePlate: 'XYZ 133' ,status:'Inactive'},
 ];
 
 const filteredMotorcycles = motorcycleData.filter(m => {
@@ -503,68 +581,78 @@ m.driverID.toLowerCase().includes(searchQuery.toLowerCase());
 //     filters.company.length === 0 || filters.company.includes(m.shortCompanyName);
 
   // Filter by status (active or inactive)
+  const isActive = (gpsState.active || []).some(item => item.gpsNumber === m.gpsNumber);
+  const isInactive = (gpsState.inactive || []).some(item => item.gpsNumber === m.gpsNumber);
+
+  // Determine the actual status (either from gpsState or fallback to m.status)
+  let motorcycleStatus = '';
+  if (isActive) {
+    motorcycleStatus = 'Active';
+  } else if (isInactive) {
+    motorcycleStatus = 'Inactive';
+  } else if (m.status) {
+    // for static motorcycles
+    motorcycleStatus = m.status;
+  }
+
   const statusMatch =
-    filters.status.length === 0 ||
-    filters.status.some(status => {
-      if (status === "Active") {
-        // Check if the motorcycle's gpsNumber is in the active array
-        return gpsState.active.some(item => item.gpsNumber === m.gpsNumber);
-      } else if (status === "Inactive") {
-        // Check if the motorcycle's gpsNumber is in the inactive array
-        return gpsState.inactive.some(item => item.gpsNumber === m.gpsNumber)
-        // || staticMotorcycleData.some(item => item.gpsNumber === m.gpsNumber)
-      }
-      return false; // Return false if status doesn't match "Active" or "Inactive"
-    });
-  return matchesSearch&& statusMatch;
-});
+    filterStatus.length === 0 || filterStatus.includes("All") ||
+    filterStatus.includes(motorcycleStatus);
 
+  return matchesSearch && statusMatch;
+ });
 
+ useEffect(() => {
+  console.log("Updated lastKnownLocations", lastKnownLocations);
+}, [lastKnownLocations]);
 const filteredStaticMotorcycles = staticMotorcycleData.filter(
-    (motorcycle) => motorcycle.shortCompanyName === shortCompanyName
+    (motorcycle) => motorcycle.shortCompanyName === CompanyName
   );
   
-const fullHeatmapData = [...gpsState.active, ...gpsState.inactive,...filteredStaticMotorcycles].map(loc => { 
-  const matchingMotorcycle = motorcycleData.find(m => m.gpsNumber === loc.gpsNumber);
-  return {
-    ...loc,
-    // shortCompanyName: matchingMotorcycle?.shortCompanyName || null,
-    motorcycleID: matchingMotorcycle?.motorcycleID || null,
-  };
-});
-
-const filteredHeatmapData = fullHeatmapData.filter(m => {
-//   const companyMatch =
-//     filters.company.length === 0 || filters.company.includes(m.shortCompanyName);
-
-  const statusMatch =
-    filters.status.length === 0 ||
-    filters.status.some(status => {
-      if (status === "Active") {
-        return gpsState.active.some(item => item.gpsNumber === m.gpsNumber);
-      }else if (status === "Inactive") {
-        // Check if the motorcycle's gpsNumber is in the inactive array
-        return gpsState.inactive.some(item => item.gpsNumber === m.gpsNumber)
-        // || staticMotorcycleData.some(item => item.gpsNumber === m.gpsNumber)
-      }
-      return false;
-    });
-    const hasValidLatLng = typeof m.lat === 'number' && typeof m.lng === 'number';
-
-    // Make sure the location exists (so the marker will be shown too)
-    const locationExists =
-    lastKnownLocations.some(loc => loc.gpsNumber === m.gpsNumber) 
-    // || staticMotorcycleData.some(item => item.gpsNumber === m.gpsNumber);
-
-    return statusMatch && hasValidLatLng && locationExists;
+  const fullHeatmapData = [
+    ...gpsState.active,
+    ...gpsState.inactive,
+    ...filteredStaticMotorcycles
+  ].map(loc => {
+    const matchingMotorcycle = motorcycleData.find(m => m.gpsNumber === loc.gpsNumber);
+    return {
+      ...loc,
+      shortCompanyName: matchingMotorcycle?.shortCompanyName || loc.shortCompanyName || null,
+      motorcycleID: matchingMotorcycle?.motorcycleID || null,
+      driverName: matchingMotorcycle?.driverName || '',
+      driverID: matchingMotorcycle?.driverID || '',
+    };
   });
+  
 
+  const filteredHeatmapData = fullHeatmapData.filter(m => {
+    const matchesSearch =
+      searchQuery.trim() === '' ||
+      m.driverName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      m.driverID?.toLowerCase().includes(searchQuery.toLowerCase());
+  
+    const isActive = gpsState.active?.some(item => item.gpsNumber === m.gpsNumber);
+    const isInactive = gpsState.inactive?.some(item => item.gpsNumber === m.gpsNumber);
+  
+    const motorcycleStatus = isActive ? 'Active' : isInactive ? 'Inactive' : m.status || '';
+  
+    const statusMatch =
+      filterStatus.length === 0 ||
+      filterStatus.includes("All") ||
+      filterStatus.includes(motorcycleStatus);
+  
+    return matchesSearch && statusMatch;
+  });
+  
+  useEffect(() => {
+    setMapRefreshKey(prev => prev + 1);
+  }, [lastKnownLocations]);
 
 
 console.log('Last Known Locations:', lastKnownLocations);
 console.log('bbbbbbbbbbbbbbbbbbbbbbbb',gpsState);
 
-console.log('Filtered Motorcycle Data:', filteredMotorcycleData);
+console.log('Filtered Motorcycle Data:', filteredMotorcycles);
 
 console.log('Filtered Motorcycle Data:', filteredHeatmapData);
 
@@ -717,12 +805,13 @@ outline: 'none', // Remove outline on focus
               </div> */}
               {/* Status Filter */}
 <div className={m.searchContainer} ref={typeDropdownRef}>
-  <div className={f.selectWrapper}>
+  <div className={f.selectWrapper} style={{    width: '380px'}}>
     <FaFilter style={{ 
     color: '#1c7a50', 
     marginRight: '60px' 
+    
   }} />
-    <div className={f.customSelect} onClick={toggleTypeDropdown}>
+    <div className={f.customSelect} onClick={toggleTypeDropdown} style={{    marginLeft: '-50px'}} >
       {filterStatus === "All" ? (
         <span>Filter by Status</span>
       ) : (
@@ -908,6 +997,7 @@ Show on Map</button>
 {/* The gps number in the location saved in array after that query the driver collection and motorcycle then display them in the list */}
 
 <GoogleMap
+ 
 mapContainerStyle={containerStyle}
 center={mapCenter}
 zoom={zoomLevel}
@@ -939,34 +1029,20 @@ onClick={() => setSelectedLocation(null)}
 
 
 {zoomLevel >= 16 && filteredHeatmapData.map((item, index) => {
-  const location = lastKnownLocations.find(loc => loc.gpsNumber === item.gpsNumber);
-  if(location!=null){
-    console.log('hhhhhhhhhhhhhhhhhhh');
-    console.log(location);
-  }
-  if (!location) {
-    console.warn(`No location found for motorcycle ID: ${item.motorcycleID}`);
-    return null; 
-  }
+  const location = lastKnownLocations.find(loc => loc.gpsNumber === item.gpsNumber) || item;
+  const markerKey = `${item.gpsNumber}-${location.lat}-${location.lng}`;
+
   return (
     <MarkerF
-      key={index}
+    key={`${item.gpsNumber}-${item.lat}-${item.lng}`}
       position={{ lat: location.lat, lng: location.lng }}
-      icon={motorcycleIcon}
+      options={{
+        icon: motorcycleIcon  
+      }}
       onClick={() => handleMarkerClick(location.gpsNumber, location)}
     />
   );
 })}
-
-{/* Render markers for static motorcycles regardless of zoom level */}
-{zoomLevel >= 16 && staticMotorcycleData.map((item, index) => (
-  <MarkerF
-    key={`static-${index}`}
-    position={{ lat: item.lat, lng: item.lng }}
-    icon={motorcycleIcon}
-    onClick={() => handleMarkerClick(item.gpsNumber, item)} // Handle click for static motorcycle
-  />
-))}
 
 
 
