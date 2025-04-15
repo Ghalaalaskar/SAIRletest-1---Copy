@@ -1,20 +1,38 @@
 "use client";
-import { useEffect, useState } from "react";
+
+import { useRef, useEffect, useState } from "react";
 import { db } from "../../../firebase";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import {
-  LineChart,
   ResponsiveContainer,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Line,
 } from "recharts";
 
-const NumberofCrash = ({ dateType, companyName }) => {
+const NumberofCrashes = ({ dateType, companyName }) => {
   const [data, setData] = useState([]);
   const [offset, setOffset] = useState(0); // 0 = current week/month
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [isYearOpen, setIsYearOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsYearOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [dropdownRef]);
+
   useEffect(() => {
     const fetchCrashes = async () => {
       try {
@@ -57,7 +75,7 @@ const NumberofCrash = ({ dateType, companyName }) => {
           }
         });
 
-        const crashesMap = new Map();
+        const CrashesMap = new Map();
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
@@ -68,12 +86,12 @@ const NumberofCrash = ({ dateType, companyName }) => {
           startDate = new Date(endDate);
           startDate.setDate(endDate.getDate() - 6);
         } else {
-          const currentYear = today.getFullYear();
-          const targetYear = currentYear - offset;
-          startDate = new Date(targetYear, 0, 1); // Jan 1st of target year
-          endDate = new Date(targetYear, 11, 31); // Dec 31st of target year
+          const targetYear = selectedYear - offset;
+          startDate = new Date(targetYear, 0, 1);
+          endDate = new Date(targetYear, 11, 31);
         }
 
+        // Initialize the date range for the chart
         const dateRange = [];
         if (dateType === "week") {
           for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
@@ -93,8 +111,8 @@ const NumberofCrash = ({ dateType, companyName }) => {
             dateRange.push({ date: month, count: 0 });
           });
         }
-        
-        // Process crashes and group by date
+
+        // Process Crashes and group by date
         crashSnapshot.forEach((doc) => {
           const { time, driverID } = doc.data();
           if (!time) return;
@@ -111,45 +129,44 @@ const NumberofCrash = ({ dateType, companyName }) => {
             if (companyName !== "All" && shortName !== companyName) return;
 
             const formattedDate =
-            dateType === "week"
-              ? crashDate.toLocaleDateString("en-GB", {
-                  day: "2-digit",
-                  month: "long",
-                })
-              : crashDate.toLocaleDateString("en-GB", {
-                  month: "long",
-                });
-          
+              dateType === "week"
+                ? crashDate.toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "long",
+                  })
+                : crashDate.toLocaleDateString("en-GB", {
+                    month: "long",
+                  });
 
-            crashesMap.set(
+                  CrashesMap.set(
               formattedDate,
-              (crashesMap.get(formattedDate) || 0) + 1
+              (CrashesMap.get(formattedDate) || 0) + 1
             );
           }
         });
 
         // Update the date range with actual counts
         dateRange.forEach(({ date }) => {
-          if (crashesMap.has(date)) {
-            const count = crashesMap.get(date);
+          if (CrashesMap.has(date)) {
+            const count = CrashesMap.get(date);
             // Set the count for the existing date
-            crashesMap.set(date, count);
+            CrashesMap.set(date, count);
           } else {
             // Ensure it exists with a count of 0
-            crashesMap.set(date, 0);
+            CrashesMap.set(date, 0);
           }
         });
 
         // Convert Map to an array
-        let chartData = Array.from(crashesMap, ([date, count]) => ({
+        let chartData = Array.from(CrashesMap, ([date, count]) => ({
           date,
           count,
-          // Add a sortOrder property for proper month sorting
+      // Add a sortOrder property for proper month sorting
           sortOrder: dateType === "week" 
             ? new Date(date.split(" ")[1] + " " + date.split(" ")[0] + ", " + startDate.getFullYear()).getTime() 
             : new Date(date + " 1, " + startDate.getFullYear()).getTime()
         }));
-        
+
         // Sort by sortOrder (chronological order)
         chartData.sort((a, b) => a.sortOrder - b.sortOrder);
         
@@ -159,79 +176,167 @@ const NumberofCrash = ({ dateType, companyName }) => {
         console.log("Chart Data:", chartData); // Debugging line
         setData(chartData);
       } catch (error) {
-        console.error("Error fetching crashes:", error);
+        console.error("Error fetching Crashes:", error);
       }
     };
 
-    fetchCrashes(); // Fetch crashes data
-  }, [dateType, companyName, offset]);
+    fetchCrashes(); // Fetch Crashes data
+  }, [dateType, companyName, offset, selectedYear]);
+
+  // Sync offset with selectedYear
+  useEffect(() => {
+    setOffset(new Date().getFullYear() - selectedYear);
+  }, [selectedYear]);
 
   return (
-    <div style={{ width: "100%", height: "400px", position: "relative" }}>
-      {/* Left Arrow Button (← - Increase Offset) */}
-      <button
-        onClick={() => setOffset((prev) => prev + 1)}
-        style={{
-          position: "absolute",
-          left: "10px",
-          top: "360px",
-          fontSize: "20px",
-          backgroundColor: "white",
-          color: "black",
-          width: "45px",
-          height: "45px",
-          border: "1px solid #e7eae8",
-          borderRadius: "8px",
-          cursor: "pointer",
-          opacity: 1,
-          zIndex: 2,
-        }}
-        onMouseOver={(e) => {
-          e.target.style.backgroundColor = "#e6f5e9";
-        }}
-        onMouseOut={(e) => {
-          e.target.style.backgroundColor = "#f9f9f9";
-        }}
-      >
-        ←
-      </button>
-
-      {/* Right Arrow Button (→ - Decrease Offset) */}
-      <button
-        onClick={() => setOffset((prev) => Math.max(prev - 1, 0))}
-        disabled={offset === 0}
-        style={{
-          position: "absolute",
-          right: "10px",
-          top: "360px",
-          fontSize: "20px",
-          backgroundColor: "white",
-          color: "black",
-          width: "45px",
-          height: "45px",
-          backgroundColor: offset === 0 ? "#eee" : "#f9f9f9",
-          border: "1px solid #e7eae8",
-          borderRadius: "8px",
-          cursor: offset === 0 ? "not-allowed" : "pointer",
-          opacity: offset === 0 ? 0.5 : 1,
-          zIndex: 2,
-        }}
-        onMouseOver={(e) => {
-          if (offset !== 0) e.target.style.backgroundColor = "#e6f5e9";
-        }}
-        onMouseOut={(e) => {
-          if (offset !== 0) e.target.style.backgroundColor = "#f9f9f9";
-        }}
-      >
-        →
-      </button>
-
-      <ResponsiveContainer width="100%" height="100%">
-        {" "}
-        <LineChart
-          data={data}
-          margin={{ top: 10, right: 30, left: 0, bottom: 60 }}
+    <div style={{ width: "100%", height: "400px", position: "relative", display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+      {/* Control Buttons */}
+      <div style={{ position: "absolute", top: "360px", left: "10px", zIndex: 2 }}>
+        {/* Left Arrow Button */}
+        <button
+      onClick={() =>
+        setOffset((prev) => {
+          const newOffset = Math.min(prev + 1, 4); // Max 5 years back
+          setSelectedYear(new Date().getFullYear() - newOffset); // Sync dropdown
+          return newOffset;
+        })
+      }
+      
+          style={buttonStyle}
         >
+          ←
+        </button>
+      </div>
+      <div style={{ position: "absolute", top: "360px", right: "10px", zIndex: 2 }}>
+        {/* Right Arrow Button */}
+        <button
+      onClick={() =>
+        setOffset((prev) => {
+          const newOffset = Math.max(prev - 1, 0);
+          setSelectedYear(new Date().getFullYear() - newOffset); // Sync dropdown
+          return newOffset;
+        })
+      }
+      
+          disabled={offset === 0}
+          style={{ ...buttonStyle, opacity: offset === 0 ? 0.5 : 1 }}
+        >
+          →
+        </button>
+      </div>
+
+{/* Year Filter near X-axis Label */}
+{dateType !== "week" && (
+  <div
+    style={{
+      position: "absolute",
+      bottom: "-1px",
+      left: "300px", // Adjust based on where you want it near the x-axis label
+      display: "flex",
+      alignItems: "center",
+      gap: "8px",
+      zIndex: 1,
+
+    }}
+  >
+    <label
+      style={{
+        fontWeight: "500",
+        fontSize: "14px",
+        color: "#808080",
+        whiteSpace: "nowrap",
+      }}
+    >
+      Year:
+    </label>
+    <div
+      className="selectWrapper"
+      ref={dropdownRef}
+      style={{
+        border: "1px solid #4CAF50",
+        backgroundColor: "#FFFFFF",
+        color: "black",
+        borderRadius: "5px",
+        width: "100px",
+        position: "relative",
+      }}
+    >
+      <div
+        className={`customSelect ${isYearOpen ? "open" : ""}`}
+        onClick={() => setIsYearOpen(!isYearOpen)}
+        style={{
+          cursor: "pointer",
+          padding: "6px 10px",
+          textAlign: "left",
+          fontSize: "14px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        {selectedYear}
+        <span
+          style={{
+            border: "solid #4CAF50",
+            borderWidth: "0 2px 2px 0",
+            display: "inline-block",
+            padding: "4px",
+            transform: isYearOpen ? "rotate(-135deg)" : "rotate(45deg)",
+            transition: "transform 0.2s",
+          }}
+        />
+      </div>
+      {isYearOpen && (
+        <div
+          className="dropdownMenu"
+          style={{
+            position: "absolute",
+            zIndex: 1000,
+            backgroundColor: "#fff",
+            border: "1px solid #ddd",
+            borderRadius: "5px",
+            width: "100%",
+            top: "100%",
+            left: 0,
+            boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+    maxHeight: "80px", // Approx height for 5 items
+      overflowY: "auto",   // Enables scrolling
+             }}
+        >
+          {Array.from({ length: 5 }, (_, i) => {
+            const year = new Date().getFullYear() - i;
+            return (
+              <div
+                key={year}
+                onClick={() => {
+                  setSelectedYear(year);
+                  setIsYearOpen(false);
+                }}
+                style={{
+                  padding: "10px",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#f0f0f0")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = "transparent")
+                }
+              >
+                {year}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  </div>
+)}
+
+      {/* Chart Component */}
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 60 }}>
           <defs>
             <linearGradient id="colorPv" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8} />
@@ -244,12 +349,10 @@ const NumberofCrash = ({ dateType, companyName }) => {
             angle={-45}
             textAnchor="end"
             label={{
-              value:
-                dateType === "week"
-                  ? "Date"
-                  : `Date (Year ${new Date().getFullYear() - offset})`,
+              value: dateType === "week" ? "Date" : `Date        `,
               position: "insideBottom",
               dy: 55,
+              dx: dateType != "week" ? -60 :0,
             }}
             tick={{ fontSize: 12 }}
           />
@@ -271,4 +374,16 @@ const NumberofCrash = ({ dateType, companyName }) => {
   );
 };
 
-export default NumberofCrash;
+// Button styling for reuse
+const buttonStyle = {
+  fontSize: "20px",
+  backgroundColor: "white",
+  color: "black",
+  width: "45px",
+  height: "45px",
+  border: "1px solid #e7eae8",
+  borderRadius: "8px",
+  cursor: "pointer",
+};
+
+export default NumberofCrashes;
