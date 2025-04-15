@@ -9,7 +9,9 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Cell,
 } from "recharts";
+import { useNavigate } from "react-router-dom";
 
 const COLORS = [
   "#2E7D32",
@@ -27,6 +29,7 @@ const capitalizeFirstLetter = (string) => {
 const TotalCrash = () => {
   const [data, setData] = useState([]);
   const [totalcrash, setTotalCrash] = useState(0);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -122,6 +125,7 @@ const TotalCrash = () => {
             employerMap.get(companyName) || companyName
           ),
           value,
+          companyName,
         }));
 
         console.log("Final Chart Data:", chartData);
@@ -142,6 +146,12 @@ const TotalCrash = () => {
           data={data}
           width={data.length * 150}
           margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+          onClick={(state) => {
+            const company = state?.activePayload?.[0]?.payload?.companyName;
+            if (company) {
+              navigate(`/GDTCrashes?company=${encodeURIComponent(company)}`);
+            }
+          }}
         >
           <CartesianGrid strokeDasharray="3 3" />
 
@@ -171,6 +181,7 @@ const TotalCrash = () => {
             fill="#4CAF50"
             name="Number of Crashes"
             barSize={80}
+            style={{ cursor: "pointer" }}
           >
             {data.map((_, index) => (
               <rect key={`bar-${index}`} fill={COLORS[index % COLORS.length]} />
