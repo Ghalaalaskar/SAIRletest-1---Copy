@@ -166,7 +166,7 @@ function App() {
         <Route path="/motorcycle-details/:motorcycleId" element={<MotorcycleDetails />} />
         <Route path="/motorcycle/:motorcycleId/violations" element={<VMotorcycle />} />
         <Route path="/gdthome" element={<GDTHome />} />
-        <Route path="/gdtviolations" element={<GDTViolations />} />
+        <Route path="/gdtviolations/:company?" element={<GDTViolations />} />
         <Route path="/gdtviolation/general/:violationId" element={<GDTViolationGeneral />} />
         <Route path="/gdtviolation/detail/:violationId" element={<GDTViolationDetail />} />
         <Route path="/gdtcrashes/:GDTID?" element={<GDTCrashes />} />

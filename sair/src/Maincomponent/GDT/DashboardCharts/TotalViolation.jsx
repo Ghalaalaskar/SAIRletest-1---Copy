@@ -11,7 +11,9 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
+  Cell,
 } from "recharts";
+import { useNavigate } from "react-router-dom";
 
 const COLORS = [
   "#2E7D32",
@@ -29,6 +31,7 @@ const capitalizeFirstLetter = (string) => {
 const TotalViolation = () => {
   const [data, setData] = useState([]);
   const [totalViolation, setTotalViolation] = useState(0);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -125,6 +128,7 @@ const TotalViolation = () => {
             employerMap.get(companyName) || companyName
           ),
           value,
+          companyName,
         }));
 
         console.log("Final Chart Data:", chartData);
@@ -141,7 +145,13 @@ const TotalViolation = () => {
   return (
     <div style={{ width: "100%", height: "400px", position: "relative" }}>
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data}   width={data.length * 150} margin={{ top: 20, right: 30, left: 20, bottom: 50 }}>
+        <BarChart data={data}   width={data.length * 150} margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+          onClick={(state) => {
+            const company = state?.activePayload?.[0]?.payload?.companyName;
+            if (company) {
+              navigate(`/gdtviolations/${encodeURIComponent(company)}`);
+            }
+          }}>
           <CartesianGrid strokeDasharray="3 3" />
             
         {/* X Axis in the middle */}
@@ -162,7 +172,8 @@ const TotalViolation = () => {
             dx: -20,
           }}/>
           <Tooltip />
-          <Bar dataKey="value" fill="#4CAF50"  name="Number of Violations" barSize={80}>
+          <Bar dataKey="value" fill="#4CAF50"  name="Number of Violations" barSize={80} 
+            style={{ cursor: "pointer" }}>
             {data.map((_, index) => (
               <rect key={`bar-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}
