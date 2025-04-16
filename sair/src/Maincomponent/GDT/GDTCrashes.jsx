@@ -303,12 +303,6 @@ const CrashList = () => {
         if (crash.RespondedBy !== GDTID) return false;
       }
 
-      // NOT WORKINGGG If Company is passed, show only crashes from that companyNOT WORKINNG
-      if (company) {
-        const driver = drivers[crash.driverID];
-        if ( !driver.companyName === company) return false;
-      }
-
       const crashDate = crash.time
         ? new Date(crash.time * 1000).toISOString().split("T")[0]
         : "";
@@ -317,12 +311,16 @@ const CrashList = () => {
 
       const driverId = crash.driverID;
       const licensePlate = motorcycles[crash.crashID] || " ";
+      
+      const matchesCompany = company
+      ? drivers[crash.driverID]?.companyName === company
+      : true;
 
       const matchesSearchQuery =
         driverId.includes(searchQuery) ||
         licensePlate.toLowerCase().includes(searchQuery.toLowerCase());
 
-      return matchesSearchQuery && matchesSearchDate;
+      return matchesSearchQuery && matchesSearchDate && matchesCompany;
     })
     .filter(filterByStatus)
     .sort((a, b) => (b.time || 0) - (a.time || 0));
