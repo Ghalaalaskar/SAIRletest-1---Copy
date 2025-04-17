@@ -36,6 +36,14 @@ const GDTComplaintGeneral = () => {
     GDTEmail: "",
     PhoneNumber: "",
   });
+  const [DriverInfo, setDriverInfo] = useState({
+    Fname: "",
+    Lname: "",
+    DriverID: "",
+    Email: "",
+    PhoneNumber: "",
+    coutRejected: "",
+  });
   const [userInput, setUserInput] = useState("");
   const maxLength = 245;
   const minLength = 10;
@@ -99,14 +107,38 @@ const GDTComplaintGeneral = () => {
               const driverData = driverSnapshot.docs[0].data();
               setDriverDetails(driverData);
               fetchEmployerDetails(driverData.CompanyName);
-            } else {
-              console.error("Driver not found for ID:", complaintData.driverID);
-            }
-          } else {
-            console.error("Complaint document not found for ID:", complaintId);
+            } 
+
+            // Count rejected complaints
+            const complaintQuery = query(
+              collection(db, "Complaint"),
+              where("driverID", "==", complaintData.driverID)
+            );
+            const complaintSnapshot = await getDocs(complaintQuery);
+            const currentYear = new Date().getFullYear();
+            
+            const rejectedCount = complaintSnapshot.docs.filter(doc => {
+              const data = doc.data();
+              const timestamp = data.DateTime;
+            
+              if (timestamp?.toDate) {
+                const complaintDate = timestamp.toDate(); // Convert Firestore Timestamp to JS Date
+                return (
+                  data.Status === "Rejected" &&
+                  complaintDate.getFullYear() === currentYear
+                );
+              }
+            
+              return false; // Skip if DateTime is invalid
+            }).length;
+            
+            setDriverInfo(prev => ({
+              ...prev,
+              coutRejected: rejectedCount,
+            }));
           }
         });
-  
+    
         return () => unsubscribe();
       } catch (error) {
         console.error("Error fetching complaint details:", error);
@@ -492,7 +524,7 @@ const GDTComplaintGeneral = () => {
             <br />
             {/* condition if rejected counter =! 0 */}
             NOTE: the driver {driverDetails.Fname} {driverDetails.Lname}, have
-            'counter' rejected complaint within this year
+            {" "}{DriverInfo.coutRejected} rejected complaint within this year
           </p>
 
           <Input.TextArea
