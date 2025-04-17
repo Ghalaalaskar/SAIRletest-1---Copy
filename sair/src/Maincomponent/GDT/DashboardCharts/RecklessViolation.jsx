@@ -11,7 +11,9 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  Cell,
 } from "recharts";
+import { useNavigate } from "react-router-dom";
 import { Tooltip as AntTooltip } from "antd";
 
 // Function to capitalize the first letter of a string
@@ -34,6 +36,7 @@ const CustomLegend = () => {
 };
 
 const RecklessViolation = () => {
+  const navigate = useNavigate();
   const [data, setData] = useState([]);
 
   useEffect(() => {
@@ -100,6 +103,7 @@ const RecklessViolation = () => {
           name: capitalizeFirstLetter(employerMap.get(companyName) || companyName),
           count30: counts.count30,
           count50: counts.count50,
+          companyName,
         }));
 
         // Dummy data 
@@ -121,13 +125,19 @@ const RecklessViolation = () => {
     <div style={{ width: "100%", height: "400px" }}>
       <CustomLegend />
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+        <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }} >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="name" textAnchor="middle" interval={0} height={60} />
           <YAxis allowDecimals={false} />
           <Tooltip />
-          <Bar dataKey="count30" fill="#2E7D32" name="Reckless Violation Type 1" barSize={80} />
-          <Bar dataKey="count50" fill="#4CAF50" name="Reckless Violation Type 2" barSize={80}/>
+          <Bar dataKey="count30" fill="#2E7D32" name="Reckless Violation Type 1" barSize={80} style={{ cursor: "pointer" }}
+          onClick={(data) => {
+              navigate(`/gdtricklessdrives/30/${data.payload.companyName}`);
+          }}/>
+          <Bar dataKey="count50" fill="#4CAF50" name="Reckless Violation Type 2" barSize={80} style={{ cursor: "pointer" }}
+          onClick={(data) => {
+            navigate(`/gdtricklessdrives/50/${data.payload.companyName}`);
+        }}/>
         </BarChart>
       </ResponsiveContainer>
     </div>
