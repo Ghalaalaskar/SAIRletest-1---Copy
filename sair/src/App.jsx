@@ -184,7 +184,6 @@ function App() {
         <Route path="/ChartDetails/CrashResponse/:GDTID" element={<CrashResponse />} />
         <Route path="/gdteditstaff/:staffId" element={<GDTEditStaff />} />
         <Route path="/gdtricklessdrives" element={<GDTRicklessDrivers />} />
-        <Route path="/gdtricklessdrives/:type/:company" element={<GDTRicklessDrivers />} />
         <Route path="/gdtdriverdetails/:driverId" element={<GDTDriverDetails />} />
         <Route path="/gdtviolationdriver/:driverId" element={<GDTViolationDriver />} />
         <Route path="/gdtaddstaffbatch" element={<GDTAddStaffBatch />} />

@@ -220,8 +220,9 @@ const DriverList = () => {
 
       <main>
         <div className={s.container}>
-          <h2 className={s.title}> Driver List {"For "}{company && (
+          <h2 className={s.title}> Driver List {company && (
                   <>
+                  {"For "}
                     <span
                       className={s.gdtName}
                       style={{ textDecoration: "underline", cursor: "pointer" }}
