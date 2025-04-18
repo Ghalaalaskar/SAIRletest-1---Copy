@@ -334,7 +334,7 @@ const StaffChart = () => {
                     setStaffNameWithNoComplaint(data.payload.FirstName);
                     setComplaintModalVisible(true);
                   } else {
-                    navigate(`/GDTcrashes/${data.payload.GDTID}`);
+                    navigate(`/GDTComplaints/${data.payload.GDTID}`);
                   }
                 }}
               />
