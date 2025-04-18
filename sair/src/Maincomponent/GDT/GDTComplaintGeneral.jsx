@@ -498,6 +498,7 @@ const GDTComplaintGeneral = () => {
           onCancel={() => setModalVisible(false)} // Close the modal when canceled
           centered
           width={700}
+          closeIcon={<span className="custom-modal-close-icon">×</span>}
           footer={[
             <Button
               key="reject"
@@ -549,6 +550,7 @@ const GDTComplaintGeneral = () => {
           onCancel={() => setModalVisible(false)} // Close the modal when canceled
           centered
           width={700}
+          closeIcon={<span className="custom-modal-close-icon">×</span>}
           footer={[
             <Button
               key="reject"
@@ -599,6 +601,7 @@ const GDTComplaintGeneral = () => {
           onCancel={() => setWarningVisible(false)} // Close the modal when canceled
           centered
           footer={[]}
+          closeIcon={<span className="custom-modal-close-icon">×</span>}
         >
           <p>
             Dear {GDT.Fname.charAt(0).toUpperCase() + GDT.Fname.slice(1)}{" "}
@@ -615,6 +618,7 @@ const GDTComplaintGeneral = () => {
           onCancel={() => setMINWarningVisible(false)} // Close the modal when canceled
           centered
           footer={[]}
+          closeIcon={<span className="custom-modal-close-icon">×</span>}
         >
           <p>
             The provided reason is too short. Please provide more details, with
@@ -1137,6 +1141,7 @@ const GDTComplaintGeneral = () => {
               onCancel={handleClosePopupStaff}
               footer={null}
               width={700}
+              closeIcon={<span className="custom-modal-close-icon">×</span>}
             >
               <main className={formstyle.GDTcontainer}>
                 <div>

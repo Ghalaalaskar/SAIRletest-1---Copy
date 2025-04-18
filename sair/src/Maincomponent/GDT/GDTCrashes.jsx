@@ -51,6 +51,7 @@ const CrashList = () => {
     ComPhoneNumber: "",
   });
   const [isPopupVisibleStaff, setIsPopupVisibleStaff] = useState(false);
+  const [isPopupVisibleCompany, setIsPopupVisibleCompany] = useState(false);
 
   const [respondingGDT, setRespondingGDT] = useState({
     Fname: "",
@@ -556,6 +557,14 @@ const CrashList = () => {
     setIsPopupVisibleStaff(false);
   };
 
+  const handleShowPopupCompany = () => {
+    setIsPopupVisibleCompany(true);
+  };
+
+  const handleClosePopupCompany = () => {
+    setIsPopupVisibleCompany(false);
+  };
+
   return (
     <>
       <Header active="gdtcrashes" />
@@ -592,7 +601,7 @@ const CrashList = () => {
                     <span
                       className={s.gdtName}
                       style={{ textDecoration: "underline", cursor: "pointer" }}
-                      onClick={handleShowPopupStaff}
+                      onClick={handleShowPopupCompany}
                     >
                       {companyInfo.ShortName}
                     </span>{" "}
@@ -764,6 +773,7 @@ const CrashList = () => {
             title="Confirm Response"
             visible={modalVisible}
             onCancel={() => setModalVisible(false)} // Close the modal when canceled
+            closeIcon={<span className="custom-modal-close-icon">×</span>}
             centered
             footer={[
               <Button
@@ -800,6 +810,7 @@ const CrashList = () => {
             onCancel={handleClosePopupStaff}
             footer={null}
             width={700}
+            closeIcon={<span className="custom-modal-close-icon">×</span>}
           >
             <main className={formstyle.GDTcontainer}>
               <div>
@@ -1003,10 +1014,11 @@ const CrashList = () => {
 
           {/*//////////////// POP-UP  ////////////////*/}
           <Modal
-            visible={isPopupVisibleStaff}
-            onCancel={handleClosePopupStaff}
+            visible={isPopupVisibleCompany}
+            onCancel={handleClosePopupCompany}
             footer={null}
             width={700}
+            closeIcon={<span className="custom-modal-close-icon">×</span>}
           >
             <main className={formstyle.GDTcontainer}>
               <div>

@@ -584,6 +584,7 @@ const DriverList = () => {
             onCancel={handleClosePopupStaff}
             footer={null}
             width={700}
+            closeIcon={<span className="custom-modal-close-icon">×</span>}
           >
             <main className={formstyle.GDTcontainer}>
               <div>

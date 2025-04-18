@@ -279,6 +279,7 @@ const CrashGeneral = () => {
               Confirm
             </Button>,
           ]}
+          closeIcon={<span className="custom-modal-close-icon">×</span>}
         >
           <p>
             {GDT.Fname.charAt(0).toUpperCase() + GDT.Fname.slice(1)}{" "}
@@ -1226,6 +1227,7 @@ const CrashGeneral = () => {
               onCancel={handleClosePopupStaff}
               footer={null}
               width={700}
+              closeIcon={<span className="custom-modal-close-icon">×</span>}
             >
               <main className={formstyle.GDTcontainer}>
                 <div>

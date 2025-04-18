@@ -40,6 +40,7 @@ const GDTComplaintList = () => {
   const [searchDate, setSearchDate] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [isPopupVisibleStaff, setIsPopupVisibleStaff] = useState(false);
+  const [isPopupVisibleCompany, setIsPopupVisibleCompany] = useState(false);
   const [gdtInfo, setGdtInfo] = useState({
     Fname: "",
     Lname: "",
@@ -461,6 +462,14 @@ const GDTComplaintList = () => {
     setIsPopupVisibleStaff(false);
   };
 
+  const handleShowPopupCompany = () => {
+    setIsPopupVisibleCompany(true);
+  };
+
+  const handleClosePopupCompany = () => {
+    setIsPopupVisibleCompany(false);
+  };
+
   const goBack = () => {
     navigate(-1);
   };
@@ -501,7 +510,7 @@ const GDTComplaintList = () => {
                     <span
                       className={s.gdtName}
                       style={{ textDecoration: "underline", cursor: "pointer" }}
-                      onClick={handleShowPopupStaff}
+                      onClick={handleShowPopupCompany}
                     >
                       {companyInfo.ShortName}
                     </span>{" "}
@@ -684,6 +693,7 @@ const GDTComplaintList = () => {
             onCancel={handleClosePopupStaff}
             footer={null}
             width={700}
+            closeIcon={<span className="custom-modal-close-icon">×</span>}
           >
             <main className={formstyle.GDTcontainer}>
               <div>
@@ -887,10 +897,11 @@ const GDTComplaintList = () => {
           
           {/*//////////////// POP-UP  ////////////////*/}
           <Modal
-            visible={isPopupVisibleStaff}
-            onCancel={handleClosePopupStaff}
+            visible={isPopupVisibleCompany}
+            onCancel={handleClosePopupCompany}
             footer={null}
             width={700}
+            closeIcon={<span className="custom-modal-close-icon">×</span>}
           >
             <main className={formstyle.GDTcontainer}>
               <div>

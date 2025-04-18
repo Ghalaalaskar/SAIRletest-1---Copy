@@ -746,6 +746,7 @@ const paginatedViolations = filteredViolations.slice((currentPage - 1) * pageSiz
             onCancel={handleClosePopupCompany}
             footer={null}
             width={700}
+            closeIcon={<span className="custom-modal-close-icon">×</span>}
           >
             <main className={formstyle.GDTcontainer}>
               <div>
