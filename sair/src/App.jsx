@@ -33,6 +33,7 @@ import { CrashNotification } from './CrashNotification';
 import { GDTNotification } from './GDTNotification';
 import GDTHome from './Maincomponent/GDT/GDTHome';
 import GDTViolations from './Maincomponent/GDT/GDTViolations';
+import GDTRecklessViolations from './Maincomponent/GDT/GDTRecklessViolations';
 import GDTViolationGeneral from './Maincomponent/GDT/GDTViolationgeneral';
 import GDTViolationDetail from './Maincomponent/GDT/GDTViolationDetail';
 import GDTCrashes from './Maincomponent/GDT/GDTCrashes';
@@ -167,6 +168,7 @@ function App() {
         <Route path="/motorcycle/:motorcycleId/violations" element={<VMotorcycle />} />
         <Route path="/gdthome" element={<GDTHome />} />
         <Route path="/gdtviolations/:company?" element={<GDTViolations />} />
+        <Route path="/gdtrecklessviolations/:type/:company" element={<GDTRecklessViolations />} />
         <Route path="/gdtviolation/general/:violationId" element={<GDTViolationGeneral />} />
         <Route path="/gdtviolation/detail/:violationId" element={<GDTViolationDetail />} />
         <Route path="/gdtcrashes/:GDTID?" element={<GDTCrashes />} />

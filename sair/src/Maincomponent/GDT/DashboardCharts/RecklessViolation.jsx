@@ -132,11 +132,11 @@ const RecklessViolation = () => {
           <Tooltip />
           <Bar dataKey="count30" fill="#2E7D32" name="Reckless Violation Type 1" barSize={80} style={{ cursor: "pointer" }}
           onClick={(data) => {
-              navigate(`/gdtricklessdrives/30/${data.payload.companyName}`);
+              navigate(`/gdtrecklessviolations/30/${data.payload.companyName}`);
           }}/>
           <Bar dataKey="count50" fill="#4CAF50" name="Reckless Violation Type 2" barSize={80} style={{ cursor: "pointer" }}
           onClick={(data) => {
-            navigate(`/gdtricklessdrives/50/${data.payload.companyName}`);
+            navigate(`/gdtrecklessviolations/50/${data.payload.companyName}`);
         }}/>
         </BarChart>
       </ResponsiveContainer>
