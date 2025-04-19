@@ -490,34 +490,7 @@ const GDTComplaintList = () => {
         <div className={s.container}>
           <div className={s.searchHeader}>
             <div>
-              <h2 className={s.title}>
-                {company ? "Complaints Reports" : "Complaints List"}{" "}
-                {GDTID && (
-                  <>
-                    Responded by{" "}
-                    <span
-                      className={s.gdtName}
-                      style={{ textDecoration: "underline", cursor: "pointer" }}
-                      onClick={handleShowPopupStaff}
-                    >
-                      {gdtInfo.Fname} {gdtInfo.Lname}
-                    </span>
-                  </>
-                )}
-                {company && !GDTID && (
-                  <>
-                    from{" "}
-                    <span
-                      className={s.gdtName}
-                      style={{ textDecoration: "underline", cursor: "pointer" }}
-                      onClick={handleShowPopupCompany}
-                    >
-                      {companyInfo.ShortName}
-                    </span>{" "}
-                    Drivers
-                  </>
-                )}
-              </h2>
+              <h2 className={s.title}>Complaints List</h2>
             </div>
             <div className={s.searchInputs}>
               <div className={s.searchContainer}>
@@ -686,6 +659,37 @@ const GDTComplaintList = () => {
               </div>
             </div>
           </div>
+                {GDTID && (
+                  <h3 className={s.subtitleDashboard}>
+                  <>
+                    Complaints Handled by{" "}
+                    <span
+                      className={s.gdtName}
+                      style={{ textDecoration: "underline", cursor: "pointer" }}
+                      onClick={handleShowPopupStaff}
+                    >
+                      {gdtInfo.Fname} {gdtInfo.Lname}
+                    </span>
+                  </>
+                  </h3>
+                )}
+                
+                {company && !GDTID && (
+                  <h3 className={s.subtitleDashboard}>
+                  <>
+                    Complaint from{" "}
+                    <span
+                      className={s.gdtName}
+                      style={{ textDecoration: "underline", cursor: "pointer" }}
+                      onClick={handleShowPopupCompany}
+                    >
+                      {companyInfo.ShortName}
+                    </span>{" "}
+                    Drivers
+                  </>
+                </h3>
+                )}
+
 
           {/*//////////////// POP-UP  ////////////////*/}
           <Modal
