@@ -191,7 +191,7 @@ const GDTMap = ({ locations }) => {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [uniqueCompanyNames, setUniqueCompanyNames] = useState([]);
-
+console.log('locations Company Names:', locations); // Log the unique company names
   const combinedOptions = [
     // Companies
     ...[...uniqueCompanyNames].sort().map((name) => ({
@@ -316,6 +316,8 @@ const GDTMap = ({ locations }) => {
           gpsNumber: motorcycleData?.GPSnumber || 'N/A',
           type: motorcycleData?.Type || 'N/A',
           licensePlate: motorcycleData?.LicensePlate || 'N/A',
+          lat: locations.find(loc => loc.gpsNumber === motorcycleData?.GPSnumber)?.lat || 0,
+          lng: locations.find(loc => loc.gpsNumber === motorcycleData?.GPSnumber)?.lng || 0,
         };
       }
     );
@@ -331,7 +333,7 @@ const GDTMap = ({ locations }) => {
 
   useEffect(() => {
     const fetchUniqueCompanyNames = () => {
-      const companyNames = motorcyclesData.map((item) => item.shortCompanyName);
+      const companyNames = motorcyclesData.map((item) => item.shortCompanyName || item.ShortCompanyName);
       const uniqueNames = [...new Set(companyNames)]; // Get unique names
       setUniqueCompanyNames(uniqueNames);
     };
@@ -488,6 +490,10 @@ const GDTMap = ({ locations }) => {
   };
 
   const filterMotorcycle = (motorcycle) => {
+     const gpsStatus = gpsState.active.includes(motorcycle.gpsNumber)
+       ? 'Active'
+       : 'Inactive';
+     const status = motorcycle.status || gpsStatus;
     const searchFilter =
       searchQuery === '' ||
       (motorcycle.driverName &&
@@ -500,7 +506,7 @@ const GDTMap = ({ locations }) => {
       ? filters.company.includes(motorcycle.shortCompanyName)
       : true;
     const statusFilter = filters.status.length
-      ? filters.status.includes(motorcycle.status)
+      ? filters.status.includes(status)
       : true;
 
     return searchFilter && companyFilter && statusFilter;
@@ -742,17 +748,15 @@ const GDTMap = ({ locations }) => {
                       <strong style={{ color: '#059855' }}>
                         Driver Name:
                       </strong>{' '}
-                      {capitalizeName(item.driverName)} <br />
+                      {capitalizeName(item.driverName)}<br />
                       <strong style={{ color: '#059855' }}>Status:</strong>{' '}
-                      {status === 'Active' ? (
+                        {status === 'Active' ? (
                           <span style={{ color: 'green' }}>{status}</span>
                         ) : (
                           <span style={{ color: 'red' }}>{status}</span>
                         )}
                     </div>
-                    
-                        
-                      
+
                     <button
                       onClick={() => toggleExpand(motorcycleIDToUse)}
                       style={{
@@ -885,6 +889,8 @@ const GDTMap = ({ locations }) => {
                         <button
                           onClick={() => {
                             const clickedLocation = item;
+                            console.log(
+                              'Clicked Location Coordinates:', item )
                             if (clickedLocation) {
                               setMapCenter({
                                 lat: clickedLocation.lat,
