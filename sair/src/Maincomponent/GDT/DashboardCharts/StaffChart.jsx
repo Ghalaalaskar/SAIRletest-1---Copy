@@ -282,7 +282,7 @@ const StaffChart = () => {
               width={data.length * 150}
               height={450}
               data={data}
-              margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+              margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
               onMouseLeave={() => {
                 if (!hoveringTooltip) setTooltipData(null);
               }}
