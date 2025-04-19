@@ -564,12 +564,19 @@ const CrashList = () => {
   const handleClosePopupCompany = () => {
     setIsPopupVisibleCompany(false);
   };
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 5;
+  const paginatedCrashes = filteredCrashes.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );  
+
 
   return (
     <>
       <Header active="gdtcrashes" />
       <div className="breadcrumb">
-        {GDTID ? (
+        {GDTID || company ? (
           <a onClick={() => navigate("/GDTDashBoard")}>Dash Board</a>
         ) : (
           <a onClick={() => navigate("/gdthome")}>Home</a>
@@ -581,8 +588,8 @@ const CrashList = () => {
         <div className={s.container}>
           <div className={s.searchHeader}>
             <div>
-            <h2 className={s.title}>
-                {company ? "Crash Reports" : "Crashes List"}{" "}
+            <h2 className={s.title}> Crashes List
+                {/* {company ? "Crash Reports" : "Crashes List"}{" "}
                 {GDTID && (
                   <>
                     Responded by{" "}
@@ -607,7 +614,7 @@ const CrashList = () => {
                     </span>{" "}
                     Drivers
                   </>
-                )}
+                )} */}
               </h2>
             </div>
             <div className={s.searchRightGroup}>
@@ -768,6 +775,36 @@ const CrashList = () => {
               </div>
             </div>
           </div>
+            {GDTID && (
+              <h3 className={s.subtitleDashboard}>
+                <>
+                Crashes Handled by{" "}
+                  <span
+                    className={s.gdtName}
+                    style={{ textDecoration: "underline", cursor: "pointer" }}
+                    onClick={handleShowPopupStaff}
+                  >
+                    {gdtInfo.Fname} {gdtInfo.Lname}
+                  </span>
+                </>
+              </h3>
+            )}
+
+          {company && !GDTID && (
+            <h3 className={s.subtitleDashboard}>
+            <>
+              Crash Reports from{" "}
+              <span
+                className={s.gdtName}
+                style={{ textDecoration: "underline", cursor: "pointer" }}
+                onClick={handleShowPopupCompany}
+              >
+                {companyInfo.ShortName}
+              </span>{" "}
+              Drivers
+            </>
+          </h3>
+          )}
 
           <Modal
             title="Confirm Response"
@@ -1293,6 +1330,7 @@ const CrashList = () => {
                   fontSize: "15px",
                   color: "#059855",
                   borderColor: "#059855",
+                  marginBottom: "20px"
                 }}
               >
                 <ArrowLeftOutlined style={{ marginRight: "8px" }} />
