@@ -18,7 +18,6 @@ import EyeIcon from "../../images/eye.png";
 import successImage from "../../images/Sucess.png";
 import errorImage from "../../images/Error.png";
 import { ArrowLeftOutlined } from "@ant-design/icons";
-import { Pagination } from "antd";
 import formstyle from "../../css/Profile.module.css";
 
 const DriverList = () => {
@@ -252,20 +251,23 @@ const DriverList = () => {
             </h3>
           )}
 
-        <Table
-          columns={columns}
-          dataSource={filteredData}
-          rowKey="id"
-          // pagination={{ pageSize: 5 }}
-          pagination={false}
-          style={{
-            width: '1200px',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            margin: '0 auto',
-          }}
-        />
+<Table
+  columns={columns}
+  dataSource={filteredData}
+  rowKey="id"
+  pagination={{
+    pageSize: 5,
+    showSizeChanger: false,
+  }}
+  style={{
+    width: '1200px',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    margin: '0 auto',
+  }}
+/>
+
 
         {/* Notification Modal */}
         <Modal
@@ -563,12 +565,7 @@ const DriverList = () => {
               </Button>
             )}
 
-            <Pagination
-              defaultCurrent={1}
-              total={filteredData.length}
-              pageSize={5}
-              style={{ marginLeft: "auto" }}
-            />
+     
           </div>
       </main>
     </div>
