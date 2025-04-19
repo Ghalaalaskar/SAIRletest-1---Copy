@@ -30,6 +30,8 @@ const GDTComplaintList = () => {
   const { GDTID } = useParams();
   const [searchParams] = useSearchParams();
   const company = searchParams.get("company");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 0; // Set your desired page size
 
   const [motorcycles, setMotorcycles] = useState({});
   const [complaints, setComplaints] = useState([]);
@@ -473,6 +475,12 @@ const GDTComplaintList = () => {
   const goBack = () => {
     navigate(-1);
   };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+  // Slice the filtered violations for current page
+const paginatedViolations = filteredComplaints.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
     <>
@@ -1188,9 +1196,10 @@ const GDTComplaintList = () => {
 
             {(GDTID || company) && (
              <Pagination
-             defaultCurrent={1}
+             current={currentPage}
              total={filteredComplaints.length}
              pageSize={5}
+             onChange={handlePageChange}
              style={{ marginLeft: "auto" }}
            /> 
             )}

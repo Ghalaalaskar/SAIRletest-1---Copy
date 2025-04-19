@@ -709,7 +709,7 @@ const paginatedViolations = filteredViolations.slice((currentPage - 1) * pageSiz
   <Pagination
     current={currentPage}
     total={filteredViolations.length}
-    pageSize={pageSize}
+    pageSize={5}
     onChange={handlePageChange}
     // style={{ marginLeft: '20px' }} // Add margin for spacing
   />
