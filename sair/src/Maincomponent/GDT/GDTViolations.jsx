@@ -23,20 +23,7 @@ import formstyle from "../../css/Profile.module.css";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 
 const ViolationList = () => {
-  const { company, date } = useParams();
-  // For month
-  if (date.includes("-") && isNaN(Date.parse(date))) {
-    const [month, year] = date.split("-");
-    // Use month and year
-  }
-  // For full date (week)
-  else {
-    const fullDate = new Date(date); // "2025-04-18"
-    const day = fullDate.getDate();
-    const month = fullDate.toLocaleString("default", { month: "long" });
-    const year = fullDate.getFullYear();
-    // Use day, month, year
-  }
+  const { company } = useParams();
   const goBack = () => {navigate(-1)};
   const [motorcycles, setMotorcycles] = useState({});
   const [violations, setViolations] = useState([]);
@@ -75,26 +62,6 @@ const options = [
     CompamyEmail: "",
     ComPhoneNumber: "",
   });
-  const [urlDate, setUrlDate] = useState(null);
-
-  useEffect(() => {
-    if (date) {
-      // Check for month/year format (like "April-2025")
-      if (date.includes("-") && isNaN(Date.parse(date))) {
-        const [monthName, yearStr] = date.split("-");
-        const month = new Date(`${monthName} 1, ${yearStr}`).getMonth(); // 0-indexed
-        const year = parseInt(yearStr, 10);
-        setUrlDate({ type: "month", month, year });
-      } else {
-        // Otherwise treat it as full date (like "2025-04-18")
-        const fullDate = new Date(date);
-        const year = fullDate.getFullYear();
-        const month = fullDate.getMonth(); // 0-indexed
-        const day = fullDate.getDate();
-        setUrlDate({ type: "day", day, month, year });
-      }
-    }
-  }, [date]);
 
   useEffect(() => {
     const fetchEmployerDrivers = async () => {
@@ -327,27 +294,9 @@ const options = [
     const matchesStatusFilter = filters.status.length === 0 ||
       filters.status.includes(violation.Status);
 
-    const matchesCompany =
-      !company || company === "all"
-        ? true
-        : drivers[violation.driverID]?.companyName === company;
-
-    //Filter Date (from url)
-    const violationFullDate = new Date((violation.time || 0) * 1000);
-
-      let matchesURLDate = true;
-      if (urlDate) {
-        if (urlDate.type === "month") {
-          matchesURLDate =
-            violationFullDate.getMonth() === urlDate.month &&
-            violationFullDate.getFullYear() === urlDate.year;
-        } else if (urlDate.type === "day") {
-          matchesURLDate =
-            violationFullDate.getDate() === urlDate.day &&
-            violationFullDate.getMonth() === urlDate.month &&
-            violationFullDate.getFullYear() === urlDate.year;
-        }
-      }
+      const matchesCompany = company
+      ? drivers[violation.driverID]?.companyName === company
+      : true;
 
     console.log(`Checking violation: ${violation.id} - Status: ${violation.Status}, 
                  Matches Status Filter: ${matchesStatusFilter}, 
@@ -356,7 +305,7 @@ const options = [
                  Violation Date: ${violationDate}, 
                  Search Date: ${formattedSearchDate}`);
 
-    return matchesSearchQuery && matchesSearchDate && matchesTypeFilter && matchesStatusFilter && matchesCompany && matchesURLDate;
+    return matchesSearchQuery && matchesSearchDate && matchesTypeFilter && matchesStatusFilter && matchesCompany;
   })
   .sort((a, b) => (b.time || 0) - (a.time || 0));
   
@@ -476,8 +425,8 @@ const paginatedViolations = filteredViolations.slice((currentPage - 1) * pageSiz
           <div className={s.container}>
             <div className={s.searchHeader}>
             <h2 className={s.title}>
-                {(company && company !== "all") ? "Violation Reports" : "Violations List"}{" "}
-                {(company && company !== "all") && (
+                {company ? "Violation Reports" : "Violations List"}{" "}
+                {company && (
                   <>
                     from{" "}
                     <span
