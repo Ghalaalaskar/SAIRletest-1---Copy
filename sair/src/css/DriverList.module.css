@@ -9,8 +9,20 @@
   font-size: 32px;
   margin-right: auto;
 }
- 
 
+
+.subtitleDashboard {
+  font-size: 18px;
+  font-weight: 500;
+  color: #f9f9f9;
+  text-align: center;
+  padding: 10px 0;
+  background-color: #059855;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  width: 100%;
+}  
+ 
 .searchInputs {
   display: flex;
   justify-content: flex-end;

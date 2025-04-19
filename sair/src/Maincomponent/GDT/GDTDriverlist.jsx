@@ -220,20 +220,7 @@ const DriverList = () => {
 
       <main>
         <div className={s.container}>
-          <h2 className={s.title}> Driver List {company && (
-                  <>
-                  {"For "}
-                    <span
-                      className={s.gdtName}
-                      style={{ textDecoration: "underline", cursor: "pointer" }}
-                      onClick={handleShowPopupStaff}
-                    >
-                      {comanyInfo.ShortName}
-                    </span>
-                    
-                  </>
-                )}
-              </h2>
+          <h2 className={s.title}> Driver List </h2>
 
           <div className={s.searchInputs}>
             <div className={s.searchContainer}>
@@ -248,8 +235,22 @@ const DriverList = () => {
             </div>
           </div>
         </div>
-
         <br />
+        
+        {company && (
+          <h3 className={s.subtitleDashboard}>
+            <>
+                <span
+                  className={s.gdtName}
+                  style={{ textDecoration: "underline", cursor: "pointer" }}
+                  onClick={handleShowPopupStaff}
+                >
+                  {comanyInfo.ShortName}
+                </span>
+                {" "}Drivers
+              </>
+            </h3>
+          )}
 
         <Table
           columns={columns}
@@ -554,6 +555,7 @@ const DriverList = () => {
                   fontSize: "15px",
                   color: "#059855",
                   borderColor: "#059855",
+                  marginBottom: "20px"
                 }}
               >
                 <ArrowLeftOutlined style={{ marginRight: "8px" }} />
