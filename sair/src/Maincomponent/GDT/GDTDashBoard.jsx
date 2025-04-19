@@ -429,8 +429,8 @@ const GDTDashBoard = () => {
   return (
     <div>
       <Header active="GDTDashBoard" />
-      <div className="breadcrumb" style={{ padding: "10px 20px" }}>
-        <a onClick={() => navigate("/gdthome")} style={{ cursor: "pointer" }}>
+      <div className="breadcrumb">
+      <a onClick={() => navigate("/gdthome")} style={{ cursor: "pointer" }}>
           Home
         </a>
         <span> / </span>
@@ -439,8 +439,8 @@ const GDTDashBoard = () => {
           style={{ cursor: "pointer" }}
         >
           Dashboard
-        </a>
-      </div>
+        </a>      </div>
+
       <main class="Dashboard" style={{ padding: "20px", width: "100%" }}>
         <div
           style={{
