@@ -220,11 +220,14 @@ const options = [
   };
   const handleViewViolations = () => {
     if (violations.length > 0) {
-      navigate(`/gdtricklessdrives`); // Navigate to the first violation
+      const basePath = "/gdtricklessdrives";
+      const path = company ? `${basePath}?company=${encodeURIComponent(company)}` : basePath;
+      navigate(path);
     } else {
-      setIsPopupVisible(true); // Show popup if no violation exist
+      setIsPopupVisible(true);
     }
   };
+  
   const fetchViolations = (driverIDs) => {
     const violationCollection = query(
       collection(db, "Violation"),
@@ -424,22 +427,7 @@ const paginatedViolations = filteredViolations.slice((currentPage - 1) * pageSiz
         <div>
           <div className={s.container}>
             <div className={s.searchHeader}>
-            <h2 className={s.title}>
-                {company ? "Violation Reports" : "Violations List"}{" "}
-                {company && (
-                  <>
-                    from{" "}
-                    <span
-                      className={s.gdtName}
-                      style={{ textDecoration: "underline", cursor: "pointer" }}
-                      onClick={handleShowPopupCompany}
-                    >
-                      {companyInfo.ShortName}
-                    </span>{" "}
-                    Drivers
-                  </>
-                )}
-              </h2>
+            <h2 className={s.title}>Violations List</h2>
               <div className={s.searchContainer}>
                 <svg
                   aria-hidden="true"
@@ -649,6 +637,22 @@ const paginatedViolations = filteredViolations.slice((currentPage - 1) * pageSiz
   </div>
 </div>
             </div>
+            
+            {company && (
+                  <h3 className={s.subtitleDashboard}>
+                  <>
+                  Violation Reports from{" "}
+                    <span
+                      className={s.gdtName}
+                      style={{ textDecoration: "underline", cursor: "pointer" }}
+                      onClick={handleShowPopupCompany}
+                    >
+                      {companyInfo.ShortName}
+                    </span>{" "}
+                    Drivers
+                  </>
+                  </h3>
+                )}
           </div>
 <Table
   columns={columns}
@@ -665,6 +669,7 @@ const paginatedViolations = filteredViolations.slice((currentPage - 1) * pageSiz
   alignItems: 'center',
   justifyContent: 'space-between',
   marginTop: '20px',
+  marginBottom: "5000px",
   flexWrap: 'wrap', // handles small screens
 }}>
   {/* Left side: Go Back + View Reckless Drivers */}
