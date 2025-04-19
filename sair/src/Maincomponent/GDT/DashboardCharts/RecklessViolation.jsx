@@ -9,12 +9,10 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
-  Cell,
 } from "recharts";
 import { useNavigate } from "react-router-dom";
-import { Tooltip as AntTooltip } from "antd";
+import { Tooltip as AntTooltip ,Button} from "antd";
 
 // Function to capitalize the first letter of a string
 const capitalizeFirstLetter = (string) => {
@@ -50,9 +48,34 @@ const CustomLegend = () => {
   );
 };
 
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div
+        style={{
+          backgroundColor: "white",
+          padding: "10px",
+          border: "1px solid #ccc",
+          borderRadius: "5px",
+          boxShadow: "0px 0px 5px rgba(0,0,0,0.2)",
+        }}
+      >
+        <p style={{ fontWeight: "bold", marginBottom: "5px" }}>{label}</p>
+        {payload.map((entry, index) => (
+          <p key={index} style={{ color: entry.color, margin: 0 }}>
+            {entry.name}: {entry.value}
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
 const RecklessViolation = () => {
   const navigate = useNavigate();
   const [data, setData] = useState([]);
+  const [startIndex, setStartIndex] = useState(0); // Track the start index for pagination
+  const visibleCount = 5; // Number of items to display
 
   useEffect(() => {
     const fetchData = async () => {
@@ -139,27 +162,33 @@ const RecklessViolation = () => {
     fetchData();
   }, []);
 
+  const handlePrev = () => {
+    setStartIndex((prev) => Math.max(0, prev - visibleCount));
+  };
+
+  const handleNext = () => {
+    setStartIndex((prev) =>
+      Math.min(data.length - visibleCount, prev + visibleCount)
+    );
+  };
+
+  const visibleData = data.slice(startIndex, startIndex + visibleCount); // Get the currently visible data
+
   return (
-    <div style={{ width: "100%", height: "400px" }}>
+    <div style={{ width: "100%", height: "400px", position: "relative" }}>
       <CustomLegend />
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart
-          data={data}
-          margin={{ top: 20, right: 30, left: 20, bottom: 30 }}
-        >
+      <ResponsiveContainer width="100%" height={450} >        <BarChart
+          data={visibleData} // Display only visible data
+          margin={{ top: 20, right: 30, left: 20, bottom: 50 }}        >
           <CartesianGrid strokeDasharray="3 3" />
-
           <XAxis
-  dataKey="name"
-  tick={{ dy: 10 }} 
-  label={{
-    value: "Delivery Companies",
-    position: "insideBottom",
-    dy: 30, 
-  }}
-/>
-
-
+            dataKey="name"
+            tick={{ dy: 10 }} 
+            label={{
+              value: "Delivery Companies",
+              position: "insideBottom",
+              dy: 25,            }}
+          />
           <YAxis
             allowDecimals={false}
             label={{
@@ -169,12 +198,12 @@ const RecklessViolation = () => {
               dx: -20,
             }}
           />
-          <Tooltip />
+    <Tooltip content={<CustomTooltip />} />
           <Bar
             dataKey="count30"
             fill="#2E7D32"
             name="Reckless Violation Type 1"
-            barSize={80}
+            barSize={50}
             style={{ cursor: "pointer" }}
             onClick={(data) => {
               navigate(`/gdtrecklessviolations/30/${data.payload.companyName}`);
@@ -184,7 +213,7 @@ const RecklessViolation = () => {
             dataKey="count50"
             fill="#4CAF50"
             name="Reckless Violation Type 2"
-            barSize={80}
+            barSize={50}
             style={{ cursor: "pointer" }}
             onClick={(data) => {
               navigate(`/gdtrecklessviolations/50/${data.payload.companyName}`);
@@ -192,7 +221,53 @@ const RecklessViolation = () => {
           />
         </BarChart>
       </ResponsiveContainer>
-    </div>
+      {data.length > 0 && (
+        <div style={{ position: "relative" }}>
+          <Button
+            onClick={handlePrev}
+            disabled={startIndex === 0}
+            style={{
+              position: "absolute",
+              left: "10px",
+              bottom: "0px",
+              fontSize: "20px",
+              backgroundColor: "white",
+              color: "black",
+              width: "45px",
+              height: "45px",
+              border: "1px solid #e7eae8",
+              borderRadius: "8px",
+              opacity: startIndex === 0 ? 0.5 : 1,
+              cursor: "pointer",
+            }}
+          >
+            ←
+          </Button>
+          <Button
+            onClick={handleNext}
+            disabled={startIndex + visibleCount >= data.length}
+            style={{
+              position: "absolute",
+              right: "10px",
+              bottom: "0",
+              fontSize: "20px",
+              backgroundColor: "white",
+              color: "black",
+              width: "45px",
+              height: "45px",
+              border: "1px solid #e7eae8",
+              borderRadius: "8px",
+              opacity: startIndex + visibleCount >= data.length ? 0.5 : 1,
+              cursor: "pointer",
+            }}
+          >
+            →
+          </Button>
+        </div>
+      )}
+  
+</div>
+
   );
 };
 

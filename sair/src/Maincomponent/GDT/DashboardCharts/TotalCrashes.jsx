@@ -180,7 +180,7 @@ const TotalCrash = () => {
             dataKey="value"
             fill="#4CAF50"
             name="Number of Crashes"
-            barSize={80}
+            barSize={50}
             style={{ cursor: "pointer" }}
           >
             {data.map((_, index) => (

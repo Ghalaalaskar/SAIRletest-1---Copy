@@ -70,7 +70,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 const StaffChart = () => {
   const [data, setData] = useState([]);
-  const [tooltipData, setTooltipData] = useState(null); // tooltip state
+  const [tooltipData, setTooltipData] = useState(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
   const [hoveringTooltip, setHoveringTooltip] = useState(false);
   const navigate = useNavigate();
@@ -78,10 +78,8 @@ const StaffChart = () => {
   const [complaintModalVisible, setComplaintModalVisible] = useState(false);
   const [staffNameWithNoComplaint, setStaffNameWithNoComplaint] = useState("");
   const [staffNameWithNoCrash, setStaffNameWithNoCrash] = useState("");
-
-  const chartContainerRef = useRef(null);
-  const maxVisibleBars = 5; // Show up to 5 bars before scrolling
-  const barWidth = 150; // Fixed width per bar
+  const [startIndex, setStartIndex] = useState(0); // Track the start index for pagination
+  const visibleCount = 5; // Number of items to display
 
   useEffect(() => {
     const fetchResponse = async () => {
@@ -91,13 +89,12 @@ const StaffChart = () => {
           where("Status", "==", "Emergency SOS")
         );
         const CrashQuerySnapshot = await getDocs(crashQuery);
-  
+
         const complaintQuery = query(collection(db, "Complaint"));
         const ComplaintQuerySnapshot = await getDocs(complaintQuery);
-  
+
         const StaffCounts = new Map();
-  
-        // Count crash responses only if RespondedBy is not null
+
         CrashQuerySnapshot.forEach((doc) => {
           const { RespondedBy } = doc.data();
           if (RespondedBy) {
@@ -110,8 +107,7 @@ const StaffChart = () => {
             StaffCounts.get(RespondedBy).countCrash += 1;
           }
         });
-  
-        // Count complaint responses only if RespondedBy is not null
+
         ComplaintQuerySnapshot.forEach((doc) => {
           const { RespondedBy } = doc.data();
           if (RespondedBy) {
@@ -124,8 +120,7 @@ const StaffChart = () => {
             StaffCounts.get(RespondedBy).countComplaint += 1;
           }
         });
-  
-        // Fetch staff names for each unique GDTID
+
         const staffData = await Promise.all(
           Array.from(StaffCounts.keys()).map(async (GDTID) => {
             const gdtQuery = query(
@@ -133,14 +128,14 @@ const StaffChart = () => {
               where("ID", "==", GDTID)
             );
             const gdtDocs = await getDocs(gdtQuery);
-  
+
             let firstName = "";
             let StaffID = "";
             if (!gdtDocs.empty) {
               firstName = gdtDocs.docs[0].data().Fname || "";
               StaffID = gdtDocs.docs[0].data().ID || "";
             }
-  
+
             return {
               FirstName: firstName,
               GDTID: StaffID,
@@ -149,25 +144,31 @@ const StaffChart = () => {
             };
           })
         );
-  
+
         setData(staffData);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
-  
-    fetchResponse();
-  }, []);  
 
-  // Determine whether scrolling is needed
-  const BAR_WIDTH = 100; // Width per bar (adjust as needed)
-  const MIN_VISIBLE_BARS = 5;
-  const needsScroll = data.length > MIN_VISIBLE_BARS;
-  const dynamicWidth = needsScroll ? data.length * BAR_WIDTH : "100%";
+    fetchResponse();
+  }, []);
+
+  const handlePrev = () => {
+    setStartIndex((prev) => Math.max(0, prev - visibleCount));
+  };
+
+  const handleNext = () => {
+    setStartIndex((prev) =>
+      Math.min(data.length - visibleCount, prev + visibleCount)
+    );
+  };
+
+  const visibleData = data.slice(startIndex, startIndex + visibleCount); // Get the currently visible data
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
-      {/* Alert when complaint count =0 */}
+      {/* Alert for no complaints */}
       <Modal
         title="No Complaints Found"
         open={complaintModalVisible}
@@ -188,7 +189,7 @@ const StaffChart = () => {
         </p>
       </Modal>
 
-      {/* Alert when crash count =0 */}
+      {/* Alert for no crashes */}
       <Modal
         title="No Crash Found"
         open={crashModalVisible}
@@ -210,137 +211,113 @@ const StaffChart = () => {
       </Modal>
 
       <CustomLegend />
-      <div style={{ overflowX: "auto", whiteSpace: "nowrap" }}>
-        {/* <div style={{ width: `${data.length}px` }}> */}
-        {data.length <= 7 ? (
-          // For small datasets — no scroll, fixed width
-          <ResponsiveContainer width="100%" height={450}>
-            <BarChart
-              data={data}
-              margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
-              onMouseLeave={() => {
-                if (!hoveringTooltip) setTooltipData(null);
+      <div style={{ whiteSpace: "nowrap" }}>
+       
+        <ResponsiveContainer width="100%" height={450} >
+          <BarChart
+            data={visibleData} // Display only visible data
+            margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+            onMouseLeave={() => {
+              if (!hoveringTooltip) setTooltipData(null);
+            }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis
+              dataKey="FirstName"
+              interval={0}
+              height={60}
+              tick={{ dy: 10 }}
+              label={{
+                value: "Staff Name",
+                position: "insideBottom",
+                dy: 25,
+              }}
+            />
+            <YAxis
+              allowDecimals={false}
+              label={{
+                value: "Number of Responses",
+                angle: -90,
+                position: "middle",
+                dx: -20,
+              }}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <Bar
+              dataKey="Crash"
+              fill="#2E7D32"
+              name="Number of Crash Responses"
+              style={{ cursor: "pointer" }}
+              onClick={(data) => {
+                if (data.payload.Crash === 0) {
+                  setStaffNameWithNoCrash(data.payload.FirstName);
+                  setCrashModalVisible(true);
+                } else {
+                  navigate(`/GDTcrashes/${data.payload.GDTID}`);
+                }
+              }}
+            />
+            <Bar
+              dataKey="Complaint"
+              fill="#4CAF50"
+              name="Number of Complaint Responses"
+              style={{ cursor: "pointer" }}
+              onClick={(data) => {
+                if (data.payload.Complaint === 0) {
+                  setStaffNameWithNoComplaint(data.payload.FirstName);
+                  setComplaintModalVisible(true);
+                } else {
+                  navigate(`/GDTComplaints/${data.payload.GDTID}`);
+                }
+              }}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+        {data.length > 0 && (
+          <div style={{position: "relative"}}>
+            <Button
+              onClick={handlePrev}
+              disabled={startIndex === 0}
+              style={{
+                position: "absolute",
+                left: "10px",
+                bottom: "0px",
+                fontSize: "20px",
+                backgroundColor: "white",
+                color: "black",
+                width: "45px",
+                height: "45px",
+                border: "1px solid #e7eae8",
+                borderRadius: "8px",
+                opacity: startIndex === 0 ? 0.5 : 1,
+                cursor: "pointer",
               }}
             >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis
-                dataKey="FirstName"
-                interval={0}
-                height={60}
-                tick={{ dy: 10 }}
-                label={{
-                  value: "Staff Name",
-                  position: "insideBottom",
-                  dy: 25,
-                }}
-              />
-              <YAxis
-                allowDecimals={false}
-                label={{
-                  value: "Number of Responses",
-                  angle: -90,
-                  position: "middle",
-                  dx: -20,
-                }}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar
-                dataKey="Crash"
-                fill="#2E7D32"
-                name="Number of Crash Responses"
-                style={{ cursor: "pointer" }}
-                onClick={(data) => {
-                  if (data.payload.Crash === 0) {
-                    setStaffNameWithNoCrash(data.payload.FirstName);
-                    setCrashModalVisible(true);
-                  } else {
-                    navigate(`/GDTcrashes/${data.payload.GDTID}`);
-                  }
-                }}
-              />
-
-              <Bar
-                dataKey="Complaint"
-                fill="#4CAF50"
-                name="Number of Complaint Responses"
-                style={{ cursor: "pointer" }}
-                onClick={(data) => {
-                  if (data.payload.Complaint === 0) {
-                    setStaffNameWithNoComplaint(data.payload.FirstName);
-                    setComplaintModalVisible(true);
-                  } else {
-                    navigate(`/GDTComplaints/${data.payload.GDTID}`);
-                  }
-                }}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        ) : (
-          // For large datasets — scrollable, dynamic width
-          <div style={{ width: `${data.length}px` }}>
-            <BarChart
-              width={data.length * 150}
-              height={450}
-              data={data}
-              margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-              onMouseLeave={() => {
-                if (!hoveringTooltip) setTooltipData(null);
+              ←
+            </Button>
+            <Button
+              onClick={handleNext}
+              disabled={startIndex + visibleCount >= data.length}
+              style={{
+                position: "absolute",
+                right: "10px",
+                bottom: "0",
+                fontSize: "20px",
+                backgroundColor: "white",
+                color: "black",
+                width: "45px",
+                height: "45px",
+                border: "1px solid #e7eae8",
+                borderRadius: "8px",
+                opacity: startIndex + visibleCount >= data.length ? 0.5 : 1,
+                cursor: "pointer",
               }}
             >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis
-                dataKey="FirstName"
-                
-                interval={0}
-                height={60}
-                tick={{ dy: 10 }}
-                label={{
-                  value: "Staff Name",
-                  position: "insideBottom",
-                  dy: 25,
-                }}
-              />
-              <YAxis
-                allowDecimals={false}
-                label={{
-                  value: "Number of Responses",
-                  angle: -90,
-                  position: "middle",
-                  dx: -20,
-                }}
-              />
-              <Bar
-                dataKey="Crash"
-                fill="#2E7D32"
-                name="Number of Crash Responses"
-                style={{ cursor: "pointer" }}
-                onClick={(data) => {
-                  if (data.payload.Crash === 0) {
-                    setStaffNameWithNoCrash(data.payload.FirstName);
-                    setCrashModalVisible(true);
-                  } else {
-                    navigate(`/GDTcrashes/${data.payload.GDTID}`);
-                  }
-                }}
-              />
-
-              <Bar
-                dataKey="Complaint"
-                fill="#4CAF50"
-                name="Number of Complaint Responses"
-                style={{ cursor: "pointer" }}
-                onClick={(data) => {
-                  if (data.payload.Complaint === 0) {
-                    setStaffNameWithNoComplaint(data.payload.FirstName);
-                    setComplaintModalVisible(true);
-                  } else {
-                    navigate(`/GDTComplaints/${data.payload.GDTID}`);
-                  }
-                }}
-              />
-            </BarChart>
+              →
+            </Button>
           </div>
         )}
+
       </div>
 
       {tooltipData && (

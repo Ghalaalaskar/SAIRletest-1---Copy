@@ -172,7 +172,7 @@ const TotalViolation = () => {
             dx: -20,
           }}/>
           <Tooltip />
-          <Bar dataKey="value" fill="#4CAF50"  name="Number of Violations" barSize={80} 
+          <Bar dataKey="value" fill="#4CAF50"  name="Number of Violations" barSize={50} 
             style={{ cursor: "pointer" }}>
             {data.map((_, index) => (
               <rect key={`bar-${index}`} fill={COLORS[index % COLORS.length]} />
