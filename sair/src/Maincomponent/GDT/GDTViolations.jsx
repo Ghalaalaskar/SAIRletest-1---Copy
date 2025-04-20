@@ -23,7 +23,7 @@ import formstyle from "../../css/Profile.module.css";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 
 const ViolationList = () => {
-  const { company } = useParams();
+  const { company, date } = useParams();
   const goBack = () => {navigate(-1)};
   const [motorcycles, setMotorcycles] = useState({});
   const [violations, setViolations] = useState([]);
@@ -183,6 +183,11 @@ const options = [
     getComp();
   }, [company]);
 
+  useEffect(() => {
+    if (date) {
+      setSearchDate(date);
+    }
+  }, [date]);  
   
   const handleShowPopupCompany = () => {
     setIsPopupVisibleCompany(true);
@@ -297,9 +302,10 @@ const options = [
     const matchesStatusFilter = filters.status.length === 0 ||
       filters.status.includes(violation.Status);
 
-      const matchesCompany = company
-      ? drivers[violation.driverID]?.companyName === company
-      : true;
+      const matchesCompany =
+      company && company !== "all"
+        ? drivers[violation.driverID]?.companyName === company
+        : true;    
 
     console.log(`Checking violation: ${violation.id} - Status: ${violation.Status}, 
                  Matches Status Filter: ${matchesStatusFilter}, 
@@ -638,21 +644,40 @@ const paginatedViolations = filteredViolations.slice((currentPage - 1) * pageSiz
 </div>
             </div>
             
-            {company && (
-                  <h3 className={s.subtitleDashboard}>
-                  <>
+            {company && company !== "all" && (
+              <h3 className={s.subtitleDashboard}>
+                <>
                   Violation Reports from{" "}
-                    <span
-                      className={s.gdtName}
-                      style={{ textDecoration: "underline", cursor: "pointer" }}
-                      onClick={handleShowPopupCompany}
-                    >
-                      {companyInfo.ShortName}
-                    </span>{" "}
-                    Drivers
-                  </>
-                  </h3>
-                )}
+                  <span
+                    className={s.gdtName}
+                    style={{ textDecoration: "underline", cursor: "pointer" }}
+                    onClick={handleShowPopupCompany}
+                  >
+                    {companyInfo.ShortName}
+                  </span>{" "}
+                  Drivers
+                  {date && (
+                    <>
+                      {" "}on <span style={{ fontWeight: "bold" }}>{date}</span>
+                    </>
+                  )}
+                </>
+              </h3>
+            )}
+
+            
+{company == "all" && (
+              <h3 className={s.subtitleDashboard}>
+                <>
+                Violation Reports{" "}
+                  {date && (
+                    <>
+                      {" "}on <span style={{ fontWeight: "bold" }}>{date}</span>
+                    </>
+                  )}
+                </>
+              </h3>
+            )}
           </div>
 <Table
   columns={columns}
