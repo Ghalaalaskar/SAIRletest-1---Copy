@@ -304,20 +304,20 @@ console.log('locations Company Names:', locations); // Log the unique company na
         const motorcycleData = snapshot.docs[0]?.data();
         const driverData = driverSnapshots[index].docs[0]?.data();
         const employerData = employerSnapshots[index]?.docs[0]?.data();
-
         return {
-          motorcycleID: motorcycleData?.MotorcycleID || 'N/A',
-          driverID: driverData?.DriverID || 'N/A',
+          MotorcycleID: motorcycleData?.MotorcycleID || 'N/A',
+          gpsNumber: motorcycleData?.GPSnumber || 'N/A',
+          lat: locations.find(loc => loc.gpsNumber === motorcycleData?.GPSnumber)?.lat || 0,
+          lng: locations.find(loc => loc.gpsNumber === motorcycleData?.GPSnumber)?.lng || 0,
           driverName: driverData
             ? `${driverData.Fname} ${driverData.Lname}`
             : 'Unknown',
+          driverID: driverData?.DriverID || 'N/A',
           phoneNumber: driverData?.PhoneNumber || 'N/A',
-          shortCompanyName: employerData?.ShortCompanyName || 'N/A', // Set ShortCompanyName from employer data
-          gpsNumber: motorcycleData?.GPSnumber || 'N/A',
-          type: motorcycleData?.Type || 'N/A',
-          licensePlate: motorcycleData?.LicensePlate || 'N/A',
-          lat: locations.find(loc => loc.gpsNumber === motorcycleData?.GPSnumber)?.lat || 0,
-          lng: locations.find(loc => loc.gpsNumber === motorcycleData?.GPSnumber)?.lng || 0,
+          shortCompanyName: employerData?.ShortCompanyName || 'N/A',
+          Type: motorcycleData?.Type || 'N/A',
+          LicensePlate: motorcycleData?.LicensePlate || 'N/A',
+          status: gpsState.active.some(item => item.gpsNumber === motorcycleData?.GPSnumber) ? 'Active' : 'Inactive'
         };
       }
     );
@@ -748,13 +748,7 @@ console.log('locations Company Names:', locations); // Log the unique company na
                       <strong style={{ color: '#059855' }}>
                         Driver Name:
                       </strong>{' '}
-                      {capitalizeName(item.driverName)}<br />
-                      <strong style={{ color: '#059855' }}>Status:</strong>{' '}
-                        {status === 'Active' ? (
-                          <span style={{ color: 'green' }}>{status}</span>
-                        ) : (
-                          <span style={{ color: 'red' }}>{status}</span>
-                        )}
+                      {capitalizeName(item.driverName)}
                     </div>
 
                     <button
@@ -860,6 +854,14 @@ console.log('locations Company Names:', locations); // Log the unique company na
                         {item.LicensePlate}
                       </p>
 
+                      <p style={{ margin: '5px 0' }}>
+                        <strong style={{ color: '#059855' }}>Status:</strong>{' '}
+                        {status === 'Active' ? (
+                          <span style={{ color: 'green' }}>{status}</span>
+                        ) : (
+                          <span style={{ color: 'red' }}>{status}</span>
+                        )}
+                      </p>
 
                       <div
                         style={{
@@ -1012,7 +1014,7 @@ console.log('locations Company Names:', locations); // Log the unique company na
               </h4>
               <p style={{ margin: '0' }}>
                 <strong style={{ color: '#059855' }}>ID:</strong>{' '}
-                {motorcycleDetails?.MotorcycleID || 'N/A'}
+                {motorcycleDetails?.MotorcycleID || motorcycleDetails?.motorcycleID || 'N/A'}
               </p>
               <p style={{ margin: '0' }}>
                 <strong style={{ color: '#059855' }}>GPS Number:</strong>{' '}
