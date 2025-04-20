@@ -13,19 +13,25 @@ import {
   Tooltip,
 } from "recharts";
 import { useNavigate } from "react-router-dom";
+import { Button, Modal, Input } from "antd";
 
-const CustomDot = ({ cx, cy, payload, dateType, selectedYear, companyName }) => {
+const CustomDot = ({ cx, cy, payload, dateType, selectedYear, companyName, setWarningVisible, setWarningDate }) => {
   const navigate = useNavigate();
 
   const handleClick = () => {
-    //If violation == 0 show warning pop-up 
+    const violationCount = payload.count;
 
     const fullDate =
-    dateType === "week"
-    ? new Date(`${payload.date} ${selectedYear}`).toLocaleDateString("en-CA") // YYYY-MM-DD
-    : `${payload.date}-${selectedYear}`; // Example: April-2025
+      dateType === "week"
+        ? new Date(`${payload.date} ${selectedYear}`).toLocaleDateString("en-CA") // YYYY-MM-DD
+        : `${payload.date}-${selectedYear}`; // Example: April-2025
 
-    // Check if the company is filtered or not
+    if (violationCount === 0) {
+      setWarningDate(fullDate); // Set the warning date
+      setWarningVisible(true);  // Show the modal
+      return;
+    }
+
     const companyParam = companyName === "All" ? "all" : encodeURIComponent(companyName);
     const dateParam = encodeURIComponent(fullDate);
 
@@ -63,6 +69,9 @@ const NumberofViolations = ({ dateType, companyName }) => {
   const [isYearOpen, setIsYearOpen] = useState(false);
   const dropdownRef = useRef(null);
   const shortToFullCompanyMapRef = useRef(new Map());
+  const [WarningVisible, setWarningVisible] = useState(false);
+  const [warningDate, setWarningDate] = useState(""); // To store date for the modal
+  
 
   useEffect(() => {
     if (dateType !== "week") {
@@ -394,6 +403,21 @@ const NumberofViolations = ({ dateType, companyName }) => {
   </div>
 )}
 
+      {/* Noviolation is empty */}
+      <Modal
+        title="Warning"
+        visible={WarningVisible}
+        onCancel={() => setWarningVisible(false)}
+        centered
+        footer={[]}
+        closeIcon={<span className="custom-modal-close-icon">×</span>}
+      >
+        <p>
+          No violations were reported on <strong>{warningDate}</strong>
+          {companyName !== "All" && <> for <strong>{companyName}</strong></>}.
+        </p>
+      </Modal>
+
       {/* Chart Component */}
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 60 }}>
@@ -436,6 +460,8 @@ const NumberofViolations = ({ dateType, companyName }) => {
                 dateType={dateType}
                 selectedYear={selectedYear}
                 companyName={fullCompanyName}
+                setWarningVisible={setWarningVisible}
+                setWarningDate={setWarningDate}
               />
             }
           />
