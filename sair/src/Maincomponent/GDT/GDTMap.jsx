@@ -748,7 +748,13 @@ console.log('locations Company Names:', locations); // Log the unique company na
                       <strong style={{ color: '#059855' }}>
                         Driver Name:
                       </strong>{' '}
-                      {capitalizeName(item.driverName)}
+                      {capitalizeName(item.driverName)}<br />
+                      <strong style={{ color: '#059855' }}>Status:</strong>{' '}
+                        {status === 'Active' ? (
+                          <span style={{ color: 'green' }}>{status}</span>
+                        ) : (
+                          <span style={{ color: 'red' }}>{status}</span>
+                        )}
                     </div>
 
                     <button
@@ -852,15 +858,6 @@ console.log('locations Company Names:', locations); // Log the unique company na
                         </strong>{' '}
                         {item.licensePlate}
                         {item.LicensePlate}
-                      </p>
-
-                      <p style={{ margin: '5px 0' }}>
-                        <strong style={{ color: '#059855' }}>Status:</strong>{' '}
-                        {status === 'Active' ? (
-                          <span style={{ color: 'green' }}>{status}</span>
-                        ) : (
-                          <span style={{ color: 'red' }}>{status}</span>
-                        )}
                       </p>
 
                       <div
