@@ -334,7 +334,7 @@ const DriverList = () => {
     }`.toLowerCase();
     const driverID = (driver.DriverID || "").toLowerCase();
     const query = searchQuery.toLowerCase();
-    const matchesCompany = company ? driver.CompanyName === company : true;
+    const matchesCompany = company === "all" || driver.CompanyName === company;
     return matchesCompany && (driverID.includes(query) || fullName.includes(query));
   });
 
@@ -489,7 +489,7 @@ const DriverList = () => {
         </div>
         <br />
         
-        {company && (
+        {company && company!="all" && (
               <h3 className={s.subtitleDashboard}>
               <>
                 <span

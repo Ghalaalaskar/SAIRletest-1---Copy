@@ -1,20 +1,12 @@
-"use client";
-import { useEffect, useState } from "react";
+
+import { useEffect, useRef, useState } from "react";
 import { db } from "../../../firebase";
 import { collection, getDocs, where, query } from "firebase/firestore";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
   ResponsiveContainer,
 } from "recharts";
-import Map from "../../Map";
-import { GoogleMap } from "@react-google-maps/api";
-import { Table } from "antd";
+// import Map from "../../Map";
+import { GoogleMap, MarkerF } from "@react-google-maps/api";
 
 const containerStyle = {
   width: "100%", // Set the map width
@@ -27,6 +19,9 @@ const ViolationCrashGeoChart = () => {
 
   const [mapCenter, setMapCenter] = useState({ lat: 24.6986, lng: 46.6853 }); // Default center
   const [zoomLevel, setZoomLevel] = useState(11); // Default zoom level
+  const [violationsData, setViolationsData] = useState([])
+  const [crashesData, setCrashesData] = useState([])
+  const [enrichedViolationsData, setEnrichedViolationsData] = useState([]);
   const handleMapLoad = (mapInstance) => {
     mapInstance.addListener("zoom_changed", () => {
       setZoomLevel(mapInstance.getZoom());
@@ -41,6 +36,31 @@ const ViolationCrashGeoChart = () => {
     setDropdownOpen(!isDropdownOpen);
   };
 
+  const getAddressFromCoordinates = async (lat, lng) => {
+    return new Promise((resolve, reject) => {
+      const geocoder = new window.google.maps.Geocoder();
+      geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+        if (status === "OK" && results[0]) {
+          // Extract just the city name from address components
+          let cityName = "";
+          for (const component of results[0].address_components) {
+            // Look for locality (city) or sublocality (district/neighborhood)
+            if (component.types.includes("locality") ||
+              component.types.includes("sublocality") ||
+              component.types.includes("administrative_area_level_3")) {
+              cityName = component.long_name;
+              break;
+            }
+          }
+          resolve(cityName || "Unknown city");
+        } else {
+          reject(new Error(`Geocoding failed: ${status}`));
+        }
+      });
+    });
+  };
+
+
   const handleOptionClick = (option) => {
     setSelectedOption(option);
     setDropdownOpen(false);
@@ -48,81 +68,87 @@ const ViolationCrashGeoChart = () => {
 
   // Riyadh Neighborhoods
   const neighborhoods = [
-    "Al-Olaya",
-    "Al-Malaz",
-    "Al-Murabba",
-    "Al-Sulimania",
-    "Al-Rawdah",
-    "Al-Nakheel",
-    "Al-Yasmin",
-    "Al-Rahmaniyah",
-    "Al-Naseem",
-    "Al-Wadi",
-    "Al-Maathar",
-    "Al-Khozama",
-    "Al-Selay",
-    "Al-Mansour",
-    "Al-Maazer",
-    "Al-Qirawan",
-    "Al-Malga",
-    "Al-Nafal",
-    "Al-Rawabi",
+    "Al Hamra"
   ];
 
   useEffect(() => {
     const fetchViolations = async () => {
       try {
         const querySnapshot = await getDocs(collection(db, "Violation"));
-        const violationsMap = new Map();
-        const oneWeekAgo = new Date();
-        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        // Initialize map with all dates in the past week
-        for (
-          let d = new Date(oneWeekAgo);
-          d <= today;
-          d.setDate(d.getDate() + 1)
-        ) {
-          const formattedDate = d.toLocaleDateString("en-GB", {
-            day: "2-digit",
-            month: "long",
-          });
-          violationsMap.set(formattedDate, 0);
-        }
-
+        const violationsMap = new window.Map();
+        const allViolations = [];
+    
         querySnapshot.forEach((doc) => {
           const { time } = doc.data();
-          if (!time) return; // Ensure time exists
-
-          const violationDate = new Date(time * 1000); // Convert Unix timestamp
+          const dataValue = doc.data();
+          if (!time) return;
+    
+          allViolations.push(dataValue);
+    
+          const violationDate = new Date(time * 1000);
           violationDate.setHours(0, 0, 0, 0); // Normalize to start of day
-
-          if (violationDate >= oneWeekAgo) {
-            const formattedDate = violationDate.toLocaleDateString("en-GB", {
-              day: "2-digit",
-              month: "long",
-            });
-            violationsMap.set(
-              formattedDate,
-              (violationsMap.get(formattedDate) || 0) + 1
-            );
-          }
+    
+          const formattedDate = violationDate.toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "long",
+            year: "numeric", // Add year if you expect long-term data
+          });
+    
+          violationsMap.set(
+            formattedDate,
+            (violationsMap.get(formattedDate) || 0) + 1
+          );
         });
-
-        // Convert Map to an array and sort by date
+    
         const chartData = Array.from(violationsMap, ([date, count]) => ({
           date,
           count,
         }));
-
+    
+        setViolationsData(chartData);
         setData(chartData);
+    
+        const enrichData = async () => {
+          try {
+            const enrichedData = await Promise.all(
+              allViolations.map(async (violation) => {
+                if (violation.position && !violation.formattedAddress) {
+                  try {
+                    let formattedAddress = violation.location || "";
+                    if (!formattedAddress && violation.position.latitude && violation.position.longitude) {
+                      formattedAddress = await getAddressFromCoordinates(
+                        violation.position.latitude,
+                        violation.position.longitude
+                      );
+                    }
+                    return {
+                      ...violation,
+                      formattedAddress
+                    };
+                  } catch (error) {
+                    console.error("Error geocoding address:", error);
+                    return {
+                      ...violation,
+                      formattedAddress: "Address could not be determined"
+                    };
+                  }
+                }
+                return violation;
+              })
+            );
+    
+            setEnrichedViolationsData(enrichedData);
+          } catch (error) {
+            console.error("Error enriching data:", error);
+          }
+        };
+    
+        enrichData();
+    
       } catch (error) {
         console.error("Error fetching violations:", error);
       }
-    };
+    };    
 
     const fetchCrashes = async () => {
       try {
@@ -131,57 +157,43 @@ const ViolationCrashGeoChart = () => {
           where("Status", "==", "Emergency SOS")
         );
         const querySnapshot = await getDocs(q);
-
-        const crashesMap = new Map();
-        const oneWeekAgo = new Date();
-        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        // Initialize map with all dates in the past week
-        for (
-          let d = new Date(oneWeekAgo);
-          d <= today;
-          d.setDate(d.getDate() + 1)
-        ) {
-          const formattedDate = d.toLocaleDateString("en-GB", {
-            day: "2-digit",
-            month: "long",
-          });
-          crashesMap.set(formattedDate, 0);
-        }
-
+    
+        const crashesMap = new window.Map();
+        const allCrashes = [];
+    
         querySnapshot.forEach((doc) => {
           const { time } = doc.data();
-          if (!time) return; // Ensure time exists
-
-          const crashDate = new Date(time * 1000); // Convert Unix timestamp
+          const dataValue = doc.data();
+          if (!time) return;
+    
+          allCrashes.push(dataValue);
+    
+          const crashDate = new Date(time * 1000);
           crashDate.setHours(0, 0, 0, 0); // Normalize to start of day
-
-          if (crashDate >= oneWeekAgo) {
-            const formattedDate = crashDate.toLocaleDateString("en-GB", {
-              day: "2-digit",
-              month: "long",
-            });
-            crashesMap.set(
-              formattedDate,
-              (crashesMap.get(formattedDate) || 0) + 1
-            );
-          }
+    
+          const formattedDate = crashDate.toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "long",
+            year: "numeric", // Include year for clarity over long time range
+          });
+    
+          crashesMap.set(
+            formattedDate,
+            (crashesMap.get(formattedDate) || 0) + 1
+          );
         });
-
-        // Convert Map to an array and sort by date
+    
         const CrashchartData = Array.from(crashesMap, ([date, count]) => ({
           date,
           count,
         }));
-
+    
+        setCrashesData(CrashchartData);
         setData(CrashchartData);
       } catch (error) {
         console.error("Error fetching crash:", error);
       }
-    };
+    };    
 
     fetchCrashes();
     fetchViolations();
@@ -310,7 +322,25 @@ const ViolationCrashGeoChart = () => {
               center={mapCenter}
               zoom={zoomLevel}
               onLoad={handleMapLoad}
-            ></GoogleMap>
+            >
+              <MarkerF
+                position={{ lat: 24.7783, lng: 46.7614 }}
+                label={{
+                  text: String(violationsData.length + crashesData.length),
+                  color: "white",
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                }}
+                icon={{
+                  path: window.google.maps.SymbolPath.CIRCLE,
+                  fillColor: "red",
+                  fillOpacity: 1,
+                  strokeWeight: 0,
+                  // scale is in pixels—100 is huge! try ~10 for a 20px diameter
+                  scale: 20,
+                }}
+              />
+            </GoogleMap>
           </div>
         </div>
 
@@ -377,10 +407,6 @@ const ViolationCrashGeoChart = () => {
               </thead>
               <tbody>
                 {neighborhoods.map((neighborhood, index) => {
-                  const violations = Math.floor(Math.random() * 10);
-                  const crashes = Math.floor(Math.random() * 5);
-                  const totalIncidents = violations + crashes; // Calculate total
-
                   return (
                     <tr key={index}>
                       <td
@@ -389,7 +415,7 @@ const ViolationCrashGeoChart = () => {
                           borderBottom: "1px solid #ddd",
                         }}
                       >
-                        {neighborhood}
+                        Al Hamra
                       </td>
                       <td
                         style={{
@@ -397,7 +423,7 @@ const ViolationCrashGeoChart = () => {
                           borderBottom: "1px solid #ddd",
                         }}
                       >
-                        {violations}
+                        {violationsData.length}
                       </td>
                       <td
                         style={{
@@ -405,7 +431,7 @@ const ViolationCrashGeoChart = () => {
                           borderBottom: "1px solid #ddd",
                         }}
                       >
-                        {crashes}
+                        {crashesData.length}
                       </td>
                       <td
                         style={{
@@ -413,7 +439,7 @@ const ViolationCrashGeoChart = () => {
                           borderBottom: "1px solid #ddd",
                         }}
                       >
-                        {totalIncidents} {/* Display calculated total */}
+                        {violationsData.length + crashesData.length} {/* Display calculated total */}
                       </td>
                     </tr>
                   );
