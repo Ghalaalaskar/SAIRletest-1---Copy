@@ -546,11 +546,13 @@ const paginatedViolations = filteredViolations.slice((currentPage - 1) * pageSiz
                 </div>
                 </div>
               </div>
+              
+{!date && (
               <div
   className={s.searchContainerdate}
   style={{ position: "relative" }}
 >
-  <div>
+    <div>
     {/* Conditional rendering for the green circle with tick */}
     {searchDate && (
       <div style={{
@@ -642,6 +644,7 @@ const paginatedViolations = filteredViolations.slice((currentPage - 1) * pageSiz
     />
   </div>
 </div>
+)}
             </div>
             
             {company && company !== "all" && (
