@@ -293,8 +293,18 @@ const options = [
 
     const matchesSearchQuery = driverName.toLowerCase().includes(searchQuery.toLowerCase()) ||
                                licensePlate.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesSearchDate = formattedSearchDate ? violationDate === formattedSearchDate : true;
 
+    
+    const violationDateObj = violation.time ? new Date(violation.time * 1000) : null;
+    const searchDateObj = searchDate ? new Date(searchDate) : null;
+    
+    const matchesSearchDate = !searchDateObj || (
+      searchDateObj.getDate() === 1
+        ? (violationDateObj?.getMonth() === searchDateObj.getMonth() &&
+          violationDateObj?.getFullYear() === searchDateObj.getFullYear())
+        : (violationDateObj?.toDateString() === searchDateObj.toDateString())
+    );
+    
     const matchesTypeFilter = filters.type.length === 0 ||
       (filters.type.includes("Reckless Violations") && violation.isReckless) ||
       (filters.type.includes("Regular Violations") && !violation.isReckless);
