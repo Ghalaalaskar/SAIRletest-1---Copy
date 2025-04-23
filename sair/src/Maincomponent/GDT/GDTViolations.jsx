@@ -711,7 +711,7 @@ const paginatedViolations = filteredViolations.slice((currentPage - 1) * pageSiz
   flexWrap: 'wrap', // handles small screens
 }}>
   {/* Left side: Go Back + View Reckless Drivers */}
-  <div style={{ display: 'flex', gap: '12px' }}>
+  <div style={{ display: 'flex', gap: '12px', marginBottom: "20px"}}>
     {company && (
       <Button
         onClick={goBack}
@@ -749,7 +749,7 @@ const paginatedViolations = filteredViolations.slice((currentPage - 1) * pageSiz
     total={filteredViolations.length}
     pageSize={5}
     onChange={handlePageChange}
-    // style={{ marginLeft: '20px' }} // Add margin for spacing
+    style={{ margin: '-30px 0 0 0' }}
   />
 </div>
 
