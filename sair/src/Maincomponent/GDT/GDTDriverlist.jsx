@@ -544,9 +544,7 @@ const DriverList = () => {
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                marginTop: "20px",
-                width: "1200px",
-                margin: "20px auto 0",
+                marginTop: "16px",
               }}
             >
       {company && (
