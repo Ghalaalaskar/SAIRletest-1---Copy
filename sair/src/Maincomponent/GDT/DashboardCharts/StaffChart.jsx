@@ -290,8 +290,8 @@ const StaffChart = () => {
                 border: "1px solid #e7eae8",
                 borderRadius: "8px",
                 opacity: startIndex === 0 ? 0.5 : 1,
-                cursor: "pointer",
-              }}
+                backgroundColor: startIndex === 0 ?  "#edeceb ": "white" ,
+                cursor: startIndex === 0 ? "not-allowed" : "pointer",              }}
             >
               ←
             </Button>
@@ -310,8 +310,8 @@ const StaffChart = () => {
                 border: "1px solid #e7eae8",
                 borderRadius: "8px",
                 opacity: startIndex + visibleCount >= data.length ? 0.5 : 1,
-                cursor: "pointer",
-              }}
+                backgroundColor: startIndex + visibleCount >= data.length ? "#edeceb ": "white" ,
+                cursor: startIndex + visibleCount >= data.length ? "not-allowed" : "pointer",              }}
             >
               →
             </Button>

@@ -24,7 +24,7 @@ const NumberofCrashes = ({ dateType, companyName }) => {
       setSelectedYear(new Date().getFullYear()); // Reset to current year when not in "week" mode
     }
   }, [dateType]);
-  
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -32,9 +32,9 @@ const NumberofCrashes = ({ dateType, companyName }) => {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [dropdownRef]);
 
@@ -99,7 +99,11 @@ const NumberofCrashes = ({ dateType, companyName }) => {
         // Initialize the date range for the chart
         const dateRange = [];
         if (dateType === "week") {
-          for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+          for (
+            let d = new Date(startDate);
+            d <= endDate;
+            d.setDate(d.getDate() + 1)
+          ) {
             const formattedDate = d.toLocaleDateString("en-GB", {
               day: "2-digit",
               month: "long",
@@ -108,9 +112,12 @@ const NumberofCrashes = ({ dateType, companyName }) => {
           }
         } else {
           const months = Array.from({ length: 12 }, (_, i) =>
-            new Date(startDate.getFullYear(), i, 1).toLocaleDateString("en-GB", {
-              month: "long",
-            })
+            new Date(startDate.getFullYear(), i, 1).toLocaleDateString(
+              "en-GB",
+              {
+                month: "long",
+              }
+            )
           );
           months.forEach((month) => {
             dateRange.push({ date: month, count: 0 });
@@ -143,7 +150,7 @@ const NumberofCrashes = ({ dateType, companyName }) => {
                     month: "long",
                   });
 
-                  CrashesMap.set(
+            CrashesMap.set(
               formattedDate,
               (CrashesMap.get(formattedDate) || 0) + 1
             );
@@ -166,15 +173,22 @@ const NumberofCrashes = ({ dateType, companyName }) => {
         let chartData = Array.from(CrashesMap, ([date, count]) => ({
           date,
           count,
-      // Add a sortOrder property for proper month sorting
-          sortOrder: dateType === "week" 
-            ? new Date(date.split(" ")[1] + " " + date.split(" ")[0] + ", " + startDate.getFullYear()).getTime() 
-            : new Date(date + " 1, " + startDate.getFullYear()).getTime()
+          // Add a sortOrder property for proper month sorting
+          sortOrder:
+            dateType === "week"
+              ? new Date(
+                  date.split(" ")[1] +
+                    " " +
+                    date.split(" ")[0] +
+                    ", " +
+                    startDate.getFullYear()
+                ).getTime()
+              : new Date(date + " 1, " + startDate.getFullYear()).getTime(),
         }));
 
         // Sort by sortOrder (chronological order)
         chartData.sort((a, b) => a.sortOrder - b.sortOrder);
-        
+
         // Remove the sortOrder property before rendering
         chartData = chartData.map(({ date, count }) => ({ date, count }));
 
@@ -194,154 +208,172 @@ const NumberofCrashes = ({ dateType, companyName }) => {
   }, [selectedYear]);
 
   return (
-    <div style={{ width: "100%", height: "400px", position: "relative", display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+    <div
+      style={{
+        width: "100%",
+        height: "400px",
+        position: "relative",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "flex-start",
+      }}
+    >
       {/* Control Buttons */}
-      <div style={{ position: "absolute", top: "360px", left: "10px", zIndex: 2 }}>
+      <div
+        style={{ position: "absolute", top: "360px", left: "10px", zIndex: 2 }}
+      >
         {/* Left Arrow Button */}
         <button
-      onClick={() =>
-        setOffset((prev) => {
-          const newOffset = Math.min(prev + 1, 4); // Max 5 years back
-          setSelectedYear(new Date().getFullYear() - newOffset); // Sync dropdown
-          return newOffset;
-        })
-      }
-      
+          onClick={() =>
+            setOffset((prev) => {
+              const newOffset = Math.min(prev + 1, 4); // Max 5 years back
+              setSelectedYear(new Date().getFullYear() - newOffset); // Sync dropdown
+              return newOffset;
+            })
+          }
           style={buttonStyle}
         >
           ←
         </button>
       </div>
-      <div style={{ position: "absolute", top: "360px", right: "10px", zIndex: 2 }}>
+      <div
+        style={{ position: "absolute", top: "360px", right: "10px", zIndex: 2 }}
+      >
         {/* Right Arrow Button */}
         <button
-      onClick={() =>
-        setOffset((prev) => {
-          const newOffset = Math.max(prev - 1, 0);
-          setSelectedYear(new Date().getFullYear() - newOffset); // Sync dropdown
-          return newOffset;
-        })
-      }
-      
+          onClick={() =>
+            setOffset((prev) => {
+              const newOffset = Math.max(prev - 1, 0);
+              setSelectedYear(new Date().getFullYear() - newOffset); // Sync dropdown
+              return newOffset;
+            })
+          }
           disabled={offset === 0}
-          style={{ ...buttonStyle, opacity: offset === 0 ? 0.5 : 1 }}
+          style={{
+            ...buttonStyle,
+            backgroundColor: offset === 0 ? "#edeceb " : "white",
+            opacity: offset === 0 ? 0.5 : 1,
+            cursor: offset === 0 ? "not-allowed" : "pointer",
+          }}
         >
           →
         </button>
       </div>
 
-{/* Year Filter near X-axis Label */}
-{dateType !== "week" && (
-  <div
-    style={{
-      position: "absolute",
-      bottom: "-1px",
-      left: "300px", // Adjust based on where you want it near the x-axis label
-      display: "flex",
-      alignItems: "center",
-      gap: "8px",
-      zIndex: 1,
-
-    }}
-  >
-    <label
-      style={{
-        fontWeight: "500",
-        fontSize: "14px",
-        color: "#808080",
-        whiteSpace: "nowrap",
-      }}
-    >
-      Year:
-    </label>
-    <div
-      className="selectWrapper"
-      ref={dropdownRef}
-      style={{
-        border: "1px solid #4CAF50",
-        backgroundColor: "#FFFFFF",
-        color: "black",
-        borderRadius: "5px",
-        width: "100px",
-        position: "relative",
-      }}
-    >
-      <div
-        className={`customSelect ${isYearOpen ? "open" : ""}`}
-        onClick={() => setIsYearOpen(!isYearOpen)}
-        style={{
-          cursor: "pointer",
-          padding: "6px 10px",
-          textAlign: "left",
-          fontSize: "14px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        {selectedYear}
-        <span
-          style={{
-            border: "solid #4CAF50",
-            borderWidth: "0 2px 2px 0",
-            display: "inline-block",
-            padding: "4px",
-            transform: isYearOpen ? "rotate(-135deg)" : "rotate(45deg)",
-            transition: "transform 0.2s",
-          }}
-        />
-      </div>
-      {isYearOpen && (
+      {/* Year Filter near X-axis Label */}
+      {dateType !== "week" && (
         <div
-          className="dropdownMenu"
           style={{
             position: "absolute",
-            zIndex: 1000,
-            backgroundColor: "#fff",
-            border: "1px solid #ddd",
-            borderRadius: "5px",
-            width: "100%",
-            top: "100%",
-            left: 0,
-            boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-    maxHeight: "80px", // Approx height for 5 items
-      overflowY: "auto",   // Enables scrolling
-             }}
+            bottom: "-1px",
+            left: "300px", // Adjust based on where you want it near the x-axis label
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            zIndex: 1,
+          }}
         >
-          {Array.from({ length: 5 }, (_, i) => {
-            const year = new Date().getFullYear() - i;
-            return (
-              <div
-                key={year}
-                onClick={() => {
-                  setSelectedYear(year);
-                  setIsYearOpen(false);
-                }}
+          <label
+            style={{
+              fontWeight: "500",
+              fontSize: "14px",
+              color: "#808080",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Year:
+          </label>
+          <div
+            className="selectWrapper"
+            ref={dropdownRef}
+            style={{
+              border: "1px solid #4CAF50",
+              backgroundColor: "#FFFFFF",
+              color: "black",
+              borderRadius: "5px",
+              width: "100px",
+              position: "relative",
+            }}
+          >
+            <div
+              className={`customSelect ${isYearOpen ? "open" : ""}`}
+              onClick={() => setIsYearOpen(!isYearOpen)}
+              style={{
+                cursor: "pointer",
+                padding: "6px 10px",
+                textAlign: "left",
+                fontSize: "14px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              {selectedYear}
+              <span
                 style={{
-                  padding: "10px",
-                  cursor: "pointer",
-                  fontSize: "14px",
+                  border: "solid #4CAF50",
+                  borderWidth: "0 2px 2px 0",
+                  display: "inline-block",
+                  padding: "4px",
+                  transform: isYearOpen ? "rotate(-135deg)" : "rotate(45deg)",
+                  transition: "transform 0.2s",
                 }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#f0f0f0")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
+              />
+            </div>
+            {isYearOpen && (
+              <div
+                className="dropdownMenu"
+                style={{
+                  position: "absolute",
+                  zIndex: 1000,
+                  backgroundColor: "#fff",
+                  border: "1px solid #ddd",
+                  borderRadius: "5px",
+                  width: "100%",
+                  top: "100%",
+                  left: 0,
+                  boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+                  maxHeight: "80px", // Approx height for 5 items
+                  overflowY: "auto", // Enables scrolling
+                }}
               >
-                {year}
+                {Array.from({ length: 5 }, (_, i) => {
+                  const year = new Date().getFullYear() - i;
+                  return (
+                    <div
+                      key={year}
+                      onClick={() => {
+                        setSelectedYear(year);
+                        setIsYearOpen(false);
+                      }}
+                      style={{
+                        padding: "10px",
+                        cursor: "pointer",
+                        fontSize: "14px",
+                      }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.backgroundColor = "#f0f0f0")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.backgroundColor = "transparent")
+                      }
+                    >
+                      {year}
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
+            )}
+          </div>
         </div>
       )}
-    </div>
-  </div>
-)}
 
       {/* Chart Component */}
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 60 }}>
+        <LineChart
+          data={data}
+          margin={{ top: 10, right: 30, left: 0, bottom: 60 }}
+        >
           <defs>
             <linearGradient id="colorPv" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8} />
@@ -357,7 +389,7 @@ const NumberofCrashes = ({ dateType, companyName }) => {
               value: dateType === "week" ? "Date" : `Date        `,
               position: "insideBottom",
               dy: 55,
-              dx: dateType != "week" ? -60 :0,
+              dx: dateType != "week" ? -60 : 0,
             }}
             tick={{ fontSize: 12 }}
           />
