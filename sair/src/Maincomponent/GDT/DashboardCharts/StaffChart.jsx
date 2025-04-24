@@ -121,31 +121,24 @@ const StaffChart = () => {
           }
         });
 
-        const staffData = await Promise.all(
-          Array.from(StaffCounts.keys()).map(async (GDTID) => {
-            const gdtQuery = query(
-              collection(db, "GDT"),
-              where("ID", "==", GDTID)
-            );
-            const gdtDocs = await getDocs(gdtQuery);
-
-            let firstName = "";
-            let StaffID = "";
-            if (!gdtDocs.empty) {
-              firstName = gdtDocs.docs[0].data().Fname || "";
-              StaffID = gdtDocs.docs[0].data().ID || "";
-            }
-
-            return {
-              FirstName: firstName,
-              GDTID: StaffID,
-              Crash: StaffCounts.get(GDTID).countCrash,
-              Complaint: StaffCounts.get(GDTID).countComplaint,
-            };
-          })
-        );
-
-        setData(staffData);
+        const gdtSnapshot = await getDocs(collection(db, "GDT"));
+        const allStaffData = gdtSnapshot.docs.map((doc) => {
+          const data = doc.data();
+          const GDTID = data.ID;
+          const FirstName = data.Fname || "";
+        
+          const counts = StaffCounts.get(GDTID) || { countCrash: 0, countComplaint: 0 };
+        
+          return {
+            FirstName,
+            GDTID,
+            Crash: counts.countCrash,
+            Complaint: counts.countComplaint,
+          };
+        });
+        
+        setData(allStaffData);
+        
       } catch (error) {
         console.error("Error fetching data:", error);
       }

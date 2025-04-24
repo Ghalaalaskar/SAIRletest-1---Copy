@@ -140,14 +140,16 @@ const RecklessViolation = () => {
           }
         });
 
-        let chartData = Array.from(companyMap, ([companyName, counts]) => ({
-          name: capitalizeFirstLetter(
-            employerMap.get(companyName) || companyName
-          ),
-          count30: counts.count30,
-          count50: counts.count50,
-          companyName,
-        }));
+        let chartData = Array.from(employerMap, ([companyName, shortName]) => {
+          const counts = companyMap.get(companyName) || { count30: 0, count50: 0 };
+          return {
+            name: capitalizeFirstLetter(shortName),
+            count30: counts.count30,
+            count50: counts.count50,
+            companyName,
+          };
+        });
+        
 
         // Dummy data
         const dummyData = [];
