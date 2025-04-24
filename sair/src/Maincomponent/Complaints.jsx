@@ -181,7 +181,7 @@ const ComplaintList = () => {
               
             <div className={s.searchContainer}>
   <div className={s.selectWrapper}>
-    <FaFilter className={s.filterIcon} />
+    <FaFilter style={{ width: '26px' }} className={s.filterIcon} />
     <div style={{ position: 'relative', width: '280px' }}>
       <div 
         style={{
@@ -189,32 +189,40 @@ const ComplaintList = () => {
           left: '10px',
           top: '50%',
           transform: 'translateY(-50%)',
-          color: selectedStatus ? 'black' : 'grey',
+          color: selectedStatus ? 'grey' : 'grey', // Grey color for selected status and placeholder
           pointerEvents: 'none', // Prevent clicking on the placeholder
-          fontSize: '14px'
+          fontSize: '14px',
+          zIndex: 1 // Ensure it appears above the select
         }}
       >
-        {selectedStatus.length > 0 ? selectedStatus : 'Filter by Status'}
+        {selectedStatus && selectedStatus !== "All" ? selectedStatus : 'Filter by Status'}
       </div>
       <select
         className={s.customSelect}
-        onChange={event => setSelectedStatus(event.target.value)}
+        onChange={event => {
+          const value = event.target.value;
+          setSelectedStatus(value === "All" ? "" : value); // Reset to empty string if "All" is selected
+        }}
         defaultValue=""
         style={{
           width: "100%", // Adjust width to fit the container
-          height: "35px",
+          height: "40px", // Increased height for better spacing
           fontSize: "14px",
-          color: 'grey', // Text color when selected
+          color: 'transparent', // Hide the default text color
           appearance: 'none', // Remove default arrow
-          background: 'white', // Set background to white for visibility
-          border: 'none', // Set a light border
+          background: 'transparent', // Set background to transparent
+          border: 'none', // No border
           borderRadius: '4px', // Rounded corners
           paddingLeft: '10px', // Add space for placeholder
           paddingRight: '30px', // Space for the arrow
+          paddingTop: '10px', // Padding to avoid overlap
+          paddingBottom: '10px',
+          boxSizing: 'border-box', // Ensure padding is included in total height
+          zIndex: 1
         }}
       >
         <option value="" disabled hidden></option>
-        <option value="" style={{ color: 'black' }}>All</option>
+        <option value="All" style={{ color: 'black' }}>All</option>
         <option value="Accepted" style={{ color: 'black' }}>Accepted</option>
         <option value="Pending" style={{ color: 'black' }}>Pending</option>
         <option value="Rejected" style={{ color: 'black' }}>Rejected</option>

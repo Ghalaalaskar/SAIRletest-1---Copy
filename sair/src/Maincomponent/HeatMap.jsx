@@ -805,34 +805,33 @@ outline: 'none', // Remove outline on focus
               </div> */}
               {/* Status Filter */}
 <div className={m.searchContainer} ref={typeDropdownRef}>
-  <div className={f.selectWrapper} style={{    width: '380px'}}>
+  <div className={f.selectWrapper} style={{width: '380px'}}>
     <FaFilter style={{ 
     color: '#1c7a50', 
-    marginRight: '60px' 
-    
+    marginRight: '60px', 
+    width:'15px'
   }} />
-    <div className={f.customSelect} onClick={toggleTypeDropdown} style={{    marginLeft: '-50px'}} >
-      {filterStatus === "All" ? (
-        <span>Filter by Status</span>
-      ) : (
-        filterStatus
-      )}
-      <div className={f.customArrow} >▼</div>
-    </div>
+<div className={f.customSelect} onClick={toggleTypeDropdown} style={{ marginLeft: '-50px' }}>
+  <span style={{ color: filterStatus ? 'grey' : 'black' }}>
+    {filterStatus === "All" ? "Filter by Status" : filterStatus}
+  </span>
+  <div className={f.customArrow}>▼</div>
+</div>
 
-    {isTypeOpen && (
-      <div className={f.dropdownMenu}>
-        {["All", "Active", "Inactive"].map((status) => (
-          <div
-            key={status}
-            className={f.dropdownOption}
-            onClick={() => handleStatusClick(status)}
-          >
-            {status}
-          </div>
-        ))}
+{isTypeOpen && (
+  <div className={f.dropdownMenu}>
+    {["All", "Active", "Inactive"].map((status) => (
+      <div
+        key={status}
+        className={f.dropdownOption}
+        onClick={() => handleStatusClick(status)}
+        style={{ color: 'black' }} // Ensure dropdown options are black
+      >
+        {status}
       </div>
-    )}
+    ))}
+  </div>
+)}
   </div>
 </div>
 
