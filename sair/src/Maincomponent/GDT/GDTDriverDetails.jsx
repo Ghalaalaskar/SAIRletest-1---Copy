@@ -8,7 +8,7 @@ import {
   doc,
   onSnapshot,
 } from "firebase/firestore";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation} from "react-router-dom";
 import { db, auth } from "../../firebase";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import { Button, Dropdown, Menu, Modal } from "antd";
@@ -20,6 +20,7 @@ import "../../css/CustomModal.css";
 const DriverDetails = () => {
   const { driverId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation(); 
   const [driverDetails, setDriverDetails] = useState(null);
   const [motorcycles, setMotorcycles] = useState([]);
   const [violations, setViolations] = useState([]);
@@ -145,17 +146,27 @@ const DriverDetails = () => {
   const goBack = () => {
     navigate(-1); // Navigate back to the previous page
   };
-
+  const activeState = location.state && location.state.from === "Heatmap" ? "gdtheatmap" : "gdtdriverlist";
   return (
     <div>
-      <Header active={"gdtdriverlist"} />
+      <Header active={activeState} />
 
+      
       <div className="breadcrumb">
         <a onClick={() => navigate("/gdthome")}>Home</a>
         <span> / </span>
-        <a onClick={() => navigate("/gdtdriverlist")}>Drivers List</a>
-        <span> / </span>
-        <a>Drivers Details</a>
+        {location.state && location.state.from === "Heatmap" ? (
+          <>
+            <a onClick={() => navigate("/heatmap")}>Heat Map</a>
+            <span> / </span>
+          </>
+        ) : (
+          <>
+          <a onClick={() => navigate("/gdtdriverlist")}>Drivers List</a>
+          <span> / </span>
+          </>
+        )}
+        <a onClick={() => navigate(`/gdtdriverdetails/${driverId}`)}>Drivers Details</a>
       </div>
 
       <main className={s.detail}>

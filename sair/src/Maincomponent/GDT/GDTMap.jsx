@@ -868,22 +868,22 @@ console.log('locations Company Names:', locations); // Log the unique company na
                           marginTop: '5px',
                         }}
                       >
-                        <button
-                          onClick={() =>
-                            navigate(`/gdtdriverdetails/${item.driverID}`)
-                          }
-                          style={{
-                            backgroundColor: '#059855',
-                            color: 'white',
-                            border: 'none',
-                            padding: '5px',
-                            width: '120px',
-                            cursor: 'pointer',
-                            marginBottom: '5px',
-                          }}
-                        >
-                          Full Information
-                        </button>
+<button
+  onClick={() => {
+    navigate(`/gdtdriverdetails/${item.driverID}`, { state: { from: "Heatmap" } });
+  }}
+  style={{
+    backgroundColor: '#059855',
+    color: 'white',
+    border: 'none',
+    marginBottom: '5px',
+    padding: '5px',
+    width: '120px',
+    cursor: 'pointer',
+  }}
+>
+  Full Information
+</button>
 
                         <button
                           onClick={() => {
