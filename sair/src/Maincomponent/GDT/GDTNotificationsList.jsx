@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import EyeIcon from "../../images/eye.png";
 import s from "../../css/DriverList.module.css";
 import f from "../../css/ComplaintList.module.css";
+import v from "../../css/Violations.module.css";
 import { db } from "../../firebase";
 import Header from "./GDTHeader";
 import { doc, getDoc } from "firebase/firestore";
@@ -23,10 +24,15 @@ const GDTNotificationsList = () => {
   const [notReadComplaints, setnotReadComplaints] = useState([]);
   const [drivers, setDrivers] = useState({});
   const [notificationsList, setNotificationsList] = useState([]); //merged list
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [selectedTypes, setSelectedTypes] = useState([]);
+  const [selectedStatuses, setSelectedStatuses] = useState([]);
   const goBack = () => navigate(-1); // Go back to the previous page
   const statusDropdownRef = useRef(null);
   const typeDropdownRef = useRef(null);
   const gdtUID = sessionStorage.getItem("gdtUID");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 5; // Number of items per page
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -34,20 +40,15 @@ const GDTNotificationsList = () => {
       console.error("GDTUID is null or undefined");
       return;
     }
-    const handleClickOutside = (event) => {
-      if (
-        statusDropdownRef.current &&
-        !statusDropdownRef.current.contains(event.target)
-      ) {
-        setIsStatusOpen(false);
-      }
-      if (
-        typeDropdownRef.current &&
-        !typeDropdownRef.current.contains(event.target)
-      ) {
-        setIsTypeOpen(false);
-      }
-    };
+
+      const handleClickOutside = (event) => {
+        if (statusDropdownRef.current && !statusDropdownRef.current.contains(event.target)) {
+          setDropdownOpen(false);
+        }
+        if (typeDropdownRef.current && !typeDropdownRef.current.contains(event.target)) {
+          setDropdownOpen(false);
+        }
+      };
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
@@ -200,6 +201,22 @@ const GDTNotificationsList = () => {
 
     setNotificationsList(sortedNotifications);
   }, [notReadCrashes, notReadViolations, notReadComplaints]);
+
+  const filteredNotifications = useMemo(() => {
+    let filtered = notificationsList;
+
+    // Filter by selected statuses
+    if (selectedStatuses.length > 0) {
+      filtered = filtered.filter((item) => selectedStatuses.includes(item.FilterStatus));
+    }
+
+    // Filter by selected types
+    if (selectedTypes.length > 0) {
+      filtered = filtered.filter((item) => selectedTypes.includes(item.Type));
+    }
+
+    return filtered;
+  }, [notificationsList, selectedTypes, selectedStatuses]);
 
   useEffect(() => {
     fetchDrivers();
@@ -464,6 +481,11 @@ const GDTNotificationsList = () => {
     }
   };
 
+  const paginatedNotifications = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return filteredNotifications.slice(startIndex, startIndex + pageSize);
+  }, [filteredNotifications, currentPage, pageSize]);
+
   const fetchDetailsFromDatabase = async (type, id) => {
     try {
       const collectionName = type;
@@ -618,6 +640,8 @@ const GDTNotificationsList = () => {
   //   navigate(route);
   // };
 
+  
+
   const fetchData = useCallback(async () => {
     const types = [
       { key: "readComplaints", type: "Complaint", filterStatus: "Read" },
@@ -694,31 +718,6 @@ const GDTNotificationsList = () => {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-
-  const filteredData = useMemo(() => {
-    let filteredNotifications = notifications;
-
-    // Apply status filter (Read/Unread)
-    if (statusFilter !== "All") {
-      filteredNotifications = filteredNotifications.filter((item) => {
-        if (statusFilter === "Read") {
-          return item.FilterStatus === "Read";
-        } else if (statusFilter === "Unread") {
-          return item.FilterStatus === "Unread";
-        }
-        return true;
-      });
-    }
-
-    // Apply type filter (Violation, Crash, Complaint)
-    if (filterType !== "All") {
-      filteredNotifications = filteredNotifications.filter(
-        (item) => item.Type === filterType
-      );
-    }
-
-    return filteredNotifications;
-  }, [notifications, filterType, statusFilter]);
 
   const columns = [
     {
@@ -802,34 +801,29 @@ const GDTNotificationsList = () => {
     },
   ];
 
-  const filteredNotifications = notificationsList.filter((record) => {
-    if (filterType !== "All" && record.Type !== filterType) return false;
-    if (statusFilter !== "All" && record.FilterStatus !== statusFilter)
-      return false;
-    return true;
-  });
+
   const [isStatusOpen, setIsStatusOpen] = useState(false);
   const [isTypeOpen, setIsTypeOpen] = useState(false);
   const statusOptions = ["All", "Read", "Unread"];
   const typeOptions = ["All", "Violation", "Crash", "Complaint"];
 
-  const toggleStatusDropdown = () => {
-    setIsStatusOpen(!isStatusOpen);
-  };
-
-  const toggleTypeDropdown = () => {
-    setIsTypeOpen(!isTypeOpen);
-  };
-
-  const handleStatusOptionClick = (option) => {
-    setStatusFilter(option);
-    setIsStatusOpen(false);
+  const toggleDropdown = () => {
+    setDropdownOpen((prev) => !prev);
   };
 
   const handleTypeOptionClick = (option) => {
-    setFilterType(option);
-    setIsTypeOpen(false);
+    setSelectedTypes((prev) =>
+      prev.includes(option) ? prev.filter((type) => type !== option) : [...prev, option]
+    );
   };
+
+  const handleStatusOptionClick = (option) => {
+    setSelectedStatuses((prev) =>
+      prev.includes(option) ? prev.filter((status) => status !== option) : [...prev, option]
+    );
+  };
+
+
   return (
     <div>
       <Header active="notificationslist" />
@@ -843,70 +837,96 @@ const GDTNotificationsList = () => {
       <main>
         <div className={s.container}>
           <h2 className={s.title}>Notification List</h2>
-          <div
-            className={s.searchInputs}
-            style={{ display: "flex", gap: "20px" }}
-          >
             {/* Type Filter */}
             <div className={s.searchContainer} ref={typeDropdownRef}>
-              <div className={f.selectWrapper}>
-                <FaFilter className={f.filterIcon} />
-                <div className={f.customSelect} onClick={toggleTypeDropdown}>
-                  {filterType === "All" ? (
-                    <span>Filter by Type</span> // Placeholder styling
-                  ) : (
-                    filterType
-                  )}
-                  <div className={f.customArrow}>▼</div>
-                </div>
-                {isTypeOpen && (
-                  <div className={f.dropdownMenu}>
-                    {typeOptions.map((option) => (
-                      <div
-                        key={option}
-                        className={f.dropdownOption}
-                        onClick={() => handleTypeOptionClick(option)}
-                      >
-                        {option}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-            {/* Status Filter */}
-            <div className={s.searchContainer} ref={statusDropdownRef}>
-              <div className={f.selectWrapper} style={{ width: "250px" }}>
-                <FaFilter className={f.filterIcon} />
+             <div className={`${v.selectWrapper} ${s.dropdownContainer}`} style={{ width: '355px' }}>
+              <FaFilter style={{ width: '17px' }} className={f.filterIcon} />
+              <div style={{ position: 'relative', width: '100%' }}>
                 <div
-                  className={f.customSelect}
-                  onClick={toggleStatusDropdown}
-                  style={{ width: "250px" }}
+                  onClick={toggleDropdown}
+                  style={{
+                    padding: '8px',
+                    backgroundColor: 'transparent',
+                    cursor: 'pointer',
+                    borderRadius: '4px',
+                    border: 'none',
+                    color: 'grey',
+                    lineHeight: '1.0',
+                    fontSize: '14px',
+                  }}
                 >
-                  {statusFilter === "All" ? (
-                    <span>Filter by Status</span> // Placeholder styling
-                  ) : (
-                    statusFilter
-                  )}
-                  <div className={f.customArrow}>▼</div>
+                  {selectedTypes.length > 0 || selectedStatuses.length > 0 
+                    ? [...selectedTypes, ...selectedStatuses].join(', ') 
+                    : 'Filter Notifications'}
                 </div>
-                {isStatusOpen && (
-                  <div className={f.dropdownMenu}>
-                    {statusOptions.map((option) => (
-                      <div
-                        key={option}
-                        className={f.dropdownOption}
-                        onClick={() => handleStatusOptionClick(option)}
-                      >
-                        {option}
+                {dropdownOpen && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      background: 'white',
+                      border: '1px solid #ccc',
+                      borderRadius: '4px',
+                      zIndex: 1000,
+                      width: '350px',
+                      left: '-33px',
+                    }}
+                  >
+                    <div style={{ padding: '10px', fontWeight: 'bold' }}>Type</div>
+                    {["Violation", "Crash", "Complaint"].map((option) => (
+                      <div key={option} style={{ padding: '10px', cursor: 'pointer' }}>
+                        <label style={{ display: 'flex', alignItems: 'center' }}>
+                          <input
+                            type="checkbox"
+                            checked={selectedTypes.includes(option)}
+                            onChange={() => handleTypeOptionClick(option)}
+                            style={{ marginRight: '10px' }}
+                          />
+                          {option}
+                        </label>
                       </div>
                     ))}
+                    <div style={{ padding: '10px', fontWeight: 'bold' }}>Status</div>
+                    {["Read", "Unread"].map((option) => (
+                      <div key={option} style={{ padding: '10px', cursor: 'pointer' }}>
+                        <label style={{ display: 'flex', alignItems: 'center' }}>
+                          <input
+                            type="checkbox"
+                            checked={selectedStatuses.includes(option)}
+                            onChange={() => handleStatusOptionClick(option)}
+                            style={{ marginRight: '10px' }}
+                          />
+                          {option}
+                        </label>
+                      </div>
+                    ))}
+                    <div style={{ padding: '10px', textAlign: 'center' }}>
+                      <button
+                        onClick={() => {
+                          setSelectedTypes([]);
+                          setSelectedStatuses([]);
+                          toggleDropdown();
+                        }}
+                        style={{
+                          backgroundColor: 'transparent',
+                          color: 'blue',
+                          border: 'none',
+                          borderRadius: '4px',
+                          padding: '8px 0',
+                          cursor: 'pointer',
+                          width: '100%',
+                          textAlign: 'left',
+                        }}
+                      >
+                        Reset Filter
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
             </div>
           </div>
         </div>
+
         <style>
           {`
             .unread-row {
@@ -916,18 +936,18 @@ const GDTNotificationsList = () => {
         </style>
 
         <br />
-        <Table
-          columns={columns}
-          dataSource={filteredNotifications}
-          rowKey={(record) => record.ID || record.id}
-          pagination={false} // Disable default pagination
-          style={{ width: "1200px", margin: "0 auto", marginBottom: "20px" }}
-          rowClassName={(record) =>
-            (record.FilterStatus || "").toLowerCase() === "unread"
-              ? "unread-row"
-              : ""
-          }
-        />
+<Table
+  columns={columns}
+  dataSource={paginatedNotifications} // Use paginated data
+  rowKey={(record) => record.ID || record.id}
+  pagination={false} // Disable default pagination
+  style={{ width: "1200px", margin: "0 auto", marginBottom: "20px" }}
+  rowClassName={(record) =>
+    (record.FilterStatus || "").toLowerCase() === "unread"
+      ? "unread-row"
+      : ""
+  }
+/>
         {/* Flexbox container for button and pagination */}
         <div
           style={{
@@ -951,34 +971,34 @@ const GDTNotificationsList = () => {
 
           {/* Pagination component with custom style */}
           <Pagination
-            defaultCurrent={1}
-            total={filteredData.length}
-            pageSize={5}
-            showSizeChanger={false}
-            itemRender={(page, type, originalElement) => {
-              if (type === "page") {
-                return (
-                  <div
-                    style={{
-                      border: "1px solid #059855",
-                      borderRadius: "4px",
-                      padding: "8px",
-                      margin: "0 4px",
-                      cursor: "pointer",
-                      color: "#059855",
-                      height: "29px",
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                  >
-                    {page}
-                  </div>
-                );
-              }
-              return originalElement; // Return default for other types (e.g., prev, next)
-            }}
-          />
+  current={currentPage} // Current page state
+  onChange={(page) => setCurrentPage(page)} // Handle page change
+  total={filteredNotifications.length} // Total number of notifications for correct pagination
+  pageSize={pageSize} // Items per page
+  showSizeChanger={false} // Disable size changer
+  itemRender={(page, type, originalElement) => {
+    if (type === "page") {
+      return (
+        <div
+          style={{
+            borderRadius: "4px",
+            padding: "8px",
+            margin: "0 4px",
+            cursor: "pointer",
+            color: "#059855",
+            height: "29px",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          {page}
+        </div>
+      );
+    }
+    return originalElement; // Return default for other types (e.g., prev, next)
+  }}
+/>
         </div>
       </main>
     </div>

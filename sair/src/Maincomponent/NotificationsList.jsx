@@ -30,6 +30,8 @@ const [selectedStatuses, setSelectedStatuses] = useState([]);
   const goBack = () => navigate(-1); // Go back to the previous page
   const statusDropdownRef = useRef(null);
   const typeDropdownRef = useRef(null);
+   const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 5; // Number of items per page
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -457,6 +459,30 @@ const [selectedStatuses, setSelectedStatuses] = useState([]);
       console.error("Error marking notification as read:", error);
     }
   };
+  const filteredNotifications = useMemo(() => {
+    let filtered = notificationsList;
+  
+    // Filter by selected statuses
+    if (selectedStatuses.length > 0) {
+      filtered = filtered.filter((item) =>
+        selectedStatuses.includes(item.FilterStatus)
+      );
+    }
+  
+    // Filter by selected types
+    if (selectedTypes.length > 0) {
+      filtered = filtered.filter((item) =>
+        selectedTypes.includes(item.Type)
+      );
+    }
+  
+    return filtered;
+  }, [notificationsList, selectedTypes, selectedStatuses]);
+
+ const paginatedNotifications = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return filteredNotifications.slice(startIndex, startIndex + pageSize);
+  }, [filteredNotifications, currentPage, pageSize]);
 
   const fetchDetailsFromDatabase = async (type, id) => {
     try {
@@ -789,25 +815,7 @@ const [selectedStatuses, setSelectedStatuses] = useState([]);
     },
   ];
 
-const filteredNotifications = useMemo(() => {
-  let filtered = notificationsList;
 
-  // Filter by selected statuses
-  if (selectedStatuses.length > 0) {
-    filtered = filtered.filter((item) =>
-      selectedStatuses.includes(item.FilterStatus)
-    );
-  }
-
-  // Filter by selected types
-  if (selectedTypes.length > 0) {
-    filtered = filtered.filter((item) =>
-      selectedTypes.includes(item.Type)
-    );
-  }
-
-  return filtered;
-}, [notificationsList, selectedTypes, selectedStatuses]);
 
   const [isStatusOpen, setIsStatusOpen] = useState(false);
   const [isTypeOpen, setIsTypeOpen] = useState(false);
@@ -844,7 +852,7 @@ const handleStatusOptionClick = (option) => {
           <h2 className={s.title}>Notification List</h2>
 <div className={s.searchContainer}>
 <div className={`${v.selectWrapper} ${s.dropdownContainer}`} style={{ width: '355px' }}>
-  <FaFilter className={f.filterIcon} />
+  <FaFilter style={{ width: '17px' }} className={f.filterIcon} />
   <div style={{ position: 'relative', width: '100%' }}>
     <div
       onClick={toggleDropdown}
@@ -940,18 +948,18 @@ const handleStatusOptionClick = (option) => {
         </style>
 
         <br />
-        <Table
-          columns={columns}
-          dataSource={filteredNotifications}
-          rowKey={(record) => record.ID || record.id}
-          pagination={false} // Disable default pagination
-          style={{ width: "1200px", margin: "0 auto", marginBottom: "20px" }}
-          rowClassName={(record) =>
-            (record.FilterStatus || "").toLowerCase() === "unread"
-              ? "unread-row"
-              : ""
-          }
-        />
+       <Table
+         columns={columns}
+         dataSource={paginatedNotifications} // Use paginated data
+         rowKey={(record) => record.ID || record.id}
+         pagination={false} // Disable default pagination
+         style={{ width: "1200px", margin: "0 auto", marginBottom: "20px" }}
+         rowClassName={(record) =>
+           (record.FilterStatus || "").toLowerCase() === "unread"
+             ? "unread-row"
+             : ""
+         }
+       />
         {/* Flexbox container for button and pagination */}
         <div
           style={{
@@ -974,35 +982,35 @@ const handleStatusOptionClick = (option) => {
           </Button>
 
           {/* Pagination component with custom style */}
-          <Pagination
-            defaultCurrent={1}
-            total={filteredData.length}
-            pageSize={5}
-            showSizeChanger={false}
-            itemRender={(page, type, originalElement) => {
-              if (type === "page") {
-                return (
-                  <div
-                    style={{
-                      border: "1px solid #059855",
-                      borderRadius: "4px",
-                      padding: "8px",
-                      margin: "0 4px",
-                      cursor: "pointer",
-                      color: "#059855",
-                      height: "29px",
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                  >
-                    {page}
-                  </div>
-                );
-              }
-              return originalElement; // Return default for other types (e.g., prev, next)
-            }}
-          />
+<Pagination
+  current={currentPage} // Current page state
+  onChange={(page) => setCurrentPage(page)} // Handle page change
+  total={filteredNotifications.length} // Total number of notifications for correct pagination
+  pageSize={pageSize} // Items per page
+  showSizeChanger={false} // Disable size changer
+  itemRender={(page, type, originalElement) => {
+    if (type === "page") {
+      return (
+        <div
+          style={{
+            borderRadius: "4px",
+            padding: "8px",
+            margin: "0 4px",
+            cursor: "pointer",
+            color: "#059855",
+            height: "29px",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          {page}
+        </div>
+      );
+    }
+    return originalElement; // Return default for other types (e.g., prev, next)
+  }}
+/>
         </div>
       </main>
     </div>

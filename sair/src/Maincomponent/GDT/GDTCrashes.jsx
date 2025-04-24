@@ -16,8 +16,9 @@ import { Button, Modal } from "antd";
 import { Table } from "antd";
 import Header from "./GDTHeader";
 import { FaFilter } from "react-icons/fa";
-import s from "../../css/CrashList.module.css"; // CSS module for CrashList
+import s from "../../css/CrashList.module.css"; 
 import c from "../../css/ComplaintList.module.css";
+import v from "../../css/Violations.module.css";
 import formstyle from "../../css/Profile.module.css";
 import { useParams } from "react-router-dom";
 import "../../css/CustomModal.css";
@@ -646,31 +647,57 @@ const CrashList = () => {
                 </div>
               </div>
               {!GDTID && (
-                <div className={s.searchContainer}>
-                  <div className={c.selectWrapper}>
-                    <FaFilter className={c.filterIcon} />
-                    <select
-                      className={c.customSelect}
-                      onChange={(event) =>
-                        setSelectedStatus(event.target.value)
-                      }
-                      defaultValue=""
-                      style={{
-                        width: "280px",
-                        height: "35px", // Widen the select bar
-                        padding: "8px", // Add padding
-                        fontSize: "14px", // Adjust font size
-                        color: "grey",
-                      }}
-                    >
-                      <option value="" disabled>
-                        Filter by Response
-                      </option>
-                      <option value="">All</option>
-                      <option value="Responsed">Responsed</option>
-                      <option value="Unresponsed">Unresponsed</option>
-                    </select>
-                  </div>
+<div className={s.searchContainer}>
+<div className={`${v.selectWrapper} ${s.dropdownContainer}`}>
+  <FaFilter style={{ width: '26px' }} className={c.filterIcon} />
+  <div style={{ position: 'relative', width: '280px' }}>
+    <div 
+      style={{
+        position: 'absolute',
+        top: '50%',
+        transform: 'translateY(-50%)',
+        color: 'grey', // Grey color for placeholder
+        pointerEvents: 'none', // Prevent clicking on the placeholder
+        fontSize: '14px',
+        zIndex: 1, // Ensure it appears above the select
+        
+      }}
+    >
+      {selectedStatus && selectedStatus !== "All" ? selectedStatus : 'Filter by Response'}
+    </div>
+    <select
+      className={s.customSelect}
+      onChange={event => {
+        const value = event.target.value;
+        setSelectedStatus(value === "All" ? "" : value); // Reset to empty string if "All" is selected
+      }}
+      defaultValue=""
+      style={{
+        width: "135%", // Adjust width to fit the container
+        height: "40px", // Increased height for better spacing
+        fontSize: "14px",
+        color: 'transparent', // Hide the default text color
+        appearance: 'none', // Remove default arrow
+        background: 'transparent', // Set background to transparent
+        border: 'none', // No border
+        borderRadius: '4px', // Rounded corners
+        paddingLeft: '10px', // Add space for placeholder
+        paddingRight: '30px', // Space for the arrow
+        paddingTop: '10px', // Padding to avoid overlap
+        paddingBottom: '10px',
+        zIndex: 1,
+        outline: 'none',
+        position: 'relative', // Add this if not already set
+        left: '-40px', // Adjust this value to move left
+      }}
+    >
+      <option value="" disabled hidden></option>
+      <option value="All" style={{ color: 'black' }}>All</option>
+      <option value="Responsed" style={{ color: 'black' }}>Responsed</option>
+      <option value="Unresponsed" style={{ color: 'black' }}>Unresponsed</option>
+    </select>
+  </div>
+</div>
                 </div>
               )}
               <div

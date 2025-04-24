@@ -21,6 +21,7 @@ import { useParams } from "react-router-dom";
 import { FaFilter } from "react-icons/fa";
 import s from "../../css/ComplaintList.module.css"; // CSS module for ComplaintList
 import c from "../../css/CrashList.module.css";
+import v from "../../css/Violations.module.css";
 import "../../css/CustomModal.css";
 import formstyle from "../../css/Profile.module.css";
 import { ArrowLeftOutlined } from "@ant-design/icons";
@@ -529,32 +530,55 @@ const paginatedViolations = filteredComplaints.slice((currentPage - 1) * pageSiz
 
               {(!GDTID || !company) && (
                 <div className={s.searchContainer}>
-                  <div className={s.selectWrapper}>
-                    <FaFilter className={s.filterIcon} />
-                    <select
-                      className={s.customSelect}
-                      onChange={(event) =>
-                        setSelectedStatus(event.target.value)
-                      }
-                      defaultValue=""
-                      style={{
-                        width: "280px",
-                        height: "35px", // Widen the select bar
-                        padding: "8px", // Add padding
-                        fontSize: "14px", // Adjust font size
-                        color: "grey",
-                      }}
-                    >
-                      <option value="" disabled>
-                        Filter by Status
-                      </option>
-                      <option value="">All</option>
-                      <option value="Pending">Pending</option>
-                      <option value="Accepted">Accepted</option>
-                      <option value="Rejected">Rejected</option>
-                    </select>
-                  </div>
-                </div>
+                  <div className={`${v.selectWrapper} ${s.dropdownContainer}`}>
+  <FaFilter className={s.filterIcon} />
+  <div style={{ position: 'relative', width: '280px' }}>
+    <div 
+      style={{
+        position: 'absolute',
+        top: '50%',
+        transform: 'translateY(-50%)',
+        color: 'grey',
+        pointerEvents: 'none',
+        fontSize: '14px',
+        zIndex: 1,
+      }}
+    >
+      {selectedStatus && selectedStatus !== "All" ? selectedStatus : 'Filter by Status'}
+    </div>
+    <select
+      className={s.customSelect}
+      onChange={event => {
+        const value = event.target.value;
+        setSelectedStatus(value === "All" ? "" : value); // Reset to empty string if "All" is selected
+      }}
+      defaultValue=""
+      style={{
+        width: "130%",
+        height: "35px",
+        padding: "8px",
+        fontSize: "14px",
+        color: "transparent", // Hide default text color
+        appearance: 'none', // Remove default arrow
+        background: 'transparent', // Set background to transparent
+        border: 'none', // No border
+        borderRadius: '4px',
+        paddingLeft: '10px', // Space for placeholder
+        paddingRight: '30px', // Space for the arrow
+        position: 'relative',
+        left:'-35px',
+        zIndex: 1,
+      }}
+    >
+      <option value="" disabled hidden></option>
+      <option value="All" style={{ color: 'black' }}>All</option>
+      <option value="Pending" style={{ color: 'black' }}>Pending</option>
+      <option value="Accepted" style={{ color: 'black' }}>Accepted</option>
+      <option value="Rejected" style={{ color: 'black' }}>Rejected</option>
+    </select>
+  </div>
+</div>
+</div>
               )}
               {/* <div className={s.searchContainer}>
                 <input
