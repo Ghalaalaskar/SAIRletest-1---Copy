@@ -12,7 +12,7 @@ import {
   Cell,
 } from "recharts";
 import { useNavigate } from "react-router-dom";
-
+import { Button } from "antd";
 const COLORS = [
   "#2E7D32",
   "#4CAF50",
@@ -30,6 +30,20 @@ const TotalCrash = () => {
   const [data, setData] = useState([]);
   const [totalcrash, setTotalCrash] = useState(0);
   const navigate = useNavigate();
+  const [startIndex, setStartIndex] = useState(0); // Track the start index for pagination
+  const visibleCount = 5; // Number of items to display
+
+  const handlePrev = () => {
+    setStartIndex((prev) => Math.max(0, prev - visibleCount));
+  };
+
+  const handleNext = () => {
+    setStartIndex((prev) =>
+      Math.min(data.length - visibleCount, prev + visibleCount)
+    );
+  };
+
+  const visibleData = data.slice(startIndex, startIndex + visibleCount); // Get the currently visible data
 
   useEffect(() => {
     const fetchData = async () => {
@@ -119,15 +133,14 @@ const TotalCrash = () => {
         });
         //end of Dummy
 
-        // Step 5: Prepare final chart data with ShortCompanyName
-        const chartData = Array.from(companyMap, ([companyName, value]) => ({
-          name: capitalizeFirstLetter(
-            employerMap.get(companyName) || companyName
-          ),
-          value,
-          companyName,
-        }));
-
+  // Step 5: Ensure all employers are included, even if they have 0 complaints
+const chartData = Array.from(employerMap.entries()).map(
+  ([companyName, shortName]) => ({
+    name: capitalizeFirstLetter(shortName),
+    value: companyMap.get(companyName) || 0,
+    companyName,
+  })
+);
         console.log("Final Chart Data:", chartData);
         setTotalCrash(chartData.reduce((sum, entry) => sum + entry.value, 0)); // Calculate total count
         setData(chartData);
@@ -143,8 +156,8 @@ const TotalCrash = () => {
     <div style={{ width: "100%", height: "400px", position: "relative" }}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
-          data={data}
-          width={data.length * 150}
+          data={visibleData}
+          width={visibleData.length * 150}
           margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
           onClick={(state) => {
             const company = state?.activePayload?.[0]?.payload?.companyName;
@@ -189,7 +202,50 @@ const TotalCrash = () => {
           </Bar>
         </BarChart>
       </ResponsiveContainer>
-
+      {data.length > 0 && (
+          <div style={{position: "relative"}}>
+            <Button
+              onClick={handlePrev}
+              disabled={startIndex === 0}
+              style={{
+                position: "absolute",
+                left: "10px",
+                bottom: "0px",
+                fontSize: "20px",
+                backgroundColor: "white",
+                color: "black",
+                width: "45px",
+                height: "45px",
+                border: "1px solid #e7eae8",
+                borderRadius: "8px",
+                opacity: startIndex === 0 ? 0.5 : 1,
+                backgroundColor: startIndex === 0 ?  "#edeceb ": "white" ,
+                cursor: startIndex === 0 ? "not-allowed" : "pointer",              }}
+            >
+              ←
+            </Button>
+            <Button
+              onClick={handleNext}
+              disabled={startIndex + visibleCount >= data.length}
+              style={{
+                position: "absolute",
+                right: "10px",
+                bottom: "0",
+                fontSize: "20px",
+                backgroundColor: "white",
+                color: "black",
+                width: "45px",
+                height: "45px",
+                border: "1px solid #e7eae8",
+                borderRadius: "8px",
+                opacity: startIndex + visibleCount >= data.length ? 0.5 : 1,
+                backgroundColor: startIndex + visibleCount >= data.length ? "#edeceb ": "white" ,
+                cursor: startIndex + visibleCount >= data.length ? "not-allowed" : "pointer",              }}
+            >
+              →
+            </Button>
+          </div>
+        )}
       {/* Total Crashes Display */}
       <div
         style={{
