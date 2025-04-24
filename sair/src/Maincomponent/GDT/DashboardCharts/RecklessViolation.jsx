@@ -238,7 +238,8 @@ const RecklessViolation = () => {
               border: "1px solid #e7eae8",
               borderRadius: "8px",
               opacity: startIndex === 0 ? 0.5 : 1,
-              cursor: "pointer",
+              backgroundColor: startIndex === 0 ?  "#edeceb ": "white" ,
+              cursor: startIndex === 0 ? "not-allowed" : "pointer",
             }}
           >
             ←
@@ -257,8 +258,9 @@ const RecklessViolation = () => {
               height: "45px",
               border: "1px solid #e7eae8",
               borderRadius: "8px",
+              backgroundColor: startIndex + visibleCount >= data.length ? "#edeceb ": "white" ,
               opacity: startIndex + visibleCount >= data.length ? 0.5 : 1,
-              cursor: "pointer",
+              cursor: startIndex + visibleCount >= data.length ? "not-allowed" : "pointer",
             }}
           >
             →
