@@ -179,20 +179,20 @@ const ComplaintList = () => {
             <h2 className={s.title}>Complaints List</h2>
             <div className={s.searchInputs}>
               
-            <div className={s.searchContainer}>
+  <div className={s.searchContainer}>
   <div className={s.selectWrapper}>
     <FaFilter style={{ width: '26px' }} className={s.filterIcon} />
     <div style={{ position: 'relative', width: '280px' }}>
       <div 
         style={{
           position: 'absolute',
-          left: '10px',
           top: '50%',
           transform: 'translateY(-50%)',
-          color: selectedStatus ? 'grey' : 'grey', // Grey color for selected status and placeholder
+          color: 'grey', // Grey color for selected status and placeholder
           pointerEvents: 'none', // Prevent clicking on the placeholder
           fontSize: '14px',
-          zIndex: 1 // Ensure it appears above the select
+          zIndex: 1, // Ensure it appears above the select
+
         }}
       >
         {selectedStatus && selectedStatus !== "All" ? selectedStatus : 'Filter by Status'}
@@ -205,8 +205,9 @@ const ComplaintList = () => {
         }}
         defaultValue=""
         style={{
-          width: "100%", // Adjust width to fit the container
+          width: "135%", // Adjust width to fit the container
           height: "40px", // Increased height for better spacing
+          left:'-37px',
           fontSize: "14px",
           color: 'transparent', // Hide the default text color
           appearance: 'none', // Remove default arrow
@@ -218,7 +219,7 @@ const ComplaintList = () => {
           paddingTop: '10px', // Padding to avoid overlap
           paddingBottom: '10px',
           boxSizing: 'border-box', // Ensure padding is included in total height
-          zIndex: 1
+          zIndex: 1,
         }}
       >
         <option value="" disabled hidden></option>
