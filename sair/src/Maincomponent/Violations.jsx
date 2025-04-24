@@ -10,6 +10,7 @@ import {
   where,
 } from "firebase/firestore";
 import EyeIcon from "../images/eye.png";
+import f from "../css/ComplaintList.module.css"; // CSS module for ComplaintList
 import { Table } from "antd";
 import Header from "./Header";
 import { Button, Modal, Select,} from "antd";
@@ -343,6 +344,7 @@ const ViolationList = () => {
                        }}
                      >
                      {selectedValues.length > 0 ? selectedValues.join(', ') : 'Filter violations'}
+                     
  
                      </div>
                      {dropdownOpen && (

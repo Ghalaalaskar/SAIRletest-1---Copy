@@ -194,17 +194,12 @@ Email</h3>
                   <Button 
               onClick={handleViewViolations} 
               style={{
-                backgroundColor: '#059855',
-                color: 'white',
-                border: 'none',
-                float: 'right',
-                borderRadius: '50px',
-                alignItems: 'center',
-                cursor: 'pointer',
-                padding: '20px 10px',
-                width: 'auto',
-                height: '60px',
-                fontFamily: 'Open Sans',
+                float: "right",
+                width: "auto",
+                height: "60px",
+                fontSize: "15px",
+                color: "#059855",
+                borderColor: "#059855",
               }}
             ><i className="fas fa-eye" style={{ marginRight: '8px' }}></i>
               View Violations

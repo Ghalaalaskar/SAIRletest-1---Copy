@@ -6,9 +6,10 @@ import EyeIcon from '../images/eye.png';
 import { Table, Select } from 'antd';
 import Header from './Header';
 import { FaFilter } from 'react-icons/fa';
-import s from "../css/ComplaintList.module.css"; // CSS module for ComplaintList
+import s from "../css/ComplaintList.module.css"; 
 import '../css/CustomModal.css';
 import c from "../css/CrashList.module.css";
+
 
 const ComplaintList = () => {
   const [motorcycles, setMotorcycles] = useState({});
@@ -181,26 +182,54 @@ const ComplaintList = () => {
             <div className={s.searchContainer}>
   <div className={s.selectWrapper}>
     <FaFilter className={s.filterIcon} />
-    <select
-  className={s.customSelect}
-  onChange={event => setSelectedStatus(event.target.value)}
-  defaultValue=""
-  style={{
-    width: "280px", 
-    height:"35px", // Widen the select bar
-    padding: "8px", // Add padding
-    fontSize: "14px", // Adjust font size
-    color:'grey'
-  }}
->
-  <option value="" disabled>
-    Filter by Status
-  </option>
-  <option value="">All</option>
-  <option value="Pending">Pending</option>
-  <option value="Accepted">Accepted</option>
-  <option value="Rejected">Rejected</option>
-</select>
+    <div style={{ position: 'relative', width: '280px' }}>
+      <div 
+        style={{
+          position: 'absolute',
+          left: '10px',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          color: selectedStatus ? 'black' : 'grey',
+          pointerEvents: 'none', // Prevent clicking on the placeholder
+          fontSize: '14px'
+        }}
+      >
+        {selectedStatus.length > 0 ? selectedStatus : 'Filter by Status'}
+      </div>
+      <select
+        className={s.customSelect}
+        onChange={event => setSelectedStatus(event.target.value)}
+        defaultValue=""
+        style={{
+          width: "100%", // Adjust width to fit the container
+          height: "35px",
+          fontSize: "14px",
+          color: 'grey', // Text color when selected
+          appearance: 'none', // Remove default arrow
+          background: 'white', // Set background to white for visibility
+          border: 'none', // Set a light border
+          borderRadius: '4px', // Rounded corners
+          paddingLeft: '10px', // Add space for placeholder
+          paddingRight: '30px', // Space for the arrow
+        }}
+      >
+        <option value="" disabled hidden></option>
+        <option value="" style={{ color: 'black' }}>All</option>
+        <option value="Accepted" style={{ color: 'black' }}>Accepted</option>
+        <option value="Pending" style={{ color: 'black' }}>Pending</option>
+        <option value="Rejected" style={{ color: 'black' }}>Rejected</option>
+      </select>
+      <div className={s.customArrow} style={{ 
+        position: 'absolute', 
+        top: '50%', 
+        right: '10px', 
+        transform: 'translateY(-50%)',
+        color: '#1c7a50', // Arrow color
+        fontSize: '14px' // Adjust size if needed
+      }}>
+        ▼
+      </div>
+    </div>
   </div>
 </div>
 <div
