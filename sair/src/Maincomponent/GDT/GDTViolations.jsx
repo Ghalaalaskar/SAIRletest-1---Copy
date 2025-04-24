@@ -293,8 +293,18 @@ const options = [
 
     const matchesSearchQuery = driverName.toLowerCase().includes(searchQuery.toLowerCase()) ||
                                licensePlate.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesSearchDate = formattedSearchDate ? violationDate === formattedSearchDate : true;
 
+    
+    const violationDateObj = violation.time ? new Date(violation.time * 1000) : null;
+    const searchDateObj = searchDate ? new Date(searchDate) : null;
+    
+    const matchesSearchDate = !searchDateObj || (
+      searchDateObj.getDate() === 1
+        ? (violationDateObj?.getMonth() === searchDateObj.getMonth() &&
+          violationDateObj?.getFullYear() === searchDateObj.getFullYear())
+        : (violationDateObj?.toDateString() === searchDateObj.toDateString())
+    );
+    
     const matchesTypeFilter = filters.type.length === 0 ||
       (filters.type.includes("Reckless Violations") && violation.isReckless) ||
       (filters.type.includes("Regular Violations") && !violation.isReckless);
@@ -546,11 +556,13 @@ const paginatedViolations = filteredViolations.slice((currentPage - 1) * pageSiz
                 </div>
                 </div>
               </div>
+              
+{!date && (
               <div
   className={s.searchContainerdate}
   style={{ position: "relative" }}
 >
-  <div>
+    <div>
     {/* Conditional rendering for the green circle with tick */}
     {searchDate && (
       <div style={{
@@ -642,6 +654,7 @@ const paginatedViolations = filteredViolations.slice((currentPage - 1) * pageSiz
     />
   </div>
 </div>
+)}
             </div>
             
             {company && company !== "all" && (
@@ -698,7 +711,7 @@ const paginatedViolations = filteredViolations.slice((currentPage - 1) * pageSiz
   flexWrap: 'wrap', // handles small screens
 }}>
   {/* Left side: Go Back + View Reckless Drivers */}
-  <div style={{ display: 'flex', gap: '12px' }}>
+  <div style={{ display: 'flex', gap: '12px', marginBottom: "20px"}}>
     {company && (
       <Button
         onClick={goBack}
@@ -736,7 +749,7 @@ const paginatedViolations = filteredViolations.slice((currentPage - 1) * pageSiz
     total={filteredViolations.length}
     pageSize={5}
     onChange={handlePageChange}
-    // style={{ marginLeft: '20px' }} // Add margin for spacing
+    style={{ margin: '-30px 0 0 0' }}
   />
 </div>
 

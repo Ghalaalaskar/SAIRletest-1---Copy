@@ -1343,7 +1343,7 @@ const CrashList = () => {
               defaultCurrent={1}
               total={filteredCrashes.length}
               pageSize={5}
-              style={{ marginLeft: "auto" }}
+              style={{ margin: '-25px 0 0 0' }}
             />
               )}
           </div>

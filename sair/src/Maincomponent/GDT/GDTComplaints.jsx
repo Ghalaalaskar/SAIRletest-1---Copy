@@ -1187,6 +1187,7 @@ const paginatedViolations = filteredComplaints.slice((currentPage - 1) * pageSiz
                   fontSize: "15px",
                   color: "#059855",
                   borderColor: "#059855",
+                  marginBottom: "20px"
                 }}
               >
                 <ArrowLeftOutlined style={{ marginRight: "8px" }} />
@@ -1200,7 +1201,7 @@ const paginatedViolations = filteredComplaints.slice((currentPage - 1) * pageSiz
              total={filteredComplaints.length}
              pageSize={5}
              onChange={handlePageChange}
-             style={{ marginLeft: "auto" }}
+             style={{ marginLeft: "auto", marginBottom: "20px" }}
            /> 
             )}
           </div>

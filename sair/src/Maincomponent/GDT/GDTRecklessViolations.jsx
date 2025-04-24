@@ -434,22 +434,7 @@ const paginatedViolations = filteredViolations.slice((currentPage - 1) * pageSiz
         <div>
           <div className={s.container}>
             <div className={s.searchHeader}>
-            <h2 className={s.title}>
-                {company ? "Violation Reports" : "Violations List"}{" "}
-                {company && (
-                  <>
-                    from{" "}
-                    <span
-                      className={s.gdtName}
-                      style={{ textDecoration: "underline", cursor: "pointer" }}
-                      onClick={handleShowPopupCompany}
-                    >
-                      {companyInfo.ShortName}
-                    </span>{" "}
-                    Drivers
-                  </>
-                )}
-              </h2>
+            <h2 className={s.title}>Violations List</h2>
               <div className={s.searchContainer}>
                 <svg
                   aria-hidden="true"
@@ -660,6 +645,24 @@ const paginatedViolations = filteredViolations.slice((currentPage - 1) * pageSiz
 </div>
             </div>
           </div>
+
+          {company &&  (
+            <h3 className={s.subtitleDashboard}>
+              <>
+                Reckless Violation Reports from{" "}
+                <span
+                  className={s.gdtName}
+                  style={{ textDecoration: "underline", cursor: "pointer" }}
+                  onClick={handleShowPopupCompany}
+                >
+                  {companyInfo.ShortName}
+                </span>{" "}
+                Drivers
+                {type === "50" && <> of Type 2 (exceeded the speed limit by 50km/h)</>}
+                {type === "30" && <> of Type 1 (exceeded the speed limit by 30km/h)</>}
+              </>
+            </h3>
+          )}
 <Table
   columns={columns}
   dataSource={paginatedViolations}
