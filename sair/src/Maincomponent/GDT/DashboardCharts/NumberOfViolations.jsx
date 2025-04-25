@@ -20,6 +20,7 @@ const CustomDot = ({
   cy,
   payload,
   dateType,
+  offset,
   selectedYear,
   companyName,
   setWarningVisible,
@@ -30,12 +31,24 @@ const CustomDot = ({
   const handleClick = () => {
     const violationCount = payload.count;
 
-    const fullDate =
-      dateType === "week"
-        ? new Date(`${payload.date} ${selectedYear}`).toLocaleDateString(
-            "en-CA"
-          ) // YYYY-MM-DD
-        : `${payload.date}-${selectedYear}`; // Example: April-2025
+    let fullDate;
+  
+    if (dateType === "week") {
+      // Parse the payload.date (like "25 April") and determine the real year from offset
+      const [day, month] = payload.date.split(" ");
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+  
+      const endDate = new Date(today);
+      endDate.setDate(today.getDate() - 7 * offset);
+      const startDate = new Date(endDate);
+      startDate.setDate(endDate.getDate() - 6);
+  
+      const constructedDate = new Date(`${month} ${day}, ${startDate.getFullYear()}`);
+      fullDate = constructedDate.toLocaleDateString("en-CA");
+    } else {
+      fullDate = `${payload.date}-${selectedYear}`;
+    }
 
     if (violationCount === 0) {
       setWarningDate(fullDate); // Set the warning date
@@ -504,6 +517,7 @@ const NumberofViolations = ({ dateType, companyName }) => {
             dot={
               <CustomDot
                 dateType={dateType}
+                offset={offset}
                 selectedYear={selectedYear}
                 companyName={fullCompanyName}
                 setWarningVisible={setWarningVisible}
