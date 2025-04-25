@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { db } from "../../../firebase";
-import { collection, getDocs,query,where } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import {
   BarChart,
   Bar,
@@ -14,7 +14,7 @@ import {
   Cell,
 } from "recharts";
 import { useNavigate } from "react-router-dom";
-
+import { Button } from "antd";
 const COLORS = [
   "#2E7D32",
   "#4CAF50",
@@ -32,6 +32,20 @@ const TotalViolation = () => {
   const [data, setData] = useState([]);
   const [totalViolation, setTotalViolation] = useState(0);
   const navigate = useNavigate();
+  const [startIndex, setStartIndex] = useState(0); // Track the start index for pagination
+  const visibleCount = 5; // Number of items to display
+
+  const handlePrev = () => {
+    setStartIndex((prev) => Math.max(0, prev - visibleCount));
+  };
+
+  const handleNext = () => {
+    setStartIndex((prev) =>
+      Math.min(data.length - visibleCount, prev + visibleCount)
+    );
+  };
+
+  const visibleData = data.slice(startIndex, startIndex + visibleCount); // Get the currently visible data
 
   useEffect(() => {
     const fetchData = async () => {
@@ -110,29 +124,29 @@ const TotalViolation = () => {
           }
         });
 
-           // Dummy data for testing
-           const dummyDrivers = [
-     
-          ];
-  
-          dummyDrivers.forEach(({ CompanyName }) => {
-            if (CompanyName) {
-              companyMap.set(CompanyName, (companyMap.get(CompanyName) || 0) + 1);
-            }
-          });
-          //end of Dummy
+        // Dummy data for testing
+        const dummyDrivers = [];
 
-        // Step 5: Prepare final chart data with ShortCompanyName
-        const chartData = Array.from(companyMap, ([companyName, value]) => ({
-          name: capitalizeFirstLetter(
-            employerMap.get(companyName) || companyName
-          ),
-          value,
-          companyName,
-        }));
+        dummyDrivers.forEach(({ CompanyName }) => {
+          if (CompanyName) {
+            companyMap.set(CompanyName, (companyMap.get(CompanyName) || 0) + 1);
+          }
+        });
+        //end of Dummy
+
+        // Step 5: Ensure all employers are included, even if they have 0 complaints
+        const chartData = Array.from(employerMap.entries()).map(
+          ([companyName, shortName]) => ({
+            name: capitalizeFirstLetter(shortName),
+            value: companyMap.get(companyName) || 0,
+            companyName,
+          })
+        );
 
         console.log("Final Chart Data:", chartData);
-        setTotalViolation(chartData.reduce((sum, entry) => sum + entry.value, 0)); // Calculate total count
+        setTotalViolation(
+          chartData.reduce((sum, entry) => sum + entry.value, 0)
+        ); // Calculate total count
         setData(chartData);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -145,42 +159,103 @@ const TotalViolation = () => {
   return (
     <div style={{ width: "100%", height: "400px", position: "relative" }}>
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data}   width={data.length * 150} margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+        <BarChart
+          data={visibleData}
+          width={visibleData.length * 150}
+          margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
           onClick={(state) => {
             const company = state?.activePayload?.[0]?.payload?.companyName;
             if (company) {
               navigate(`/gdtviolations/${encodeURIComponent(company)}`);
             }
-          }}>
-          <CartesianGrid strokeDasharray="3 3" />
-            
-        {/* X Axis in the middle */}
-        <XAxis 
-          dataKey="name" 
-          tick={{ dy: 10 }} 
-          label={{
-            value: "Delivery Companies",
-            position: "insideBottom",
-            dy: 25,
           }}
-        />
-        
-          <YAxis allowDecimals={false}  label={{
-            value: "Number of Violations",
-            angle: -90,
-            position: "middle",
-            dx: -20,
-          }}/>
+        >
+          <CartesianGrid strokeDasharray="3 3" />
+
+          {/* X Axis in the middle */}
+          <XAxis
+            dataKey="name"
+            tick={{ dy: 10 }}
+            label={{
+              value: "Delivery Companies",
+              position: "insideBottom",
+              dy: 25,
+            }}
+          />
+
+          <YAxis
+            allowDecimals={false}
+            label={{
+              value: "Number of Violations",
+              angle: -90,
+              position: "middle",
+              dx: -20,
+            }}
+          />
           <Tooltip />
-          <Bar dataKey="value" fill="#4CAF50"  name="Number of Violations" barSize={50} 
-            style={{ cursor: "pointer" }}>
+          <Bar
+            dataKey="value"
+            fill="#4CAF50"
+            name="Number of Violations"
+            barSize={50}
+            style={{ cursor: "pointer" }}
+          >
             {data.map((_, index) => (
               <rect key={`bar-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}
           </Bar>
         </BarChart>
       </ResponsiveContainer>
-
+      {data.length > 0 && (
+        <div style={{ position: "relative" }}>
+          <Button
+            onClick={handlePrev}
+            disabled={startIndex === 0}
+            style={{
+              position: "absolute",
+              left: "10px",
+              bottom: "0px",
+              fontSize: "20px",
+              backgroundColor: "white",
+              color: "black",
+              width: "45px",
+              height: "45px",
+              border: "1px solid #e7eae8",
+              borderRadius: "8px",
+              opacity: startIndex === 0 ? 0.5 : 1,
+              backgroundColor: startIndex === 0 ? "#edeceb " : "white",
+              cursor: startIndex === 0 ? "not-allowed" : "pointer",
+            }}
+          >
+            ←
+          </Button>
+          <Button
+            onClick={handleNext}
+            disabled={startIndex + visibleCount >= data.length}
+            style={{
+              position: "absolute",
+              right: "10px",
+              bottom: "0",
+              fontSize: "20px",
+              backgroundColor: "white",
+              color: "black",
+              width: "45px",
+              height: "45px",
+              border: "1px solid #e7eae8",
+              borderRadius: "8px",
+              opacity: startIndex + visibleCount >= data.length ? 0.5 : 1,
+              backgroundColor:
+                startIndex + visibleCount >= data.length ? "#edeceb " : "white",
+              cursor:
+                startIndex + visibleCount >= data.length
+                  ? "not-allowed"
+                  : "pointer",
+            }}
+          >
+            →
+          </Button>
+        </div>
+      )}
       {/* Total Violationa Display */}
       <div
         style={{

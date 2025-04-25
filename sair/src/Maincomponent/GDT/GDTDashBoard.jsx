@@ -229,6 +229,7 @@ const GDTDashBoard = () => {
   useEffect(() => {
     fetchViolationData();
     fetchCrashData();
+    fetchComplaintsData();
   }, []);
 
   //To calculate the precentage
@@ -552,8 +553,8 @@ const GDTDashBoard = () => {
             <span
               style={{
                 position: "absolute",
-                bottom: "0",
-                right: "0",
+                top: "-15px",
+                left: "0",
                 display: "flex",
                 alignItems: "center",
                 gap: "4px",
@@ -587,8 +588,8 @@ const GDTDashBoard = () => {
             <span
               style={{
                 position: "absolute",
-                bottom: "0",
-                right: "0",
+                top: "-15px",
+                left: "0",
                 display: "flex",
                 alignItems: "center",
                 gap: "4px",
@@ -618,8 +619,8 @@ const GDTDashBoard = () => {
             <span
               style={{
                 position: "absolute",
-                bottom: "0",
-                right: "0",
+                top: "-15px",
+                left: "0",
                 display: "flex",
                 alignItems: "center",
                 gap: "4px",
