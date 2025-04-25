@@ -143,6 +143,14 @@ const TotalViolation = () => {
           })
         );
 
+        
+        chartData.sort((a, b) => {
+          if (b.value === a.value) {
+            return a.name.localeCompare(b.name); // Sort alphabetically if complaints are the same
+          }
+          return b.value - a.value; // Sort by total complaints (descending)
+        });
+
         console.log("Final Chart Data:", chartData);
         setTotalViolation(
           chartData.reduce((sum, entry) => sum + entry.value, 0)

@@ -142,12 +142,21 @@ const RecklessViolation = () => {
 
         let chartData = Array.from(employerMap, ([companyName, shortName]) => {
           const counts = companyMap.get(companyName) || { count30: 0, count50: 0 };
+          const totalViolations = counts.count30 + counts.count50;
           return {
             name: capitalizeFirstLetter(shortName),
             count30: counts.count30,
             count50: counts.count50,
-            companyName,
+            totalViolations,
           };
+        });
+
+        // Sort x axis
+        chartData.sort((a, b) => {
+          if (b.totalViolations === a.totalViolations) {
+            return a.name.localeCompare(b.name); // Sort alphabetically by company name if violations are the same
+          }
+          return b.totalViolations - a.totalViolations; // Sort by total violations (descending)
         });
         
 
