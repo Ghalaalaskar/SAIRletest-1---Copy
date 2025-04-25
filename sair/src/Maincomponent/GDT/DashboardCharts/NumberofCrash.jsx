@@ -12,6 +12,66 @@ import {
   CartesianGrid,
   Tooltip,
 } from "recharts";
+import { useNavigate } from "react-router-dom";
+import { Modal } from "antd";
+
+const CustomDot = ({
+  cx,
+  cy,
+  payload,
+  dateType,
+  selectedYear,
+  companyName,
+  setWarningVisible,
+  setWarningDate,
+}) => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    const violationCount = payload.count;
+
+    const fullDate =
+      dateType === "week"
+        ? new Date(`${payload.date} ${selectedYear}`).toLocaleDateString(
+            "en-CA"
+          ) // YYYY-MM-DD
+        : `${payload.date}-${selectedYear}`; // Example: April-2025
+
+    if (violationCount === 0) {
+      setWarningDate(fullDate); // Set the warning date
+      setWarningVisible(true); // Show the modal
+      return;
+    }
+
+    const companyParam =
+      companyName === "All" ? "all" : encodeURIComponent(companyName);
+    const dateParam = encodeURIComponent(fullDate);
+
+    navigate(`/GDTViolations/${companyParam}/${dateParam}`);
+  };
+
+  return (
+    <g>
+      <circle
+        cx={cx}
+        cy={cy}
+        r={12}
+        fill="transparent"
+        onClick={handleClick}
+        style={{ cursor: "pointer" }}
+      />
+      <circle
+        cx={cx}
+        cy={cy}
+        r={5}
+        fill="#82ca9d"
+        stroke="black"
+        strokeWidth={1}
+        pointerEvents="none"
+      />
+    </g>
+  );
+};
 
 const NumberofCrashes = ({ dateType, companyName }) => {
   const [data, setData] = useState([]);
@@ -19,6 +79,10 @@ const NumberofCrashes = ({ dateType, companyName }) => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [isYearOpen, setIsYearOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const shortToFullCompanyMapRef = useRef(new Map());
+  const [WarningVisible, setWarningVisible] = useState(false);
+  const [warningDate, setWarningDate] = useState(""); // To store date for the modal
+
   useEffect(() => {
     if (dateType !== "week") {
       setSelectedYear(new Date().getFullYear()); // Reset to current year when not in "week" mode
@@ -72,13 +136,16 @@ const NumberofCrashes = ({ dateType, companyName }) => {
         // Fetch all employers to map CompanyName to ShortCompanyName
         const employerSnapshot = await getDocs(collection(db, "Employer"));
         const employerMap = new Map();
+        const shortToFullCompanyMap = new Map(); // CompanyName
 
         employerSnapshot.forEach((doc) => {
           const { CompanyName, ShortCompanyName } = doc.data();
           if (CompanyName && ShortCompanyName) {
             employerMap.set(CompanyName, ShortCompanyName);
+            shortToFullCompanyMap.set(ShortCompanyName, CompanyName);
           }
         });
+        shortToFullCompanyMapRef.current = shortToFullCompanyMap;
 
         const CrashesMap = new Map();
         const today = new Date();
@@ -201,6 +268,12 @@ const NumberofCrashes = ({ dateType, companyName }) => {
 
     fetchCrashes(); // Fetch Crashes data
   }, [dateType, companyName, offset, selectedYear]);
+
+  
+  const fullCompanyName =
+    companyName === "All"
+      ? "All"
+      : shortToFullCompanyMapRef.current.get(companyName) || companyName;
 
   // Sync offset with selectedYear
   useEffect(() => {
@@ -368,6 +441,28 @@ const NumberofCrashes = ({ dateType, companyName }) => {
         </div>
       )}
 
+      
+      {/* Noviolation is empty */}
+      <Modal
+        title="Warning"
+        visible={WarningVisible}
+        onCancel={() => setWarningVisible(false)}
+        centered
+        footer={[]}
+        closeIcon={<span className="custom-modal-close-icon">×</span>}
+      >
+        <p>
+          No crashes were reported on <strong>{warningDate}</strong>
+          {companyName !== "All" && (
+            <>
+              {" "}
+              for <strong>{companyName}</strong>
+            </>
+          )}
+          .
+        </p>
+      </Modal>
+
       {/* Chart Component */}
       <ResponsiveContainer width="100%" height="100%">
         <LineChart
@@ -404,7 +499,20 @@ const NumberofCrashes = ({ dateType, companyName }) => {
           />
           <CartesianGrid strokeDasharray="3 3" />
           <Tooltip />
-          <Line type="monotone" dataKey="count" stroke="#82ca9d" dot={true} />
+          <Line 
+          type="monotone"
+          dataKey="count"
+          stroke="#82ca9d"
+          dot={
+            <CustomDot
+              dateType={dateType}
+              selectedYear={selectedYear}
+              companyName={fullCompanyName}
+              setWarningVisible={setWarningVisible}
+              setWarningDate={setWarningDate}
+            />
+          }
+          />
         </LineChart>
       </ResponsiveContainer>
     </div>

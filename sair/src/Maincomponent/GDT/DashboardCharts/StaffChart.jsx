@@ -81,6 +81,11 @@ const StaffChart = () => {
   const [startIndex, setStartIndex] = useState(0); // Track the start index for pagination
   const visibleCount = 5; // Number of items to display
 
+  // Function to capitalize the first letter of a string
+  const capitalizeFirstLetter = (string) => {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  };
+
   useEffect(() => {
     const fetchResponse = async () => {
       try {
@@ -125,7 +130,7 @@ const StaffChart = () => {
         const allStaffData = gdtSnapshot.docs.map((doc) => {
           const data = doc.data();
           const GDTID = data.ID;
-          const FirstName = data.Fname || "";
+          const FirstName = capitalizeFirstLetter(data.Fname || "");
         
           const counts = StaffCounts.get(GDTID) || { countCrash: 0, countComplaint: 0 };
         
@@ -136,7 +141,17 @@ const StaffChart = () => {
             Complaint: counts.countComplaint,
           };
         });
+        // Sort x axis
+        allStaffData.sort((a, b) => {
+          const totalA = a.Crash + a.Complaint;
+          const totalB = b.Crash + b.Complaint;
         
+          if (totalB === totalA) {
+            return a.FirstName.localeCompare(b.FirstName); // Alphabetical order for equal totals
+          }
+        
+          return totalB - totalA; // Highest total first
+        });        
         setData(allStaffData);
         
       } catch (error) {

@@ -142,6 +142,14 @@ const TotalComplaints = () => {
         setTotalCompalints(
           chartData.reduce((sum, entry) => sum + entry.value, 0)
         ); // Calculate total count
+
+        chartData.sort((a, b) => {
+          if (b.value === a.value) {
+            return a.name.localeCompare(b.name); // Sort alphabetically if complaints are the same
+          }
+          return b.value - a.value; // Sort by total complaints (descending)
+        });
+        
         setData(chartData);
       } catch (error) {
         console.error("Error fetching data:", error);

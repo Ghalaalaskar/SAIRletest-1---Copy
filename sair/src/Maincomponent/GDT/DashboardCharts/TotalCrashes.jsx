@@ -121,6 +121,7 @@ const TotalCrash = () => {
             employerMap.set(CompanyName, ShortCompanyName);
           }
         });
+        
         // Dummy data for testing
         const dummyDrivers = [
 
@@ -141,6 +142,14 @@ const chartData = Array.from(employerMap.entries()).map(
     companyName,
   })
 );
+
+
+      chartData.sort((a, b) => {
+        if (b.value === a.value) {
+          return a.name.localeCompare(b.name); // Sort alphabetically if complaints are the same
+        }
+        return b.value - a.value; // Sort by total complaints (descending)
+      });
         console.log("Final Chart Data:", chartData);
         setTotalCrash(chartData.reduce((sum, entry) => sum + entry.value, 0)); // Calculate total count
         setData(chartData);
