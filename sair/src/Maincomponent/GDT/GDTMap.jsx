@@ -36,7 +36,7 @@ const staticMotorcycleData = [
     phoneNumber: '+966512345678',
     shortCompanyName: 'Jahez',
     Type: 'T4A',
-    LicensePlate: 'XYZ 123',
+    LicensePlate: '123 XYZ',
     status: 'Active',
   },
   {
@@ -49,7 +49,7 @@ const staticMotorcycleData = [
     phoneNumber: '+966512345679',
     shortCompanyName: 'Hungerstation',
     Type: 'A3',
-    LicensePlate: 'XYZ 124',
+    LicensePlate: '124 XYZ',
     status: 'Inactive',
   },
   {
@@ -62,7 +62,7 @@ const staticMotorcycleData = [
     phoneNumber: '+966512345680',
     shortCompanyName: 'Jahez',
     Type: 'VX',
-    LicensePlate: 'XYZ 125',
+    LicensePlate: '125 XYZ',
     status: 'Active',
   },
   {
@@ -75,7 +75,7 @@ const staticMotorcycleData = [
     phoneNumber: '+966512345681',
     shortCompanyName: 'Hungerstation',
     Type: '6XX',
-    LicensePlate: 'XYZ 126',
+    LicensePlate: '126 XYZ',
     status: 'Inactive',
   },
   {
@@ -88,7 +88,7 @@ const staticMotorcycleData = [
     phoneNumber: '+966512345682',
     shortCompanyName: 'Jahez',
     Type: 'TD',
-    LicensePlate: 'XYZ 127',
+    LicensePlate: '127 XYZ',
     status: 'Active',
   },
   {
@@ -101,7 +101,7 @@ const staticMotorcycleData = [
     phoneNumber: '+966512345683',
     shortCompanyName: 'Hungerstation',
     Type: 'E',
-    LicensePlate: 'XYZ 128',
+    LicensePlate: '128 XYZ',
     status: 'Inactive',
   },
   {
@@ -114,7 +114,7 @@ const staticMotorcycleData = [
     phoneNumber: '+966512345684',
     shortCompanyName: 'Jahez',
     Type: 'CXC',
-    LicensePlate: 'XYZ 129',
+    LicensePlate: '129 XYZ',
     status: 'Active',
   },
   {
@@ -127,7 +127,7 @@ const staticMotorcycleData = [
     phoneNumber: '+966512345685',
     shortCompanyName: 'Hungerstation',
     Type: 'PO1',
-    LicensePlate: 'XYZ 130',
+    LicensePlate: '130 XYZ',
     status: 'Inactive',
   },
   {
@@ -140,7 +140,7 @@ const staticMotorcycleData = [
     phoneNumber: '+966512345686',
     shortCompanyName: 'Jahez',
     Type: 'HW',
-    LicensePlate: 'XYZ 131',
+    LicensePlate: '131 XYZ',
     status: 'Active',
   },
   {
@@ -153,7 +153,7 @@ const staticMotorcycleData = [
     phoneNumber: '+966512345687',
     shortCompanyName: 'Hungerstation',
     Type: 'T4',
-    LicensePlate: 'XYZ 132',
+    LicensePlate: '132 XYZ',
     status: 'Inactive',
   },
   {
@@ -166,7 +166,7 @@ const staticMotorcycleData = [
     phoneNumber: '+966512345688',
     shortCompanyName: 'Jahez',
     Type: 'CXC',
-    LicensePlate: 'XYZ 133',
+    LicensePlate: '133 XYZ',
     status: 'Active',
   },
 ];
