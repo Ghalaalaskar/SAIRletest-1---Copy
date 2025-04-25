@@ -70,7 +70,7 @@ const ComplaintGeneral = () => {
 
     const viewViolation = () => {
         if (violationDocId) {
-            navigate(`/gdtviolation/general/${violationDocId}`, {
+            navigate(`/violation/general/${violationDocId}`, {
               state: { from: "GDTComplaintGeneral", breadcrumbParam: "From Complaint" },
             });
           } else {

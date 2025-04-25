@@ -87,6 +87,21 @@ const GDTComplaintGeneral = () => {
                 collection(db, "GDT"),
                 where("ID", "==", complaintData.RespondedBy)
               );
+
+              const violationQuery = query(
+                                      collection(db, "Violation"),
+                                      where("violationID", "==", complaintData.ViolationID) // Querying by the violationID field
+                                    );
+
+              const violationSnapshot = await getDocs(violationQuery);
+                                    if (!violationSnapshot.empty) {
+                                      // Assuming there's only one document with that violationID
+                                      const violationDoc = violationSnapshot.docs[0];
+                                      setViolationDocId(violationDoc.id); // Store the document ID
+                                      console.log("Violation document found:", violationDoc.data());
+                                    } else {
+                                      console.error("Violation document not found for ID:", complaintData.ViolationID);
+                                    }
   
               const gdtSnapshot = await getDocs(gdtQuery);
               if (!gdtSnapshot.empty) {
@@ -191,14 +206,14 @@ const GDTComplaintGeneral = () => {
   };
 
   
-  const handleViewViolation = () => {
+  const viewViolation = () => {
     if (violationDocId) {
-      navigate(`/gdtviolation/general/${violationDocId}`, {
-        state: { from: "GDTComplaintGeneral", breadcrumbParam: "From Complaint" },
-      });
-    } else {
-      console.error("No violation document ID found.");
-    }
+        navigate(`/gdtviolation/general/${violationDocId}`, {
+          state: { from: "GDTComplaintGeneral", breadcrumbParam: "From Complaint" },
+        });
+      } else {
+        console.error("No violation document ID found.");
+      }
   };
 
   const handleShowPopupStaff = () => {
@@ -1359,8 +1374,7 @@ const GDTComplaintGeneral = () => {
               </Button>
               {/* View Violation Button */}
               <Button
-                onClick={handleViewViolation}
-                // onClick={disableViewComplaints}
+                onClick={viewViolation}
                 style={{
                   float: "right",
                   width: "auto",
