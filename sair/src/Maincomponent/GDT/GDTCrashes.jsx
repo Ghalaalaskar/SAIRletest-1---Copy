@@ -30,6 +30,7 @@ const CrashList = () => {
   const { GDTID } = useParams();
   const [searchParams] = useSearchParams();
   const company = searchParams.get("company");
+  const date = searchParams.get("date");
 
   const [motorcycles, setMotorcycles] = useState({});
   const [crashes, setCrashes] = useState([]);
@@ -309,14 +310,24 @@ const CrashList = () => {
         ? new Date(crash.time * 1000).toISOString().split("T")[0]
         : "";
 
-      const matchesSearchDate = searchDate ? crashDate === searchDate : true;
+      //const matchesSearchDate = searchDate ? crashDate === searchDate : true;
+      const crashDateObj = crash.time ? new Date(crash.time * 1000) : null;
+      const searchDateObj = searchDate ? new Date(searchDate) : null;
+      
+      const matchesSearchDate = !searchDateObj || (
+        searchDateObj.getDate() === 1
+          ? (crashDateObj?.getMonth() === searchDateObj.getMonth() &&
+            crashDateObj?.getFullYear() === searchDateObj.getFullYear())
+          : (crashDateObj?.toDateString() === searchDateObj.toDateString())
+      );
 
       const driverId = crash.driverID;
       const licensePlate = motorcycles[crash.crashID] || " ";
       
-      const matchesCompany = company
-      ? drivers[crash.driverID]?.companyName === company
-      : true;
+      const matchesCompany =
+      company && company !== "all"
+        ? drivers[crash.driverID]?.companyName === company
+        : true;   
 
       const matchesSearchQuery =
         driverId.includes(searchQuery) ||
@@ -406,6 +417,12 @@ const CrashList = () => {
     };
     companyName();
   }, [company]);
+
+  useEffect(() => {
+    if (date) {
+      setSearchDate(date);
+    }
+  }, [date]);
   
 
   const handleConfirmResponse = (record) => {
@@ -700,6 +717,7 @@ const CrashList = () => {
 </div>
                 </div>
               )}
+              {!date && (
               <div
                 className={s.searchContainerdate}
                 style={{ position: "relative" }}
@@ -800,6 +818,7 @@ const CrashList = () => {
                   />
                 </div>
               </div>
+              )}
             </div>
           </div>
             {GDTID && (
@@ -817,7 +836,7 @@ const CrashList = () => {
               </h3>
             )}
 
-          {company && !GDTID && (
+          {company && !GDTID && company !== "all" && (
             <h3 className={s.subtitleDashboard}>
             <>
               Crash Reports from{" "}
@@ -829,8 +848,26 @@ const CrashList = () => {
                 {companyInfo.ShortName}
               </span>{" "}
               Drivers
+              {date && (
+                <>
+                  {" "}on <span style={{ fontWeight: "bold" }}>{date}</span>
+                </>
+              )}
             </>
           </h3>
+          )}
+                      
+          {company == "all" && (
+            <h3 className={s.subtitleDashboard}>
+              <>
+              Crash Reports{" "}
+                {date && (
+                  <>
+                    {" "}on <span style={{ fontWeight: "bold" }}>{date}</span>
+                  </>
+                )}
+              </>
+            </h3>
           )}
 
           <Modal

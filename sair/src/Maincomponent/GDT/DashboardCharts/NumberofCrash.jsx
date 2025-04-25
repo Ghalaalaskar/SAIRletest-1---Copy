@@ -47,7 +47,7 @@ const CustomDot = ({
       companyName === "All" ? "all" : encodeURIComponent(companyName);
     const dateParam = encodeURIComponent(fullDate);
 
-    navigate(`/GDTViolations/${companyParam}/${dateParam}`);
+    navigate(`/GDTCrashes?company=${companyParam}&date=${dateParam}`);
   };
 
   return (
@@ -442,7 +442,7 @@ const NumberofCrashes = ({ dateType, companyName }) => {
       )}
 
       
-      {/* Noviolation is empty */}
+      {/* Crash is empty */}
       <Modal
         title="Warning"
         visible={WarningVisible}
