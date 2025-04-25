@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { db, auth } from '../firebase';
+import jsPDF from 'jspdf';
+import { DownloadOutlined } from '@ant-design/icons';
+import { Tooltip } from 'antd';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   collection, doc, onSnapshot, deleteDoc, query, where, getDoc, getDocs, updateDoc
@@ -13,7 +16,7 @@ import { SearchOutlined, UsergroupAddOutlined } from '@ant-design/icons';
 import { Button, Table, Modal } from 'antd';
 import Header from './Header';
 import '../css/CustomModal.css';
-
+import SAIRLogo from '../images/SAIRlogo.png';
 import s from "../css/DriverList.module.css";
 
 const DriverList = () => {
@@ -109,7 +112,179 @@ const DriverList = () => {
         </div>
       ),
     },
+    {
+      title: 'Report',
+      key: 'Report',
+      align: 'center',
+      render: (text, record) => (
+        <Tooltip title="Download Report">
+          <DownloadOutlined 
+            onClick={() => generatePDF(record)} 
+            style={{ cursor: 'pointer', fontSize: '20px', color:'#059855' }} 
+          />
+        </Tooltip>
+      ),
+    }
   ];
+
+  const generatePDF = async (driver) => {
+    try {
+      // Fetch full driver details
+      const driverDoc = await getDoc(doc(db, 'Driver', driver.id));
+      if (!driverDoc.exists()) {
+        console.error("Driver not found");
+        return;
+      }
+  
+      const driverData = driverDoc.data();
+      const motorcycles = await fetchMotorcycles(driverData.GPSnumber);
+  
+      // Fetch employer details
+      const employerDoc = await getDoc(doc(db, 'Employer', employerUID));
+      const shortCompanyName = employerDoc.exists() ? employerDoc.data().ShortCompanyName : '';
+      
+      // Company details
+      const companyDetails = employerDoc.exists() ? {
+        email: employerDoc.data().CompanyEmail,
+        name: employerDoc.data().CompanyName, // This should be in Arabic
+        phone: employerDoc.data().PhoneNumber,
+        commercialNumber: employerDoc.data().commercialNumber,
+      } : {};
+  
+      const pdfDoc = new jsPDF();
+      pdfDoc.setFont('Amiri', 'normal'); // Set the Amiri font
+  
+      // Add SAIR logo
+      const logoImg = new Image();
+      logoImg.src = SAIRLogo; 
+      logoImg.onload = () => {
+        pdfDoc.addImage(logoImg, 'PNG', 10, 10, 50, 20); // Adjust size and position
+  
+        // Add employer company name
+        pdfDoc.setFontSize(18);
+        pdfDoc.text(shortCompanyName, 160, 22); 
+  
+        // Add title
+        pdfDoc.setFontSize(16);
+        pdfDoc.setTextColor("#059855");
+        pdfDoc.setFont('Times', 'bold');
+        pdfDoc.text('Driver Details', 10, 50);
+        pdfDoc.setTextColor("#000000");
+        pdfDoc.setFont('Amiri', 'normal');
+  
+        // Set the starting position for details
+        let currentY = 60;
+        const details = [
+          `Driver Name: ${driverData.Fname} ${driverData.Lname}`,
+          `Driver ID: ${driverData.DriverID}`,
+          `Phone Number: ${driverData.PhoneNumber}`,
+          `Email: ${driverData.Email}`,
+        ];
+  
+        details.forEach(line => {
+          const [label, value] = line.split(': ');
+          pdfDoc.setFont('Times', 'bold');
+          pdfDoc.setTextColor("#059855");
+          pdfDoc.text(`${label}:`, 20, currentY);
+          pdfDoc.setFont('Amiri', 'normal');
+          pdfDoc.setTextColor("#000000");
+          pdfDoc.text(value, 80, currentY);
+          currentY += 10;
+        });
+  
+        // Add a horizontal line after driver details
+        pdfDoc.setDrawColor('green');
+        pdfDoc.line(10, 100, 200, 100);
+        currentY += 10;
+  
+        // Add motorcycle details
+        pdfDoc.setFontSize(16);
+        pdfDoc.setTextColor("#059855");
+        pdfDoc.setFont('Times', 'bold');
+        pdfDoc.text('Motorcycle Details', 10, currentY + 10);
+        pdfDoc.setTextColor("#000000");
+        pdfDoc.setFont('Amiri', 'normal');
+  
+        currentY += 20;
+        if (motorcycles.length > 0) {
+          motorcycles.forEach(motorcycle => {
+            const motorcycleDetails = [
+              `Motorcycle ID: ${motorcycle.MotorcycleID}`,
+              `Type: ${motorcycle.Type}`,
+              `Brand: ${motorcycle.Brand}`,
+              `Model: ${motorcycle.Model}`,
+              `GPS Number: ${motorcycle.GPSnumber}`,
+              `License Plate: ${motorcycle.LicensePlate}`,
+            ];
+  
+            motorcycleDetails.forEach(detail => {
+              const [label, value] = detail.split(': ');
+              pdfDoc.setFont('Times', 'bold');
+              pdfDoc.setTextColor("#059855");
+              pdfDoc.text(`${label}:`, 20, currentY);
+              pdfDoc.setFont('Amiri', 'normal');
+              pdfDoc.setTextColor("#000000");
+              pdfDoc.text(value, 80, currentY);
+              currentY += 10;
+            });
+  
+            currentY += 10; // Extra space before the next motorcycle
+          });
+        } else {
+          pdfDoc.text('No motorcycles associated with this driver.', 10, currentY);
+        }
+  
+        // Add Company Details
+        currentY += 20;
+        pdfDoc.setFontSize(16);
+        pdfDoc.setTextColor("#059855");
+        pdfDoc.setFont('Times', 'bold');
+        pdfDoc.text('Company Details', 10, currentY);
+        pdfDoc.setTextColor("#000000");
+        pdfDoc.setFont('Amiri', 'normal');
+  
+        currentY += 10;
+        const companyDetailsArr = [
+          `Company Name: ${companyDetails.name || 'N/A'}`,
+          `Email: ${companyDetails.email || 'N/A'}`,
+          `Phone Number: ${companyDetails.phone || 'N/A'}`,
+          `Commercial Number: ${companyDetails.commercialNumber || 'N/A'}`,
+        ];
+  
+        companyDetailsArr.forEach(line => {
+          const [label, value] = line.split(': ');
+          pdfDoc.setFont('Times', 'bold');
+          pdfDoc.setTextColor("#059855");
+          pdfDoc.text(`${label}:`, 20, currentY);
+          pdfDoc.setFont('Amiri', 'normal');
+          pdfDoc.setTextColor("#000000");
+          pdfDoc.text(value, 80, currentY);
+          currentY += 10;
+        });
+  
+        // Footer
+        currentY += 20;
+        pdfDoc.setFont('Times', 'normal');
+        pdfDoc.setFontSize(10); 
+        const footerText = 'The report is generated by: SAIR                                                                Email: sairsystemproject@gmail.com';
+        pdfDoc.text(footerText, 10, currentY); 
+  
+        pdfDoc.save(`Driver_Report_${driverData.DriverID}.pdf`);
+      };
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+    }
+  };
+
+  
+  const fetchMotorcycles = async (gpsNumber) => {
+    const motorcycleQuery = query(collection(db, 'Motorcycle'), where('GPSnumber', '==', gpsNumber));
+    const motorcycleSnapshot = await getDocs(motorcycleQuery);
+    return motorcycleSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+  };
 
   const filteredData = driverData.filter(driver => {
     const fullName = `${driver.Fname} ${driver.Lname}`.toLowerCase();
@@ -234,7 +409,9 @@ const DriverList = () => {
   return (
     <div>
       <Header active="driverslist" />
-
+      <head>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri&display=swap" rel="stylesheet" />
+</head>
       <div className="breadcrumb" style={{ marginRight: '100px' }}>
         <a onClick={() => navigate('/employer-home')}>Home</a>
         <span> / </span>
