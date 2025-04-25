@@ -158,9 +158,9 @@ const NumberofCrashes = ({ dateType, companyName }) => {
           startDate = new Date(endDate);
           startDate.setDate(endDate.getDate() - 6);
         } else {
-          const targetYear = selectedYear - offset;
-          startDate = new Date(targetYear, 0, 1);
-          endDate = new Date(targetYear, 11, 31);
+          startDate = new Date(selectedYear, 0, 1);
+          endDate = new Date(selectedYear, 11, 31);
+          
         }
 
         // Initialize the date range for the chart
