@@ -930,7 +930,7 @@ const GDTNotificationsList = () => {
         <style>
           {`
             .unread-row {
-              background-color: #d4edda !important;
+              background-color: #d0e0d0!important;
             }
           `}
         </style>
