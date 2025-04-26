@@ -260,7 +260,7 @@ input[type='date']::-webkit-calendar-picker-indicator {
   outline: none; 
 }
 .highlightRow {
-  background-color: #f0f8f0
+  background-color: #d0e0d0
 }
 
 .custom-select .ant-select-selector {
