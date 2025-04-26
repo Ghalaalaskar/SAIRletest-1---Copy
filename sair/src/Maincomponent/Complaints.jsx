@@ -18,6 +18,7 @@ const ComplaintList = () => {
   const [selectedStatus, setSelectedStatus] = useState(''); // State for selected status
   const navigate = useNavigate();
   const [searchDate, setSearchDate] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
   const employerUID = sessionStorage.getItem('employerUID');
 
@@ -109,7 +110,16 @@ const ComplaintList = () => {
     const matchesStatus = selectedStatus ? complaint.Status === selectedStatus : true;
     const matchesDate = searchDate ? complaintDate === searchDate : true;
 
-    return matchesStatus && matchesDate;
+    
+    const driverId = complaint.driverID;
+    const licensePlate = motorcycles[complaint.ViolationID] || " ";
+
+    const matchesSearchQuery =
+      driverId.includes(searchQuery) ||
+      licensePlate.toLowerCase().includes(searchQuery.toLowerCase());
+
+
+    return matchesStatus && matchesDate && matchesSearchQuery;
   });
 
 
@@ -178,6 +188,31 @@ const ComplaintList = () => {
           <div className={s.searchHeader}>
             <h2 className={s.title}>Complaints List</h2>
             <div className={s.searchInputs}>
+              <div className={s.searchContainer}>
+                <svg
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke="#059855"
+                    strokeLinecap="round"
+                    strokeWidth="2"
+                    d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"
+                  />
+                </svg>
+
+                <input
+                  type="text"
+                  placeholder="Search by Driver ID or License Plate"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{ width: "235px", height: "20px" }}
+                />
+              </div>
               
   <div className={s.searchContainer}>
   <div className={s.selectWrapper}>
