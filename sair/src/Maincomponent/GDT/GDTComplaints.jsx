@@ -115,6 +115,12 @@ const GDTComplaintList = () => {
     };
 
     const fetchCompany = async (companyName) => {
+      console.log("fetchCompany called with companyName:", companyName); // Debugging line
+      if (!companyName) {
+        console.error("fetchCompany ERROR: companyName is undefined or empty!");
+        return "";
+      }
+    
       const companyQuery = query(
         collection(db, "Employer"),
         where("CompanyName", "==", companyName)
@@ -129,37 +135,33 @@ const GDTComplaintList = () => {
     };
       
     const fetchCompanyInfo = async (company) => {
+      // console.log("fetchCompanyInfo called with company:", company); // Debugging line
+      // if (!company) {
+      //   console.error("fetchCompanyInfo ERROR: company is undefined or empty!");
+      //   return { Name: "", ShortName: "", CommercialNum: "", CompanyEmail: "", PhoneNumber: "" };
+      // }
       try {
-        const companyQuery = query(collection(db, "Employer"), where("CompanyName", "==", company));
+        const companyQuery = query(
+          collection(db, "Employer"),
+          where("CompanyName", "==", company)
+        );
         const snapshot = await getDocs(companyQuery);
         if (!snapshot.empty) {
           const companyData = snapshot.docs[0].data();
           return {
-            Name: companyData.CompanyName  || "",
+            Name: companyData.CompanyName || "",
             ShortName: companyData.ShortCompanyName || "",
             CommercialNum: companyData.commercialNumber || "",
             CompanyEmail: companyData.CompanyEmail || "",
             PhoneNumber: companyData.PhoneNumber || "",
           };
         }
-        return {
-          Name: "",
-          ShortName: "",
-          CommercialNum: "",
-          CompanyEmail: "",
-          PhoneNumber: "",
-        };
+        return { Name: "", ShortName: "", CommercialNum: "", CompanyEmail: "", PhoneNumber: "" };
       } catch (error) {
-        console.error("Error fetching GDT data:", error);
-        return {
-          Name: "",
-          ShortName: "",
-          CommercialNum: "",
-          CompanyEmail: "",
-          PhoneNumber: "",
-        };
+        console.error("Error fetching company info:", error);
+        return { Name: "", ShortName: "", CommercialNum: "", CompanyEmail: "", PhoneNumber: "" };
       }
-    };
+    };    
 
     
     const companyName = async () => {
@@ -221,6 +223,11 @@ const GDTComplaintList = () => {
   }, [gdtUID]);
 
   const fetchGDTName = async (GDTID) => {
+    // console.log("fetchGDTName called with GDTID:", GDTID); // Debugging line
+    // if (!GDTID) {
+    //   console.error("fetchGDTName ERROR: GDTID is undefined or empty!");
+    //   return { Fname: "Unknown", Lname: "", ID: "", GDTEmail: "", PhoneNumber: "" };
+    // }
     try {
       const gdtQuery = query(collection(db, "GDT"), where("ID", "==", GDTID));
       const snapshot = await getDocs(gdtQuery);
@@ -232,27 +239,14 @@ const GDTComplaintList = () => {
           ID: gdtData.ID || "",
           GDTEmail: gdtData.GDTEmail || "",
           PhoneNumber: gdtData.PhoneNumber || "",
-          // Add other fields as needed
         };
       }
-      return {
-        Fname: "Unknown",
-        Lname: "",
-        ID: "",
-        GDTEmail: "",
-        PhoneNumber: "",
-      };
+      return { Fname: "Unknown", Lname: "", ID: "", GDTEmail: "", PhoneNumber: "" };
     } catch (error) {
       console.error("Error fetching GDT data:", error);
-      return {
-        Fname: "Error",
-        Lname: "",
-        ID: "",
-        GDTEmail: "",
-        PhoneNumber: "",
-      };
+      return { Fname: "Error", Lname: "", ID: "", GDTEmail: "", PhoneNumber: "" };
     }
-  };
+  };  
 
   useEffect(() => {
     const getName = async () => {
@@ -276,14 +270,18 @@ const GDTComplaintList = () => {
   };
 
   const GDTResponse = (RespondedBy, setResponseByName) => {
+    // console.log("GDTResponse called with RespondedBy:", RespondedBy); // Debugging line
+    // if (!RespondedBy) {
+    //   console.error("GDTResponse ERROR: RespondedBy is undefined or empty!");
+    //   setResponseByName("Unknown");
+    //   return;
+    // }
     try {
-      // Reference to GDT collection with filtering
       const gdtQuery = query(
         collection(db, "GDT"),
         where("ID", "==", RespondedBy)
       );
-
-      // Set up a real-time listener
+  
       const unsubscribe = onSnapshot(gdtQuery, (snapshot) => {
         if (!snapshot.empty) {
           const gdtData = snapshot.docs[0].data();
@@ -293,14 +291,13 @@ const GDTComplaintList = () => {
           setResponseByName("Unknown");
         }
       });
-
-      // Cleanup function to remove listener when component unmounts
+  
       return unsubscribe;
     } catch (error) {
       console.error("Error fetching GDT details:", error);
       setResponseByName("Error");
     }
-  };
+  };  
 
   const ResponseBy = ({ respondedBy }) => {
     const [responseByName, setResponseByName] = useState("");

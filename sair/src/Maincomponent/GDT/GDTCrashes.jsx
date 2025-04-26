@@ -208,6 +208,11 @@ const CrashList = () => {
     };
 
     const fetchCompany = async (companyName) => {
+      console.log("fetchCompany called with companyName:", companyName); // Debugging line
+      if (!companyName) {
+        console.error("fetchCompany ERROR: companyName is undefined or empty!");
+        return "";
+      }
       const companyQuery = query(
         collection(db, "Employer"),
         where("CompanyName", "==", companyName)
