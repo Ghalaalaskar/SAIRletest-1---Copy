@@ -146,7 +146,7 @@ const validateStaffMember = async (staff, index, allStaff) => {
       }
       if (dup.Email === staff.Email) {
         staffErrors.Email = true;
-        staffErrors.EmailMessage = 'Email already exists within the same file..';
+        staffErrors.EmailMessage = 'Email already exists within the same file.';
       }
       if (dup['Staff ID'] === staff['Staff ID']) {
         staffErrors.ID = true;
@@ -234,17 +234,17 @@ const validateStaffMember = async (staff, index, allStaff) => {
   };
 
   const handleBatchUploadResults = (errorList) => {
+    const successfulCount = fileData.length - errorList.length;
     if (errorList.length > 0) {
       const errorMessages = errorList.map((err) => err.message).join('\n');
-      setPopupMessage(errorMessages);
+      setPopupMessage(`${errorMessages}\n\nTotal successful additions: ${successfulCount}`);
       setPopupImage(errorImage);
-      setPopupVisible(true);
     } else {
-      setPopupMessage('All staff added successfully!');
+      setPopupMessage(`All ${successfulCount} staff added successfully!`);
       setPopupImage(successImage);
-      setPopupVisible(true);
       setTimeout(() => navigate('/gdtstafflist'), 2000);
     }
+    setPopupVisible(true);
   };
 
   const sendEmail = (email, staffName, password) => {
@@ -253,26 +253,15 @@ const validateStaffMember = async (staff, index, allStaff) => {
       to_email: email,
       generatedPassword: password,
     };
-
+  
     emailjs
-      .send(
-        'service_ltz361p',
-        'template_gd1x3q7',
-        templateParams,
-        '6NEdVNsgOnsmX-H4s'
-      )
-      .then(
-        (response) => {
-          console.log(
-            'Email sent successfully!',
-            response.status,
-            response.text
-          );
-        },
-        (error) => {
-          console.error('Failed to send email:', error);
-        }
-      );
+      .send('service_ltz361p', 'template_gd1x3q7', templateParams, '6NEdVNsgOnsmX-H4s')
+      .then((response) => {
+        console.log('Email sent successfully!', response.status, response.text);
+      })
+      .catch((error) => {
+        console.error('Failed to send email:', error);
+      });
   };
 
   const handleFileUpload = (event) => {
@@ -356,7 +345,7 @@ const validateStaffMember = async (staff, index, allStaff) => {
     const password = generateRandomPassword();
     try {
       await createUserWithEmailAndPassword(auth, Email, password);
-      await addDoc(collection(db, 'GDT'), {
+      const addedDoc = await addDoc(collection(db, 'GDT'), {
         Fname,
         Lname,
         PhoneNumber,
@@ -366,10 +355,13 @@ const validateStaffMember = async (staff, index, allStaff) => {
         isDefaultPassword: true,
       });
       sendEmail(Email, `${Fname} ${Lname}`, password);
+      // Return the added staff data along with the ID
+      return { ID: addedDoc.id, ...staff }; // Return the added document ID
     } catch (error) {
       throw error; // Re-throw the error to be caught in handleAddStaff
     }
   };
+  
 
   useEffect(() => {
     // Validate only when fileData changes
@@ -637,28 +629,16 @@ const validateStaffMember = async (staff, index, allStaff) => {
               </button>
             )}
 
-            <button
-              onClick={() => {
-                switch (true) {
-                  case true:
-
-                    validateAllFields(fileData);
-                    break;
-                  case true:
-                    handleAddStaff();
-                    break;
-                  default:
-                    break;
-                }
-              }}
-              disabled={isButtonDisabled}
-              className={s.editBtn}
-              style={{
-                marginBottom: '40px',
-              }}
-            >
-              {true ? 'Add Staff List' : 'Next'}
-            </button>
+<button
+  onClick={handleAddStaff} 
+  disabled={isButtonDisabled}
+  className={s.editBtn}
+  style={{
+    marginBottom: '40px',
+  }}
+>
+  Add Staff List
+</button>
           </div>
         )}
 
