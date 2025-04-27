@@ -251,7 +251,10 @@ const ViolationList = () => {
   
     complaintSnapshot.forEach((doc) => {
       const data = doc.data();
-      complaintMap[data.ViolationID] = data; // Map ViolationID to complaint data
+      complaintMap[data.ViolationID] = {
+        ...data,
+        id: doc.id, // Store the document ID
+      }; 
     });
   
     return complaintMap; // Return the complaint map
@@ -324,29 +327,38 @@ const ViolationList = () => {
       ),
     },
     {
-      title: "Complaint",
+      title: "Complaint Details",
       key: "complaint",
       align: "center",
       render: (text, record) => {
         const complaint = complaints[record.violationID]; // Access complaint data by ViolationID
+        console.log('Complaint Data:', complaint); // Log complaint data to check its structure
+        
         return (
           <span>
-            <FaEye
-              style={{
-                cursor: complaint ? "pointer" : "not-allowed",
-                color: complaint ? "#059855" : "grey", // Green if complaint exists, grey if not
-                opacity: complaint ? 1 : 0.5, // Slightly fade out if no complaint
-              }}
-              onClick={() => {
-                if (complaint) {
-                  navigate(`/complaint/general/${complaint.id}`);// Navigate to complaint details
-                }
-              }}
-            />
+            {complaint ? (
+              <Link to={`/complaint/general/${complaint.id}`} state={{ from: "ViolationList", violationId: record.violationID }}> {/* Use the document ID here */}
+                <FaEye
+                  style={{
+                    cursor: "pointer",
+                    color: "#059855",
+                    opacity: 1,
+                  }}
+                />
+              </Link>
+            ) : (
+              <FaEye
+                style={{
+                  cursor: "not-allowed",
+                  color: "grey",
+                  opacity: 0.5,
+                }}
+              />
+            )}
           </span>
         );
       },
-    }    
+    }
 ];
 
   

@@ -91,7 +91,9 @@ const ComplaintGeneral = () => {
     activeHeader = location.state?.previousList || 'complaints'; // Default to 'complaints' if not set
   } else if (from === 'ViolationGeneral') {
     activeHeader = 'violations';
-  } else {
+  } else if (location.state?.from === 'ViolationList') {
+    activeHeader = 'violations'; // Set active to violations if coming from ViolationList
+} else{
     activeHeader = 'complaints'; // Default case
   }
     return (
@@ -125,6 +127,13 @@ const ComplaintGeneral = () => {
                <a onClick={() => navigate(`/violation/detail/${violationId}`)}>Violation Details</a>
               <span> / </span>
               <a onClick={() => navigate(`/complaint/general/${complaintId}`)}>Complaint Details</a>
+                </>
+            )}
+            {from === 'ViolationList' && (
+                <>
+                    <a onClick={() => navigate('/violations')}>Violations List</a>
+                    <span> / </span>
+                    <a onClick={() => navigate(`/complaint/general/${complaintId}`)}>Complaint Details</a>
                 </>
             )}
             {!from && (
