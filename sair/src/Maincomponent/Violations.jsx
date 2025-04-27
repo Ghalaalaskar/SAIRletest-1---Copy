@@ -13,7 +13,7 @@ import {
 } from "firebase/firestore";
 import EyeIcon from "../images/eye.png";
 import f from "../css/ComplaintList.module.css"; // CSS module for ComplaintList
-import { Table } from "antd";
+import { Table, Tooltip  } from "antd";
 import Header from "./Header";
 import { Button, Modal, Select,} from "antd";
 import { Pagination } from "antd";
@@ -338,12 +338,11 @@ const ViolationList = () => {
       align: "center",
       render: (text, record) => {
         const complaint = complaints[record.violationID]; // Access complaint data by ViolationID
-        console.log('Complaint Data:', complaint); // Log complaint data to check its structure
         
         return (
           <span>
             {complaint ? (
-              <Link to={`/complaint/general/${complaint.id}`} state={{ from: "ViolationList", violationId: record.violationID }}> {/* Use the document ID here */}
+              <Link to={`/complaint/general/${complaint.id}`} state={{ from: "ViolationList", violationId: record.violationID }}>
                 <FaEye
                   style={{
                     cursor: "pointer",
@@ -353,13 +352,17 @@ const ViolationList = () => {
                 />
               </Link>
             ) : (
-              <FaEye
-                style={{
-                  cursor: "not-allowed",
-                  color: "grey",
-                  opacity: 0.5,
-                }}
-              />
+              <Tooltip
+              title="No complaint for this violation"
+              overlayInnerStyle={{ backgroundColor: 'rgba(5, 152, 85, 0.7)', color: 'white' }}  >
+                <FaEye
+                  style={{
+                    cursor: "not-allowed",
+                    color: "grey",
+                    opacity: 0.5,
+                  }}
+                />
+              </Tooltip>
             )}
           </span>
         );

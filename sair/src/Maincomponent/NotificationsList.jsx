@@ -7,6 +7,7 @@ import v from "../css/Violations.module.css";
 import { db } from "../firebase";
 import Header from "./Header";
 import { doc, getDoc } from "firebase/firestore";
+import { FaEye } from "react-icons/fa"; 
 import "../css/CustomModal.css";
 import { Button, Table, Pagination } from "antd";
 import { onSnapshot, orderBy } from "firebase/firestore";
@@ -805,12 +806,10 @@ const [selectedStatuses, setSelectedStatuses] = useState([]);
       key: "Details",
       align: "center",
       render: (text, record) => (
-        <img
-          style={{ cursor: "pointer" }}
-          src={EyeIcon}
-          alt="Details"
-          onClick={() => handleNotificationClick(record)}
-        />
+        <FaEye
+        style={{ cursor: "pointer", fontSize: "1.5em", color:'#059855' }} 
+        onClick={() => handleNotificationClick(record)}
+      />
       ),
     },
   ];

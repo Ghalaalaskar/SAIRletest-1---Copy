@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { db } from "../../firebase";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { FaEye } from 'react-icons/fa';
 import {
   collection,
   onSnapshot,
@@ -408,7 +409,9 @@ const options = [
             ); // Navigate after state update
           }}
         >
-          <img src={EyeIcon} alt="Details" style={{ cursor: "pointer" }} />
+                  <FaEye
+                    style={{ cursor: 'pointer', fontSize: '1.5em', color: '#059855' }} 
+                  />
         </Link>
       ),
     },

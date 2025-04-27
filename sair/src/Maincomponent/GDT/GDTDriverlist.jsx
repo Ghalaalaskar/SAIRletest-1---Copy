@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import { SearchOutlined } from "@ant-design/icons";
 import { Table, Modal, Button } from "antd";
+import { FaEye } from 'react-icons/fa';
 import Header from "./GDTHeader";
 import "../../css/CustomModal.css";
 import s from "../../css/DriverList.module.css";
@@ -124,7 +125,7 @@ const DriverList = () => {
 
     // Search filter
     const fullName = `${driver.Fname || ""} ${driver.Lname || ""}`.toLowerCase();
-    const driverID = driver.DriverID?.toLowerCase() || "";
+    const driverID = String(driver.DriverID).toLowerCase(); 
     const query = searchQuery.toLowerCase();
     return driverID.includes(query) || fullName.includes(query);
   });
@@ -186,12 +187,11 @@ const DriverList = () => {
       key: "Details",
       align: "center",
       render: (_, record) => (
-        <img
-          style={{ cursor: "pointer" }}
-          src={EyeIcon}
-          alt="Details"
-          onClick={() => viewDriverDetails(record.DriverID)}
-        />
+<FaEye
+    style={{ cursor: "pointer", fontSize: "1.5em", color: '#059855' }} 
+    onClick={() => viewDriverDetails(record.DriverID)} 
+    aria-label="View Details" // Accessibility improvement
+  />
       ),
     },
   ];

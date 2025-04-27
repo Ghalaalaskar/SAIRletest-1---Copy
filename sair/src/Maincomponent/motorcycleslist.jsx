@@ -5,6 +5,7 @@ import { collection, doc, onSnapshot, deleteDoc, addDoc, getDoc, query, where, u
 import TrashIcon from '../images/Trash.png';
 import PencilIcon from '../images/pencil.png';
 import EyeIcon from '../images/eye.png';
+import { FaEye } from "react-icons/fa"; 
 import successImage from '../images/Sucess.png';
 import errorImage from '../images/Error.png';
 import { Button, Table, Modal  } from 'antd';
@@ -223,12 +224,10 @@ const handleAddMotorcycleSubmit = async (e) => {
       key: 'Details',
       align: 'center',
       render: (text, record) => (
-        <img
-          style={{ cursor: 'pointer' }}
-          src={EyeIcon}
-          alt="Details"
-          onClick={() => viewMotorcycleDetails(record.id)} 
-        />
+        <FaEye
+        style={{ cursor: 'pointer', fontSize: '1.5em', color: '#059855' }} 
+        onClick={() => viewMotorcycleDetails(record.id)} 
+      />
       ),
     },
     {

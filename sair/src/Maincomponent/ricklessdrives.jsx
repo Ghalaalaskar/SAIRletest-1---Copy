@@ -12,6 +12,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import EyeIcon from "../images/eye.png";
+import { FaEye } from "react-icons/fa"; 
 import successImage from "../images/Sucess.png";
 import errorImage from "../images/Error.png";
 import { SearchOutlined, UsergroupAddOutlined } from "@ant-design/icons";
@@ -88,12 +89,10 @@ const DriverList = () => {
       key: "Details",
       align: "center",
       render: (text, record) => (
-        <img
-          style={{ cursor: "pointer" }}
-          src={EyeIcon}
-          alt="Details"
-          onClick={() => viewDriverDetails(record.DriverID)}
-        />
+<FaEye
+    style={{ cursor: "pointer", fontSize: "1.5em" , color:'#059855'}} // Adjust size as needed
+    onClick={() => viewDriverDetails(record.DriverID)}
+  />
       ),
     },
   ];

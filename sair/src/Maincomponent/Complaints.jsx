@@ -3,6 +3,7 @@ import { db } from '../firebase';
 import { Link, useNavigate } from 'react-router-dom';
 import { collection, onSnapshot, doc, getDoc, query, where } from 'firebase/firestore';
 import EyeIcon from '../images/eye.png';
+import { FaEye } from 'react-icons/fa';
 import { Table, Select } from 'antd';
 import Header from './Header';
 import { FaFilter } from 'react-icons/fa';
@@ -169,8 +170,10 @@ const ComplaintList = () => {
       align: 'center',
       render: (text, record) => (
         <Link to={`/complaint/general/${record.id}`}>
-          <img style={{ cursor: 'pointer' }} src={EyeIcon} alt="Details" />
-        </Link>
+        <FaEye
+          style={{ cursor: 'pointer', fontSize: '1.5em', color: '#059855' }} 
+        />
+                </Link>
       ),
     },
   ];

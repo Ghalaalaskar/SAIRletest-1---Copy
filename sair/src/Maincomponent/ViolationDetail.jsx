@@ -685,16 +685,13 @@ const ViolationDetail = () => {
           <Button
             onClick={handleViewComplaints}
             style={{
-              backgroundColor: "#059855",
-              color: "white",
-              border: "none",
               float: "right",
-              borderRadius: "50px",
-              alignItems: "center",
-              cursor: "pointer",
-              padding: "20px 10px",
-              height: "60px",
-              fontFamily: "Open Sans",
+                    width: "auto",
+                    height: "60px",
+                    fontSize: "15px",
+                    color: "#059855",
+                    borderColor: "#059855",
+                    fontFamily: "Open Sans",
             }}
           >
             <i className="fas fa-eye" style={{ marginRight: "8px" }}></i>

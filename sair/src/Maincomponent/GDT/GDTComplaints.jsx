@@ -15,6 +15,7 @@ import {
   where,
 } from "firebase/firestore";
 import EyeIcon from "../../images/eye.png";
+import { FaEye } from 'react-icons/fa';
 import { Button, Modal } from "antd";
 import { Table, Select } from "antd";
 import { useParams } from "react-router-dom";
@@ -448,7 +449,9 @@ const GDTComplaintList = () => {
           to={`/gdtcomplaints/general/${record.id}`}
           onClick={() => handleViewDetails(record)}
         >
-          <img style={{ cursor: "pointer" }} src={EyeIcon} alt="Details" />
+           <FaEye
+                               style={{ cursor: 'pointer', fontSize: '1.5em', color: '#059855' }} 
+                             />
         </Link>
       ),
     },

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { db } from "../../firebase";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { FaEye } from 'react-icons/fa';
 import {
   collection,
   onSnapshot,
@@ -566,7 +567,9 @@ const CrashList = () => {
           to={`/gdtcrash/general/${record.id}`}
           onClick={() => handleViewDetails(record)}
         >
-          <img style={{ cursor: "pointer" }} src={EyeIcon} alt="Details" />
+           <FaEye
+                               style={{ cursor: 'pointer', fontSize: '1.5em', color: '#059855' }} 
+                             />
         </Link>
       ),
     },

@@ -5,6 +5,7 @@ import { db } from "../../firebase";
 import Header from "./GDTHeader";
 import s from "../../css/VDriver.module.css";
 import EyeIcon from "../../images/eye.png";
+import { FaEye } from 'react-icons/fa';
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import { useLocation } from "react-router-dom";
@@ -135,7 +136,9 @@ const ViolationsTable = () => {
             to={`/gdtviolation/general/${record.id}`}
             state={linkState}
           >
-            <img style={{ cursor: "pointer" }} src={EyeIcon} alt="Details" />
+           <FaEye
+                               style={{ cursor: 'pointer', fontSize: '1.5em', color: '#059855' }} 
+                             />
           </Link>
         );
       },

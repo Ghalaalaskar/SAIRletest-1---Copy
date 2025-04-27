@@ -1427,7 +1427,7 @@ const CrashGeneral = () => {
               </main>
             </Modal>
             {/*///////////////////////////////END POP-UP/////////////////////////////////////////// */}
-
+            <hr />
             <div style={{ marginBottom: "80px" }}>
               <Button
                 onClick={goBack}

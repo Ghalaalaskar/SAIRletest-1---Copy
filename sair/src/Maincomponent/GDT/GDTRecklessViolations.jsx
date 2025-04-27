@@ -10,6 +10,7 @@ import {
   query,
   where,
 } from "firebase/firestore";
+import { FaEye } from 'react-icons/fa';
 import EyeIcon from "../../images/eye.png";
 import { Table } from "antd";
 import Header from "./GDTHeader";
@@ -411,8 +412,10 @@ const options = [
             ); // Navigate after state update
           }}
         >
-          <img src={EyeIcon} alt="Details" style={{ cursor: "pointer" }} />
-        </Link>
+ <FaEye
+                               style={{ cursor: 'pointer', fontSize: '1.5em', color: '#059855' }} 
+                             />
+                                     </Link>
       ),
     },
   ];

@@ -9,6 +9,7 @@ import {
 } from 'firebase/firestore';
 import TrashIcon from '../images/Trash.png';
 import PencilIcon from '../images/pencil.png';
+import { FaEye } from "react-icons/fa"; 
 import EyeIcon from '../images/eye.png';
 import successImage from '../images/Sucess.png';
 import errorImage from '../images/Error.png';
@@ -83,12 +84,10 @@ const DriverList = () => {
       key: 'Details',
       align: 'center',
       render: (text, record) => (
-        <img
-          style={{ cursor: 'pointer' }}
-          src={EyeIcon}
-          alt="Details"
-          onClick={() => viewDriverDetails(record.DriverID)}
-        />
+        <FaEye
+    style={{ cursor: 'pointer', fontSize: '1.5em', color: '#059855' }} 
+    onClick={() => viewDriverDetails(record.DriverID)} 
+  />
       ),
     },
     {
@@ -292,11 +291,12 @@ const DriverList = () => {
 
   const filteredData = driverData.filter(driver => {
     const fullName = `${driver.Fname} ${driver.Lname}`.toLowerCase();
-    const driverID = driver.DriverID.toLowerCase();
+    const driverID = String(driver.DriverID).toLowerCase(); // Convert driverID to a string and to lowercase
     const query = searchQuery.toLowerCase();
 
     return driverID.includes(query) || fullName.includes(query);
-  });
+});
+
 
   useEffect(() => {
     const fetchEmployerCompanyName = async () => {
