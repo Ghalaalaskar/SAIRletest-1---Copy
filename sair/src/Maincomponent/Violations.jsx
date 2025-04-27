@@ -36,7 +36,8 @@ const ViolationList = () => {
     const [isPopupVisible, setIsPopupVisible] = useState(false);
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [selectedValues, setSelectedValues] = useState([]);
-  
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 5;
     const options = [
       { value: "Reckless Violations", label: "Reckless Violations" },
       { value: "Regular Violations", label: "Regular Violations" },
@@ -94,6 +95,10 @@ const ViolationList = () => {
     });
 
     return () => unsubscribe();
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
   };
 
   const fetchMotorcycles = (violationIDs) => {
@@ -516,10 +521,11 @@ const ViolationList = () => {
 
           <Table
             columns={columns}
-            dataSource={filteredViolations}
+            dataSource={filteredViolations.slice((currentPage - 1) * pageSize, currentPage * pageSize)} // Paginate data
             rowKey="id"
-            pagination={false}
+            pagination={false} 
           />
+        
 
           {/* Flex container for button and pagination */}
           <div
@@ -544,12 +550,13 @@ const ViolationList = () => {
               View Reckless Drivers
             </Button>
 
-            <Pagination
-              defaultCurrent={1}
-              total={filteredViolations.length}
-              pageSize={5} // Number of items per page
-              style={{ marginLeft: "auto" }} // Align pagination to the right
-            />
+          <Pagination
+            current={currentPage}
+            pageSize={pageSize}
+            total={filteredViolations.length}
+            onChange={handlePageChange}
+            style={{ marginTop: "16px", textAlign: "right" }} // Align pagination to the right
+          />
           </div>
 
           {/* Popup for no violations */}

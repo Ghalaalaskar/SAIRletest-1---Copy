@@ -3,7 +3,7 @@ import { db } from '../firebase';
 import { Link, useNavigate } from 'react-router-dom';
 import { collection, onSnapshot, doc, getDoc, query, where } from 'firebase/firestore';
 import EyeIcon from '../images/eye.png';
-import { Table } from 'antd';
+import { Table,Pagination  } from 'antd';
 import Header from './Header';
 import s from "../css/CrashList.module.css"; // CSS module for CrashList
 import '../css/CustomModal.css';
@@ -17,12 +17,15 @@ const CrashList = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState(''); // Single search input
   const employerUID = sessionStorage.getItem('employerUID');
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 5;
  // State to track viewed crashes
+
  const [viewedCrashes, setViewedCrashes] = useState(() => {
   const storedViewedCrashes = localStorage.getItem('viewedCrashes');
   return storedViewedCrashes ? JSON.parse(storedViewedCrashes) : {};
 });
+
 
   useEffect(() => {
     const fetchDriversAndCrashes = async () => {
@@ -209,7 +212,13 @@ const CrashList = () => {
     },
   ];
 
-  return (
+   // Paginate the filtered crashes
+   const paginatedCrashes = filteredCrashes.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+   
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+    return (
     <>
       <Header active="crashes" />
       <div className="breadcrumb">
@@ -335,15 +344,24 @@ s
 
           <Table
             columns={columns}
-            dataSource={filteredCrashes}
+            dataSource={paginatedCrashes} // Use paginated crashes
             rowKey="id"
-            pagination={{ pageSize: 5 }}
+            pagination={false} // Disable internal pagination
             onRow={(record) => ({
               style: {
                 backgroundColor: !viewedCrashes[record.id] ? '#f0f8f0' : 'transparent',
               },
             })}
           />
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
+            <Pagination
+              current={currentPage}
+              pageSize={pageSize}
+              total={filteredCrashes.length} // Set total items for pagination
+              onChange={handlePageChange}
+              showSizeChanger={false} // Hide the size changer if you don't want it
+            />
+          </div>
         </div>
       </main>
     </>
