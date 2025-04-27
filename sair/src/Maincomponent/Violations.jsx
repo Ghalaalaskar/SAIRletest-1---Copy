@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { db } from "../firebase";
 import { Link, useNavigate } from "react-router-dom";
+import { FaEye } from "react-icons/fa"; 
 import {
   collection,
   onSnapshot,
@@ -8,6 +9,7 @@ import {
   getDoc,
   query,
   where,
+  getDocs
 } from "firebase/firestore";
 import EyeIcon from "../images/eye.png";
 import f from "../css/ComplaintList.module.css"; // CSS module for ComplaintList
@@ -50,6 +52,7 @@ const ViolationList = () => {
   });
   const employerUID = sessionStorage.getItem("employerUID");
   const [violationTypeFilter, setViolationTypeFilter] = useState("");
+  const [complaints, setComplaints] = useState({});
   useEffect(() => {
     const fetchEmployerDrivers = async () => {
       if (employerUID) {
@@ -121,32 +124,41 @@ const ViolationList = () => {
     return () => unsubscribe();
   };
 
+  
+
   const fetchViolations = (driverIDs) => {
     const violationCollection = query(
       collection(db, "Violation"),
       where("driverID", "in", driverIDs)
     );
-    const unsubscribe = onSnapshot(violationCollection, (snapshot) => {
+  
+    const unsubscribe = onSnapshot(violationCollection, async (snapshot) => {
       const violationList = snapshot.docs.map((doc) => {
         const data = doc.data();
         const isReckless = data.count30 > 0 || data.count50 > 0;
         return {
-          id: doc.id,
+          id: doc.id, // Document ID
+          violationID: data.violationID, // Store the ViolationID for later use
           ...data,
-          isReckless, // Add reckless classification
+          isReckless,
         };
       });
+  
       setViolations(violationList);
+  
       if (violationList.length > 0) {
-        const violationIDs = violationList.map((v) => v.violationID); // Collecting violation IDs
-        fetchMotorcycles(violationIDs); // Fetch motorcycles using violation IDs
+        const violationIDs = violationList.map((v) => v.violationID); // Use ViolationID for complaints
+        fetchMotorcycles(violationIDs);
+        const complaintsData = await fetchComplaints(violationIDs);
+        setComplaints(complaintsData); // Set complaints state
       } else {
         setMotorcycles({});
       }
     });
-
+  
     return () => unsubscribe();
   };
+
   // Function to format the date
   const formatDate = (time) => {
     const date = new Date(time * 1000); // Assuming timestamp is in seconds
@@ -228,6 +240,23 @@ const ViolationList = () => {
       .join(" ");
   };
 
+  const fetchComplaints = async (violationIDs) => {
+    const complaintCollection = query(
+      collection(db, "Complaint"),
+      where("ViolationID", "in", violationIDs) // Use ViolationID to fetch complaints
+    );
+  
+    const complaintSnapshot = await getDocs(complaintCollection);
+    const complaintMap = {};
+  
+    complaintSnapshot.forEach((doc) => {
+      const data = doc.data();
+      complaintMap[data.ViolationID] = data; // Map ViolationID to complaint data
+    });
+  
+    return complaintMap; // Return the complaint map
+  };
+
   const columns = [
     {
       title: "Violation ID",
@@ -294,7 +323,31 @@ const ViolationList = () => {
         </Link>
       ),
     },
-  ];
+    {
+      title: "Complaint",
+      key: "complaint",
+      align: "center",
+      render: (text, record) => {
+        const complaint = complaints[record.violationID]; // Access complaint data by ViolationID
+        return (
+          <span>
+            <FaEye
+              style={{
+                cursor: complaint ? "pointer" : "not-allowed",
+                color: complaint ? "#059855" : "grey", // Green if complaint exists, grey if not
+                opacity: complaint ? 1 : 0.5, // Slightly fade out if no complaint
+              }}
+              onClick={() => {
+                if (complaint) {
+                  navigate(`/complaint/general/${complaint.id}`);// Navigate to complaint details
+                }
+              }}
+            />
+          </span>
+        );
+      },
+    }    
+];
 
   
 
