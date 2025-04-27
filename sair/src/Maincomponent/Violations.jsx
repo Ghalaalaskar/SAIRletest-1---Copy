@@ -171,17 +171,21 @@ const ViolationList = () => {
 
   const filteredViolations = violations
   .filter((violation) => {
-    const driverName = drivers[violation.driverID]?.name || "";
+    const driverName = drivers[violation.driverID] || "";
     const licensePlate = motorcycles[violation.violationID] || ' ';
-
+    
     // Format the violation date using formatDate
     const violationDate = violation.time ? formatDate(violation.time) : "";
 
     // Format searchDate to MM/DD/YYYY
     const formattedSearchDate = searchDate ? formatDate(new Date(searchDate).getTime() / 1000) : "";
 
+    // Check if searchQuery matches driverName, licensePlate, violationID, or driverID
     const matchesSearchQuery = driverName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                               licensePlate.toLowerCase().includes(searchQuery.toLowerCase());
+                               licensePlate.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                               violation.violationID.toString().includes(searchQuery.toLowerCase()) || // Check violation ID
+                               violation.driverID.toString().includes(searchQuery.toLowerCase()); // Check driver ID
+
     const matchesSearchDate = formattedSearchDate ? violationDate === formattedSearchDate : true;
 
     const matchesTypeFilter = filters.type.length === 0 ||
@@ -325,14 +329,14 @@ const ViolationList = () => {
                 </svg>
                 <input
                   type="text"
-                  placeholder="Search by Driver Name or License Plate"
+                  placeholder="Search by Violation ID Driver Name or License Plate"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  style={{ width: "245px" }}
+                  style={{ width: "320px" }}
                 />
               </div>
                <div className={s.searchContainer} >
-                 <div className={`${s.selectWrapper} ${s.dropdownContainer}`} style={{  width: '355px' }}>
+                 <div className={`${s.selectWrapper} ${s.dropdownContainer}`} style={{  width: '300px' }}>
                    <FaFilter className={s.filterIcon} />
                    <div style={{ position: 'relative', width: '510px'}}>
                      <div

@@ -291,31 +291,19 @@ const options = [
     // Format searchDate to MM/DD/YYYY
     const formattedSearchDate = searchDate ? formatDate(new Date(searchDate).getTime() / 1000) : "";
 
+    // Check if searchQuery matches driverName, licensePlate, or driverID
     const matchesSearchQuery = driverName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                               licensePlate.toLowerCase().includes(searchQuery.toLowerCase());
+                               licensePlate.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                               violation.driverID.toString().includes(searchQuery.toLowerCase()); // Check Driver ID
 
-    
-    const violationDateObj = violation.time ? new Date(violation.time * 1000) : null;
-    const searchDateObj = searchDate ? new Date(searchDate) : null;
-    
-    const matchesSearchDate = !searchDateObj || (
-      searchDateObj.getDate() === 1
-        ? (violationDateObj?.getMonth() === searchDateObj.getMonth() &&
-          violationDateObj?.getFullYear() === searchDateObj.getFullYear())
-        : (violationDateObj?.toDateString() === searchDateObj.toDateString())
-    );
-    
+    const matchesSearchDate = formattedSearchDate ? violationDate === formattedSearchDate : true;
+
     const matchesTypeFilter = filters.type.length === 0 ||
       (filters.type.includes("Reckless Violations") && violation.isReckless) ||
       (filters.type.includes("Regular Violations") && !violation.isReckless);
 
     const matchesStatusFilter = filters.status.length === 0 ||
       filters.status.includes(violation.Status);
-
-      const matchesCompany =
-      company && company !== "all"
-        ? drivers[violation.driverID]?.companyName === company
-        : true;    
 
     console.log(`Checking violation: ${violation.id} - Status: ${violation.Status}, 
                  Matches Status Filter: ${matchesStatusFilter}, 
@@ -324,7 +312,7 @@ const options = [
                  Violation Date: ${violationDate}, 
                  Search Date: ${formattedSearchDate}`);
 
-    return matchesSearchQuery && matchesSearchDate && matchesTypeFilter && matchesStatusFilter && matchesCompany;
+    return matchesSearchQuery && matchesSearchDate && matchesTypeFilter && matchesStatusFilter;
   })
   .sort((a, b) => (b.time || 0) - (a.time || 0));
   
