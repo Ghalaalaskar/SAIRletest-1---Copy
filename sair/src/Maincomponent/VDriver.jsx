@@ -6,7 +6,9 @@ import { db } from "../firebase";
 import Header from "./Header";
 import s from "../css/VDriver.module.css";
 import EyeIcon from "../images/eye.png";
+import { FaEye } from "react-icons/fa"; 
 import "../css/CustomModal.css";
+
 
 const ViolationsTable = () => {
   const { driverId, type } = useParams(); // Get driverId from URL parameters
@@ -109,8 +111,13 @@ const ViolationsTable = () => {
       className: "svg",
       render: (_, record) => (
         <Link to={`/violation/detail/${record.id}`} state={{driverId, breadcrumbParam: "breadcrumbParam",from: "driver" }}>
-          <img style={{ cursor: "pointer" }} src={EyeIcon} alt="Details" />
-        </Link>
+<FaEye
+            style={{
+              cursor: "pointer",
+              color: "#059855", // Set color to match your theme
+              fontSize: "24px", // Adjust size as needed
+            }}
+          />        </Link>
       ),
     },
   ];

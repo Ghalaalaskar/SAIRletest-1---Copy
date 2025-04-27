@@ -5,6 +5,7 @@ import { Table } from 'antd';
 import { db } from '../firebase';
 import Header from './Header';
 import s from "../css/VDriver.module.css";
+import { FaEye } from "react-icons/fa";
 import EyeIcon from '../images/eye.png';
 import '../css/CustomModal.css';
 
@@ -88,12 +89,17 @@ const VMotorcycle  = () => {
       key: 'actions',
       align: 'center',
       render: (_, record) => (
-        <Link to={`/violation/detail/${record.id}`}
-        state={{ from: 'motorcycle' }}>
-          <img style={{ cursor: 'pointer' }} src={EyeIcon} alt="Details" />
+        <Link to={`/violation/detail/${record.id}`} state={{ from: 'motorcycle' }}>
+          <FaEye
+            style={{
+              cursor: 'pointer',
+              color: '#059855', // Set color to match your theme
+              fontSize: '24px', // Adjust size as needed
+            }}
+          />
         </Link>
       ),
-    },
+    }
   ];
 
   if (error) {

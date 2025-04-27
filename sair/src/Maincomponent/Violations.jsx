@@ -322,7 +322,13 @@ const ViolationList = () => {
           to={`/violation/general/${record.id}`}
           onClick={() => handleViewDetails(record)}
         >
-          <img style={{ cursor: "pointer" }} src={EyeIcon} alt="Details" />
+          <FaEye
+            style={{
+              cursor: "pointer",
+              color: "#059855", // Set color to match your theme
+              fontSize: "24px", // Adjust size as needed
+            }}
+          />
         </Link>
       ),
     },
