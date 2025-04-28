@@ -936,11 +936,11 @@ db.collection('PotentialViolation')
                                        console.log('exceed 3 min.');
                                        
 
-
+                                       await
 storePotentialViolation(PotentialViolationID, driverid,
 GPSserialnumber, location, position, driverSpeed, maxSpeed,
 PotentialViolationTime);
-                            //            await
+                                       await
 storeHistory(PotentialViolationID, driverid, GPSserialnumber, Brand,
 LicensePlate, Model, MotorcycleID, Type);
                                      }
