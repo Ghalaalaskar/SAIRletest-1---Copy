@@ -1013,7 +1013,7 @@ const monitorWialon = async () => {
     // processUnits1(units,sessionId);
     // processUnits2(units,sessionId);
     processUnits3(units,sessionId);
-    // await fetchActiveLocations(units, sessionId);
+    await fetchActiveLocations(units, sessionId);
 
   } catch (error) {
     console.error("Error monitoring Wialon:", error.message);
