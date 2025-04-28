@@ -131,7 +131,7 @@ const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
   const fetchGpsState = async () => {
     try {
       console.log(' Data:', CompanyName); 
-      const response = await fetch('http://localhost:3000/api/gps-state'); // need to change port after host the server!!     const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/gps-state`);   هنا بعد ما نرفع السيرفر نحط ال url
+      const response = await fetch('https://sair-server.onrender.com/api/gps-state'); // need to change port after host the server!!     const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/gps-state`);   هنا بعد ما نرفع السيرفر نحط ال url
 
       if (!response.ok) {
         console.log('nnnnnnnnnnnnnnnnnnnnnnnn');

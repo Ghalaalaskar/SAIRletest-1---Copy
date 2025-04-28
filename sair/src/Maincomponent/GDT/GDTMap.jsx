@@ -214,7 +214,7 @@ console.log('locations Company Names:', locations); // Log the unique company na
   // Function to fetch GPS state from the server
   const fetchGpsState = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/gps-state'); // need to change port after host the server!!     const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/gps-state`);   هنا بعد ما نرفع السيرفر نحط ال url
+      const response = await fetch('https://sair-server.onrender.com/api/gps-state'); // need to change port after host the server!!     const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/gps-state`);   هنا بعد ما نرفع السيرفر نحط ال url
 
       if (!response.ok) {
         throw new Error('Network response was not ok');
