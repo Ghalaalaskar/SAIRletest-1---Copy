@@ -13,7 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import emailjs from 'emailjs-com';
 import { generateRandomPassword } from '../utils/common';
 import templateFile from './template.xlsx';
-
+//
 
 const Adddriverbatch = () => {
   const [fileData, setFileData] = useState([]);
@@ -185,7 +185,6 @@ const Adddriverbatch = () => {
       const updatedFileData = [...fileData];
       const deletedGPS = updatedFileData[index]?.GPSnumber;
       setDeletedGPS(deletedGPS);
-      console.log('mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm',selectedGPSNumbers);
         if (deletedGPS && deletedGPS !== 'None') {
           // Remove from selected list
           // setSelectedGPSNumbers(prevSelected => {
@@ -194,21 +193,16 @@ const Adddriverbatch = () => {
           //   return updatedSelected;
           // });
           const updatedSelectedGPSNumbers = { ...selectedGPSNumbers };
-          console.log('mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm',updatedSelectedGPSNumbers);
 
         delete updatedSelectedGPSNumbers[index];
-        console.log('mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm',updatedSelectedGPSNumbers);
 
         setSelectedGPSNumbers(updatedSelectedGPSNumbers);
-      console.log('mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm',selectedGPSNumbers);
           // Add back to availableMotorcycles
           // setAvailableMotorcycles(prevAvailable => {
           //   return [...prevAvailable, deletedGPS]; // Add back to available list
           // });
         }
 
-      console.log('mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm',selectedGPSNumbers);
-      console.log('mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm',availableMotorcycles);
 
       updatedFileData.splice(index, 1);
       const updatedErrorData = [...errorData];
@@ -232,7 +226,7 @@ setSelectedGPSNumbers(selectedGPSNumbers);
   // setDeletedGPS(null);
 }, [selectedGPSNumbers]); // Re-run whenever deletedGPS changes
 
-  const validateDriverMember = async (driver, index) => {
+  const validateDriverMember = async (driver, index, allStaff) => {
     const staffErrors = {
       Fname: false,
       Lname: false,
@@ -248,17 +242,23 @@ setSelectedGPSNumbers(selectedGPSNumbers);
       GPSnumberMessage:'',
     };
   
-    const formattedPhoneNumber = `${driver['Mobile Phone Number']}`;
+    // const formattedPhoneNumber = `${driver['Mobile Phone Number']}`;
     // const GPSnumber = values.GPSnumber === 'None' ? null : values.GPSnumber;
 
     // Validate First Name
-    if (!driver['First name'] || validateName(driver['First name'])) {
+    if (!driver['First name'] ) {
+      staffErrors.Fname = true;
+      staffErrors.FnameMessage = 'First name is required.';
+    }else if (!validateName(driver['First name'])) {
       staffErrors.Fname = true;
       staffErrors.FnameMessage = 'Name must contain letters only.';
     }
-  
+    
     // Validate Last Name
-    if (!driver['Last name'] || validateName(driver['Last name'])) {
+    if (!driver['Last name']) {
+      staffErrors.Lname = true;
+      staffErrors.LnameMessage = 'Last name is required.';
+    }else if (!validateName(driver['Last name'])) {
       staffErrors.Lname = true;
       staffErrors.LnameMessage = 'Name must contain letters only.';
     }
@@ -268,7 +268,7 @@ setSelectedGPSNumbers(selectedGPSNumbers);
       staffErrors.PhoneNumber = true;
       staffErrors.PhoneNumberMessage = 'Phone number is required.';
     } else {
-      const phoneValidation = validatePhoneNumber(formattedPhoneNumber);
+      const phoneValidation = validatePhoneNumber(driver['Mobile Phone Number']);
       if (phoneValidation) {
         staffErrors.PhoneNumber = true;
         staffErrors.PhoneNumberMessage = phoneValidation;
@@ -307,27 +307,52 @@ setSelectedGPSNumbers(selectedGPSNumbers);
 
     // Unique validation
     const uniquenessResult = await checkUniqueness(
-      formattedPhoneNumber,
+      driver['Mobile Phone Number'],
       driver.Email,
       driver['Driver ID']
     );
   
     // Set error messages based on uniqueness check
-    if (!uniquenessResult.PhoneNumber) {
+    if (!uniquenessResult.PhoneNumber && !staffErrors.PhoneNumber) {
       staffErrors.PhoneNumber = true;
       staffErrors.PhoneNumberMessage = 'Phone number already exists.';
     }
-    if (!uniquenessResult.Email) {
+    if (!uniquenessResult.Email && !staffErrors.Email) {
       staffErrors.Email = true;
       staffErrors.EmailMessage = 'Email already exists.';
     }
-    if (!uniquenessResult.ID) {
+    if (!uniquenessResult.ID && !staffErrors.ID) {
       staffErrors.ID = true;
       staffErrors.IDMessage = 'Driver ID already exists.';
     }
   
     // Check for duplicates within the uploaded file...
   
+    const duplicates = allStaff.filter(
+      (s, i) =>
+        i !== index &&
+        (s['Mobile Phone Number'] === driver['Mobile Phone Number'] ||   //driver['Mobile Phone Number']
+          s.Email === driver.Email ||
+          s['Driver ID'] === driver['Driver ID'])
+    );
+  
+    if (duplicates.length > 0) {
+      duplicates.forEach((dup) => {
+        if (dup['Mobile Phone Number'] === driver['Mobile Phone Number']) {
+          staffErrors.PhoneNumber = true;
+          staffErrors.PhoneNumberMessage = 'Phone number already exists within the same file.';
+        }
+        if (dup.Email === driver.Email) {
+          staffErrors.Email = true;
+          staffErrors.EmailMessage = 'Email already exists within the same file.';
+        }
+        if (dup['Driver ID'] === driver['Driver ID']) {
+          staffErrors.ID = true;
+          staffErrors.IDMessage = 'Driver ID already exists within the same file.';
+        }
+      });
+    }
+
     setErrorData((prev) => {
       const updatedErrorData = [...prev];
       updatedErrorData[index] = staffErrors;
@@ -337,9 +362,7 @@ setSelectedGPSNumbers(selectedGPSNumbers);
 
   const validateName = (name) => {
     const nameRegex = /^[a-zA-Z\s]+$/;
-    return name && nameRegex.test(name)
-      ? null
-      : 'Name must contain letters only.';
+    return name && nameRegex.test(name.trim());
   };
   
   const validatePhoneNumber = (PhoneNumber) => {
@@ -351,9 +374,7 @@ setSelectedGPSNumbers(selectedGPSNumbers);
   
   const validateEmail = (Email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(Email)
-      ? null
-      : 'Please enter a valid email.';
+    return emailRegex.test(Email) ? null : 'Please enter a valid Email.';
   };
   
   const validateStaffID = (StaffID) => {
@@ -367,58 +388,105 @@ setSelectedGPSNumbers(selectedGPSNumbers);
     let result = { PhoneNumber: true, Email: true, ID: true };
 
     try {
-      let queries = [];
-      let queryMap = {}; // Store which field corresponds to which query
-  
-      if (phone) {
-        const phoneQuery = query(
-          collection(db, 'Driver'),
-          where('PhoneNumber', '==', phone),
-          where('CompanyName', '==', Employer.CompanyName)
-        );
-        queryMap['PhoneNumber'] = getDocs(phoneQuery);
-        queries.push(queryMap['PhoneNumber']);
-      }
-  
-      if (email) {
-        const emailQuery = query(
-          collection(db, 'Driver'),
-          where('Email', '==', email)
-        );
-        queryMap['Email'] = getDocs(emailQuery);
-        queries.push(queryMap['Email']);
-      }
-  
-      if (ID) {
-        const idQuery = query(
-          collection(db, 'Driver'),
-          where('DriverID', '==', ID),
-          where('CompanyName', '==', Employer.CompanyName)
-        );
-        queryMap['ID'] = getDocs(idQuery);
-        queries.push(queryMap['ID']);
-      }
-  
-      const snapshots = await Promise.all(queries);
-  
-      // Check snapshots correctly
-      if (phone && !(await queryMap['PhoneNumber']).empty) {
-        result.PhoneNumber = false;
-      }
-      if (email && !(await queryMap['Email']).empty) {
-        result.Email = false;
-      }
-      if (ID && !(await queryMap['ID']).empty) {
-        result.ID = false;
-      }
-  
-      return result;
-    } catch (error) {
-      console.error('Error checking uniqueness:', error);
-      return { message: 'Error checking uniqueness in the database.' };
-    }
-  };
+          // Create queries to check for existing phone, email, and staff ID
+          const phoneQuery = query(
+                  collection(db, 'Driver'),
+                  where('PhoneNumber', '==', phone),
+                  where('CompanyName', '==', Employer.CompanyName)
+                );
+          
+                const emailQuery = query(
+                        collection(db, 'Driver'),
+                        where('Email', '==', email)
+                      );
+                      const idQuery = query(
+                              collection(db, 'Driver'),
+                              where('DriverID', '==', ID),
+                              where('CompanyName', '==', Employer.CompanyName)
+                            );    
+          // Execute the queries
+          const [phoneSnapshot, emailSnapshot, idSnapshot] = await Promise.all([
+            getDocs(phoneQuery),
+            getDocs(emailQuery),
+            getDocs(idQuery),
+          ]);
+    
+          // Check if any of the snapshots have documents
+          if (!phoneSnapshot.empty) {
+            console.log('Phone number already exists.');
+            result = { ...result, PhoneNumber: false };
+          }
+          if (!emailSnapshot.empty) {
+            console.log('Email already exists.');
+            result = { ...result, Email: false };
+          }
+          if (!idSnapshot.empty) {
+            console.log('Driver ID already exists.');
+            result = { ...result, ID: false };
+          }
+    
+          // If no duplicates are found
+          return result;
+        } catch (error) {
+          console.error('Error checking uniqueness:', error);
+          return {
+            message: 'Error checking uniqueness in the database.',
+          };
+        }
 
+    // try {
+    //   let queries = [];
+    //   let queryMap = {}; // Store which field corresponds to which query
+  
+    //   if (phone) {
+    //     const phoneQuery = query(
+    //       collection(db, 'Driver'),
+    //       where('PhoneNumber', '==', phone),
+    //       where('CompanyName', '==', Employer.CompanyName)
+    //     );
+    //     queryMap['PhoneNumber'] = getDocs(phoneQuery);
+    //     queries.push(queryMap['PhoneNumber']);
+    //   }
+  
+    //   if (email) {
+    //     const emailQuery = query(
+    //       collection(db, 'Driver'),
+    //       where('Email', '==', email)
+    //     );
+    //     queryMap['Email'] = getDocs(emailQuery);
+    //     queries.push(queryMap['Email']);
+    //   }
+  
+    //   if (ID) {
+    //     const idQuery = query(
+    //       collection(db, 'Driver'),
+    //       where('DriverID', '==', ID),
+    //       where('CompanyName', '==', Employer.CompanyName)
+    //     );
+    //     queryMap['ID'] = getDocs(idQuery);
+    //     queries.push(queryMap['ID']);
+    //   }
+  
+    //   const snapshots = await Promise.all(queries);
+  
+    //   // Check snapshots correctly
+    //   if (phone && !(await queryMap['PhoneNumber']).empty) {
+    //     result.PhoneNumber = false;
+    //   }
+    //   if (email && !(await queryMap['Email']).empty) {
+    //     result.Email = false;
+    //   }
+    //   if (ID && !(await queryMap['ID']).empty) {
+    //     result.ID = false;
+    //   }
+  
+    //   return result;
+    // } catch (error) {
+    //   console.error('Error checking uniqueness:', error);
+    //   return { message: 'Error checking uniqueness in the database.' };
+    // }
+  };
+ 
   
 
   const sendEmail = (email, driverName, password) => {
@@ -496,18 +564,21 @@ setSelectedGPSNumbers(selectedGPSNumbers);
     setPopupVisible(false);
   };
 
-  const handleBatchUploadResults = (errorList, successCount) => {
-    console.log('errorLlllllllllllllllllllllllllist',errorList);
+  const handleBatchUploadResults = (errorList) => {
+
+
+ const successfulCount = fileData.length - errorList.length;
     if (errorList.length > 0) {
       const errorMessages = errorList.map((err) => err.message).join('\n');
-      setPopupMessage(errorMessages);
+      setPopupMessage(`${errorMessages}\n\nTotal successful additions: ${successfulCount}`);
       setPopupImage(errorImage);
-      setPopupVisible(true);
     } else {
-      setPopupMessage(`A total of ${successCount} Drivers Added Successfully!`);
+      setPopupMessage(`All ${successfulCount} Drivers added successfully!`);
       setPopupImage(successImage);
-      setPopupVisible(true);
+      setTimeout(() => navigate('/driverslist'), 2000);
     }
+    setPopupVisible(true);
+
   };
 
 
@@ -523,26 +594,17 @@ setSelectedGPSNumbers(selectedGPSNumbers);
         }
     
         const errorList = [];
-        let successCount = 0;
-        const addedDriversIDs = [];
         for (const staff of fileData) {
           try {
             const addedStaff = await addDriverToDatabase(staff);
-            addedDriversIDs.push(addedStaff.id); // Store the added staff ID
-            successCount++;
-            // Store the staff ID in sessionStorage
-            sessionStorage.setItem(`driver${addedStaff.ID}`, addedStaff.ID);
+            sessionStorage.setItem(`driver_${addedStaff.ID}`, addedStaff.ID);
           }  catch (error) {
             errorList.push({
               message: `Error adding driver ${staff['First name']} ${staff['Last name']}: ${error.message}`,
             });
           }
         }
-    // Store added staff IDs in sessionStorage
-    const existingIDs = JSON.parse(sessionStorage.getItem('addedDriversIDs')) || [];
-    const updatedIDs = [...new Set([...existingIDs, ...addedDriversIDs])]; // Ensure unique IDs
-    sessionStorage.setItem('addedDriversIDs', JSON.stringify(updatedIDs));
-        handleBatchUploadResults(errorList, successCount);
+        handleBatchUploadResults(errorList);
       };
     
 
@@ -557,7 +619,6 @@ setSelectedGPSNumbers(selectedGPSNumbers);
 
     } = driver;
     const formattedGPSnumber = GPSnumber === 'None' ? null : GPSnumber;  
-
     const password = generateRandomPassword();
     let user;
     try {
@@ -594,10 +655,8 @@ setSelectedGPSNumbers(selectedGPSNumbers);
           });
         }
       }
-      sessionStorage.setItem(`driver${addedDriver.id}`, addedDriver.id);
-
       sendEmail(Email, `${Fname} ${Lname}`, password);
-      return addedDriver;
+      return { ID: addedDriver.id, ...driver };
 
     } catch (error) {
       throw error;
@@ -988,70 +1047,32 @@ setSelectedGPSNumbers(selectedGPSNumbers);
           </div>
         )}
 
-{popupVisible && (
-  <Modal
-    title={null}
-    visible={popupVisible}
-    onCancel={handleClosePopup}
-    footer={
-      <div style={{ textAlign: 'center' }}>
-        <p>{popupMessage}</p>
-        {popupImage === successImage && ( // Show OK button only on success
-          <button
-            onClick={() => {
-              navigate('/driverslist'); // Navigate to the staff list
-              handleClosePopup(); // Close the popup
-            }}
-            style={{
-              padding: '1px 10px',
-              height: '30px',
-              fontSize: '13px',
-              cursor: 'pointer',
-              marginTop: '17px',
-              textAlign: 'center',
-              borderRadius: '5px',
-              backgroundColor: '#059855',
-              border: 'none',
-              color: 'white',
-              fontFamily: 'Open Sans',
-            }}
-            // onMouseEnter={(e) => {
-            //   e.target.style.borderColor = 'white'; // Change border to green on hover
-            //   e.target.style.color = '#059855'; // Change text to green on hover
-            // }}
-            // onMouseLeave={(e) => {
-            //   e.target.style.borderColor = '#059855'; // Revert border color
-            //   e.target.style.color = 'white'; // Revert text color
-            // }}
+ {popupVisible && (
+          <Modal
+            title={null}
+            visible={popupVisible}
+            onCancel={handleClosePopup}
+            footer={<p style={{ textAlign: 'center' }}>{popupMessage}</p>}
+            style={{ top: '38%' }}
+            className='custom-modal'
+            closeIcon={<span className='custom-modal-close-icon'>×</span>}
           >
-            Back to Drivers list
-          </button>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                textAlign: 'center',
+              }}
+            >
+              <img
+                src={popupImage}
+                alt='Popup'
+                style={{ width: '20%', marginBottom: '16px' }}
+              />
+            </div>
+          </Modal>
         )}
-      </div>
-    }
-    style={{ top: '38%' }}
-    className='custom-modal'
-    closeIcon={<span className='custom-modal-close-icon'>×</span>}
-  >
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        textAlign: 'center',
-      }}
-    >
-      <img
-        src={popupImage}
-        alt='Popup'
-        style={{ width: '20%', marginBottom: '16px' }}
-      />
-    </div>
-  </Modal>
-
-)}
-
-
       </div>
     </div>
   );
