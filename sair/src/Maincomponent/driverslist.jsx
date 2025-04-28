@@ -86,7 +86,7 @@ const DriverList = () => {
       render: (text, record) => (
         <FaEye
     style={{ cursor: 'pointer', fontSize: '1.5em', color: '#059855' }} 
-    onClick={() => viewDriverDetails(record.DriverID)} 
+    onClick={() => viewDriverDetails(record,record.DriverID)} 
   />
       ),
     },
@@ -397,7 +397,7 @@ const DriverList = () => {
     setIsDeletePopupVisible(true);
   };
 
-  const viewDriverDetails = (driverID) => {
+  const viewDriverDetails = (record,driverID) => {
     sessionStorage.removeItem(`driver_${record.id}`);
     console.log('Navigating to details for driver ID:', driverID);
     navigate(`/driver-details/${driverID}`);
