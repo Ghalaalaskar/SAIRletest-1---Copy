@@ -398,6 +398,7 @@ const DriverList = () => {
   };
 
   const viewDriverDetails = (driverID) => {
+    sessionStorage.removeItem(`driver_${record.id}`);
     console.log('Navigating to details for driver ID:', driverID);
     navigate(`/driver-details/${driverID}`);
   };
@@ -448,12 +449,20 @@ const DriverList = () => {
         <br />
 
         <Table
-          columns={columns}
-          dataSource={filteredData}
-          rowKey="id"
-          pagination={{ pageSize: 5 }}
-          style={{ width: '1200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: '0 auto' }}
-        />
+                 columns={columns}
+                 dataSource={filteredData}
+                 rowKey="id"
+                 pagination={{ pageSize: 5 }}
+                 style={{ width: '1200px', whiteSpace: 'nowrap', overflow:
+       'hidden', textOverflow: 'ellipsis', margin: '0 auto' }}
+                 onRow={(record) => ({
+                   style: {
+                     backgroundColor:
+                       sessionStorage.getItem(`driver_${record.id}`) ?
+       "#d0e0d0" : "transparent",
+                   },
+                 })}
+               />
 
         {/* Delete Confirmation Modal */}
         <Modal
