@@ -1,9 +1,12 @@
+require('dotenv').config();
+
 const express = require("express");
 const admin = require("firebase-admin");
 const cors = require('cors');
 
-const serviceAccount =
-require('C:/Users/joman/OneDrive/Desktop/secrets/sair-7310d-firebase-adminsdk-9tvud-3725cb4010.json'); 
+const serviceAccount =JSON.parse(
+    Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT, 'base64').toString('utf8')
+  );
 
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
@@ -24,8 +27,7 @@ let gpsState = {
   };
 
 // Wialon API credentials
-const WIALON_TOKEN =
-"8ca297495a6d20aed50815e6f79cdd3b2D6292586C51CF2BE801FC0E4C312A5474C9BB71";
+const WIALON_TOKEN =process.env.WIALON_TOKEN
 const WIALON_BASE_URL = "https://hst-api.wialon.com";
 
 // Function to log in to Wialon and retrieve a session ID
@@ -138,14 +140,14 @@ try {
   const processUnits1 = async (units,sessionId) => {
     for (const unit of units) {
 
-        const pos = unit.pos; // Position object from Wialon
+        const pos = unit.pos; // Position object from Wialon unit.pos
         console.log(pos);
 
         if (pos && unit.lmsg) {
             const GPSserialnumber = unit.nm; // Get unit name as GPS serial number
             console.log('gpsnum:', GPSserialnumber);
 
-            const maxSpeed = await fetchMaxSpeed(24.75792675638283, 46.68704785917634); //Fetch max speed
+            const maxSpeed = await fetchMaxSpeed( pos.y,pos.x ); //Fetch max speed
             console.log('Max speed from API in process method:', maxSpeed);
 
             if (maxSpeed !== 0 ) {
@@ -332,7 +334,7 @@ Type);
 };
 
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyB3Xj66Y-2nmAmpFilQ45qNWbNhH-CWhIA";
+const GOOGLE_MAPS_API_KEY =process.env.GOOGLE_MAPS_API_KEY
 
 // Function to perform reverse geocoding using Google Maps API
 const fetchLocationWithGoogleMaps = async (lat, lon) => {
@@ -489,7 +491,7 @@ const processUnits2 = async (units,sessionId) => {
         if (pos) {
             const GPSserialnumber = unit.nm; // Unit name in Wialon
             console.log("GPS Serial Number:", GPSserialnumber);
-            const driverSpeed = pos.s; // Speed from position
+             const driverSpeed = pos.s; //pos.s; Speed from position
             console.log("Driver Speed:", driverSpeed);
 
             // Query for the driver in Firestore
@@ -527,7 +529,7 @@ motorcycleQuerySnapshot.docs[0].data();
 
                     const recentSpeeds = {};
                     const to = newCrashTime; // Current time
-                    const from = to - 100; // Check the last 10 seconds for relevant messages
+                    const from = to - 1000; // Check the last 10 seconds for relevant messages
                     console.log("Fetching messages from:", from, "to:", to);
 
                         const messages = await
@@ -566,11 +568,10 @@ prevRead.time;
 / deltaTime;
                                     console.log("Deceleration:", deceleration);
 
-                                    if (deceleration <= -7) {
+                                    if (deceleration <= -7) { //-7
                                         console.log("Potential crash detected for:", GPSserialnumber);
                                         // Check for recent crashes in Firestore
-                                        const starttime = newCrashTime
-- 5 * 60; // 5 minutes earlier
+                                        const starttime = newCrashTime - 5 * 60; // 5 minutes earlier
                                         const endtime = newCrashTime;
                                         const crashQuerySnapshot =
 await db.collection("Crash")
@@ -871,14 +872,14 @@ console.log('potentiaaaaaaaaaaaaaaaaaaaaaaal');
             const GPSserialnumber = unit.nm; // Get unit name as GPS serial number
             console.log('gpsnum:', GPSserialnumber);
 
-            const maxSpeed = await fetchMaxSpeed(pos.y, pos.x); // Fetch max speed   90;
+            const maxSpeed = await fetchMaxSpeed(pos.y, pos.x); // Fetch max speed   50;
             console.log('Max speed from API in process method:', maxSpeed);
 
             if (maxSpeed !== 0) {
                 const driverSpeed = pos.s; // Get the driver's speed     80;
                 console.log('driverspeed:', driverSpeed);
 
-                if (driverSpeed+10 == maxSpeed) {
+                if (driverSpeed+10 == maxSpeed || driverSpeed+10 > maxSpeed) {
                     const driverQuerySnapshot = await db.collection('Driver')
                         .where('GPSnumber', '==', GPSserialnumber)
                         .get();
@@ -919,30 +920,32 @@ fetchLocationWithGoogleMaps( pos.y, pos.x);
                             console.log(location);
 
 
-                            // const querySnapshot = await
+                            const querySnapshot = await
 db.collection('PotentialViolation')
-                            // .where('GPSnumber', '==', GPSserialnumber)
-                            // .where('driverID', '==', driverid)
-                            // .orderBy('time', 'desc')
-                            // .get();
+                            .where('GPSnumber', '==', GPSserialnumber)
+                            .where('driverID', '==', driverid)
+                            .orderBy('time', 'desc')
+                            .get();
 
-                            // if (!querySnapshot.empty) {
-                            //     const lastViolation = querySnapshot.docs[0];
+                            if (!querySnapshot.empty) {
+                                const lastViolation = querySnapshot.docs[0];
 
-                            //         const threeMinutesInSeconds = 3 * 60;
+                                    const threeMinutesInSeconds = 3 * 60;
 
-                            //         if (PotentialViolationTime -lastViolation.data().time > threeMinutesInSeconds) {
-                            //            console.log('exceed 5 min.');
-                            //            await
+                                    if (PotentialViolationTime -lastViolation.data().time > threeMinutesInSeconds) {
+                                       console.log('exceed 3 min.');
+                                       
+
+
 storePotentialViolation(PotentialViolationID, driverid,
 GPSserialnumber, location, position, driverSpeed, maxSpeed,
 PotentialViolationTime);
                             //            await
 storeHistory(PotentialViolationID, driverid, GPSserialnumber, Brand,
 LicensePlate, Model, MotorcycleID, Type);
-                            //          }
+                                     }
 
-                            // } else {
+                            } else {
                                 await
 storePotentialViolation(PotentialViolationID, driverid,
 GPSserialnumber, location, position, driverSpeed, maxSpeed,
@@ -951,7 +954,7 @@ PotentialViolationTime);
 storeHistory(PotentialViolationID, driverid, GPSserialnumber, Brand,
 LicensePlate, Model, MotorcycleID, Type);
                                 console.log('potential violation for this GPS.');
-                            // }
+                            }
 
 
 
@@ -1008,8 +1011,8 @@ const monitorWialon = async () => {
     const sessionId = await loginToWialon();
     const units = await fetchUnits(sessionId);
     // processUnits1(units,sessionId);
-    // // processUnits2(units,sessionId);
-    // // processUnits3(units,sessionId);
+    // processUnits2(units,sessionId);
+    // processUnits3(units,sessionId);
     await fetchActiveLocations(units, sessionId);
 
   } catch (error) {
