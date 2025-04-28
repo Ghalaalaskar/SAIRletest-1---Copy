@@ -354,7 +354,8 @@ const employerSnapshots = await Promise.all(employerPromises);
 const motorcyclesWithDrivers = motorcycleSnapshots.map((snapshot, index) => {
   const motorcycleData = snapshot.docs[0]?.data();
   const driverData = driverSnapshots[index].docs[0]?.data();
-
+// Determine status based on gpsState
+const status = gpsState.active.some(item => item.gpsNumber === motorcycleData?.GPSnumber) ? 'Active' : 'Inactive';
   return {
     motorcycleID: motorcycleData?.MotorcycleID || 'N/A',
     driverID: driverData?.DriverID || 'N/A',
@@ -363,6 +364,7 @@ const motorcyclesWithDrivers = motorcycleSnapshots.map((snapshot, index) => {
     gpsNumber: motorcycleData?.GPSnumber || 'N/A',
     type: motorcycleData?.Type || 'N/A',
     licensePlate: motorcycleData?.LicensePlate || 'N/A',
+    status,
   };
 });
 
@@ -422,6 +424,7 @@ const handleMarkerClick = async (gpsNumber, location) => {
       GPSnumber: clickedMotorcycle.gpsNumber || "N/A",  //it was GPSNumber!
       Type: clickedMotorcycle.Type || "N/A",
       LicensePlate: clickedMotorcycle.LicensePlate || "N/A",
+      status: clickedMotorcycle.status || "N/A",
     });
 
     setDriverDetails({
@@ -560,39 +563,34 @@ const handleSelect = (value) => {
 
 
 const staticMotorcycleData = [
-  { MotorcycleID: '5000000001', gpsNumber: '123456789012345', lat: 24.7137, lng: 46.6753, driverName: 'Mohammed Al-Farsi', driverID: '4455500001', phoneNumber: '+966512345678', shortCompanyName: 'Jahez', Type: 'T4A', LicensePlate: 'XYZ 123',status:'Active' },
-  { MotorcycleID: '5000000002', gpsNumber: '123456789012346', lat: 24.7137, lng: 46.6753, driverName: 'Ali Al-Mansour', driverID: '6664446892', phoneNumber: '+966512345679', shortCompanyName: 'Hungerstation', Type: 'A3', LicensePlate: 'XYZ 124',status:'Active' },
+  { MotorcycleID: '5000000001', gpsNumber: '123456789012345', lat: 24.7137, lng: 46.6753, driverName: 'Mohammed Al-Farsi', driverID: '4455500001', phoneNumber: '+966512345678', shortCompanyName: 'Jahez', Type: 'T4A', LicensePlate: '123 XYZ',status:'Active' },
+  { MotorcycleID: '5000000002', gpsNumber: '123456789012346', lat: 24.7137, lng: 46.6753, driverName: 'Ali Al-Mansour', driverID: '6664446892', phoneNumber: '+966512345679', shortCompanyName: 'Hungerstation', Type: 'A3', LicensePlate: '124 XYZ',status:'Active' },
   { MotorcycleID: '5000000003', gpsNumber: '123456789012347', lat: 24.7137, lng: 46.6753, driverName: 'Omar Al-Salem', driverID: '12358790983', phoneNumber: '+966512345680', shortCompanyName: 'Jahez', Type: 'VX', LicensePlate: 'XYZ 125' ,status:'Active'},
-  { MotorcycleID: '5000000004', gpsNumber: '123456789012348', lat: 24.7137, lng: 46.6753, driverName: 'Yusuf Al-Jabir', driverID: '9865743564', phoneNumber: '+966512345681', shortCompanyName: 'Hungerstation', Type: '6XX', LicensePlate: 'XYZ 126',status:'Active' },
+  { MotorcycleID: '5000000004', gpsNumber: '123456789012348', lat: 24.7137, lng: 46.6753, driverName: 'Yusuf Al-Jabir', driverID: '9865743564', phoneNumber: '+966512345681', shortCompanyName: 'Hungerstation', Type: '6XX', LicensePlate: '126 XYZ',status:'Active' },
   { MotorcycleID: '5000000005', gpsNumber: '123456789012349', lat: 24.7150, lng: 46.6758, driverName: 'Sami Al-Dossary', driverID: '19354675895', phoneNumber: '+966512345682', shortCompanyName: 'Jahez', Type: 'TD', LicensePlate: 'XYZ 127' ,status:'Active'},
-  { MotorcycleID: '5000000006', gpsNumber: '123456789012350', lat: 24.7153, lng: 46.6780, driverName: 'Fahad Al-Hamdan', driverID: '1357865476', phoneNumber: '+966512345683', shortCompanyName: 'Hungerstation', Type: 'E', LicensePlate: 'XYZ 128',status:'Inactive' },
+  { MotorcycleID: '5000000006', gpsNumber: '123456789012350', lat: 24.7153, lng: 46.6780, driverName: 'Fahad Al-Hamdan', driverID: '1357865476', phoneNumber: '+966512345683', shortCompanyName: 'Hungerstation', Type: 'E', LicensePlate: '128 XYZ',status:'Inactive' },
   { MotorcycleID: '5000000007', gpsNumber: '123456789012351', lat: 24.7210, lng: 46.6765, driverName: 'Zaid Al-Fahad', driverID: '1265879886', phoneNumber: '+966512345684', shortCompanyName: 'Jahez', Type: 'CXC', LicensePlate: 'XYZ 129' ,status:'Inactive'},
-  { MotorcycleID: '5000000008', gpsNumber: '123456789012352', lat: 24.7300, lng: 46.6700, driverName: 'Nasser Al-Qassem', driverID: '3456008643', phoneNumber: '+966512345685', shortCompanyName: 'Hungerstation', Type: 'PO1', LicensePlate: 'XYZ 130',status:'Inactive' },
+  { MotorcycleID: '5000000008', gpsNumber: '123456789012352', lat: 24.7300, lng: 46.6700, driverName: 'Nasser Al-Qassem', driverID: '3456008643', phoneNumber: '+966512345685', shortCompanyName: 'Hungerstation', Type: 'PO1', LicensePlate: '130 XYZ',status:'Inactive' },
   { MotorcycleID: '5000000009', gpsNumber: '123456789012353', lat: 24.7340, lng: 46.8900, driverName: 'Salman Al-Harbi', driverID: '8363939449', phoneNumber: '+966512345686', shortCompanyName: 'Jahez', Type: 'HW', LicensePlate: 'XYZ 131' ,status:'Inactive'},
-  { MotorcycleID: '5000000010', gpsNumber: '123456789012354', lat: 24.7400, lng: 46.8000, driverName: 'Khalid Al-Badri', driverID: '1136988810', phoneNumber: '+966512345687', shortCompanyName: 'Hungerstation', Type: 'T4', LicensePlate: 'XYZ 132' ,status:'Inactive'},
-  { MotorcycleID: '5000000011', gpsNumber: '123456789012355', lat: 24.7500, lng: 46.6000, driverName: 'Faisal Al-Amin', driverID: '4457355111', phoneNumber: '+966512345688', shortCompanyName: 'Jahez', Type: 'CXC', LicensePlate: 'XYZ 133' ,status:'Inactive'},
+  { MotorcycleID: '5000000010', gpsNumber: '123456789012354', lat: 24.7400, lng: 46.8000, driverName: 'Khalid Al-Badri', driverID: '1136988810', phoneNumber: '+966512345687', shortCompanyName: 'Hungerstation', Type: 'T4', LicensePlate: '132 XYZ' ,status:'Inactive'},
+  { MotorcycleID: '5000000011', gpsNumber: '123456789012355', lat: 24.7500, lng: 46.6000, driverName: 'Faisal Al-Amin', driverID: '4457355111', phoneNumber: '+966512345688', shortCompanyName: 'Jahez', Type: 'CXC', LicensePlate: '133 XYZ' ,status:'Inactive'},
 ];
 
-const filteredMotorcycles = motorcycleData.filter(m => {
-  const matchesSearch = m.driverName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-m.driverID.toLowerCase().includes(searchQuery.toLowerCase());
-  // Filter by company (if selected)
-//   const companyMatch =
-//     filters.company.length === 0 || filters.company.includes(m.shortCompanyName);
-
-  // Filter by status (active or inactive)
-  const isActive = (gpsState.active || []).some(item => item.gpsNumber === m.gpsNumber);
-  const isInactive = (gpsState.inactive || []).some(item => item.gpsNumber === m.gpsNumber);
+const filteredMotorcycles = motorcycleData.filter(item => {
+  const matchesSearch = item.driverName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.driverID.toLowerCase().includes(searchQuery.toLowerCase());
 
   // Determine the actual status (either from gpsState or fallback to m.status)
   let motorcycleStatus = '';
+  const isActive = (gpsState.active || []).some(item => item.gpsNumber === m.gpsNumber);
+  const isInactive = (gpsState.inactive || []).some(item => item.gpsNumber === m.gpsNumber);
+
   if (isActive) {
     motorcycleStatus = 'Active';
   } else if (isInactive) {
     motorcycleStatus = 'Inactive';
-  } else if (m.status) {
-    // for static motorcycles
-    motorcycleStatus = m.status;
+  } else if (item.status) {
+    motorcycleStatus = item.status; // Ensure you are using item.status here
   }
 
   const statusMatch =
@@ -600,7 +598,7 @@ m.driverID.toLowerCase().includes(searchQuery.toLowerCase());
     filterStatus.includes(motorcycleStatus);
 
   return matchesSearch && statusMatch;
- });
+});
 
  useEffect(() => {
   console.log("Updated lastKnownLocations", lastKnownLocations);
@@ -859,7 +857,13 @@ outline: 'none', // Remove outline on focus
 
 <strong style={{ color: '#059855' }}>Motorcycle ID:</strong> {motorcycleIDToUse} <br />
 
-<strong style={{ color: '#059855' }}>Driver Name:</strong> {capitalizeName(item.driverName)}
+<strong style={{ color: '#059855' }}>Driver Name:</strong> {capitalizeName(item.driverName)}<br />
+                      <strong style={{ color: '#059855' }}>Status:</strong>{' '}
+                        {item.status === 'Active' ? (
+                          <span style={{ color: 'green' }}>{item.status}</span>
+                        ) : (
+                          <span style={{ color: 'red' }}>{item.status}</span>
+                        )}
 
 </div>
 
