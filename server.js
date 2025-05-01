@@ -449,6 +449,7 @@ location, position, speed, maxSpeed, time, price, count50, count30) =>
             count50: count50,
             count30: count30,
             isAuto: true,
+            Status:'Active',
         });
         console.log('Violation stored successfully.');
     } catch (e) {
