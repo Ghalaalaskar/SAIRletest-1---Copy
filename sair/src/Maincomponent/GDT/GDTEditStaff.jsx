@@ -435,7 +435,7 @@ const GDTEditStaff = () => {
 
   return (
     <div>
-      <Header />
+      <Header active="gdtstafflist"/>
       <div class="breadcrumb">
         <a onClick={() => navigate("/GDThome")}>Home</a>
         <span> / </span>
@@ -444,7 +444,7 @@ const GDTEditStaff = () => {
         <a onClick={() => navigate("/gdteditstaff")}>Edit Staff</a>
       </div>
       <div className={s.forme}>
-        <main className={s.container}>
+        <div className={s.container}>
           <form onSubmit={handleSave} noValidate>
             <h2 className="title">Edit Staff</h2>
 
@@ -553,6 +553,13 @@ const GDTEditStaff = () => {
 
             <div>
                 <div>
+                <button
+                    type="button"
+                    className={s.profileCancel}
+                    onClick={handleCancel}
+                  >
+                    Cancel
+                  </button>
                   <button
                     type="submit"
                     className={s.profilesave}
@@ -560,13 +567,7 @@ const GDTEditStaff = () => {
                   >
                     {loading ? "Update Staff" : "Update Staff"}
                   </button>
-                  <button
-                    type="button"
-                    className={s.profileCancel}
-                    onClick={handleCancel}
-                  >
-                    Cancel
-                  </button>
+               
                   </div>
               </div>
             {}
@@ -594,7 +595,7 @@ const GDTEditStaff = () => {
               />
             </div>
           </Modal>
-        </main>
+        </div>
       </div>
     </div>
   );

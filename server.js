@@ -872,7 +872,7 @@ console.log('potentiaaaaaaaaaaaaaaaaaaaaaaal');
             const GPSserialnumber = unit.nm; // Get unit name as GPS serial number
             console.log('gpsnum:', GPSserialnumber);
 
-            const maxSpeed = await fetchMaxSpeed(pos.y, pos.x); // Fetch max speed   50;
+             const maxSpeed =  60; //await fetchMaxSpeed(pos.y, pos.x);  Fetch max speed   50;
             console.log('Max speed from API in process method:', maxSpeed);
 
             if (maxSpeed !== 0) {
@@ -936,11 +936,11 @@ db.collection('PotentialViolation')
                                        console.log('exceed 3 min.');
                                        
 
-
+                                       await
 storePotentialViolation(PotentialViolationID, driverid,
 GPSserialnumber, location, position, driverSpeed, maxSpeed,
 PotentialViolationTime);
-                            //            await
+                                       await
 storeHistory(PotentialViolationID, driverid, GPSserialnumber, Brand,
 LicensePlate, Model, MotorcycleID, Type);
                                      }
@@ -1012,7 +1012,7 @@ const monitorWialon = async () => {
     const units = await fetchUnits(sessionId);
     // processUnits1(units,sessionId);
     // processUnits2(units,sessionId);
-    // processUnits3(units,sessionId);
+    processUnits3(units,sessionId);
     await fetchActiveLocations(units, sessionId);
 
   } catch (error) {
