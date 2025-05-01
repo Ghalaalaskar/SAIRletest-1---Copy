@@ -188,10 +188,12 @@ const GDTMap = ({ locations }) => {
   const [shortCompanyName, setShortCompanyName] = useState('');
   const [expandedMotorcycleIds, setExpandedMotorcycleIds] = useState([]);
   const [motorcyclesData, setMotorcyclesData] = useState(staticMotorcycleData);
+  const [filteredMotorcyclesData, setFilteredMotorcyclesData] =
+    useState(staticMotorcycleData);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [uniqueCompanyNames, setUniqueCompanyNames] = useState([]);
-console.log('locations Company Names:', locations); // Log the unique company names
+  console.log('locations Company Names:', locations); // Log the unique company names
   const combinedOptions = [
     // Companies
     ...[...uniqueCompanyNames].sort().map((name) => ({
@@ -307,8 +309,12 @@ console.log('locations Company Names:', locations); // Log the unique company na
         return {
           MotorcycleID: motorcycleData?.MotorcycleID || 'N/A',
           gpsNumber: motorcycleData?.GPSnumber || 'N/A',
-          lat: locations.find(loc => loc.gpsNumber === motorcycleData?.GPSnumber)?.lat || 0,
-          lng: locations.find(loc => loc.gpsNumber === motorcycleData?.GPSnumber)?.lng || 0,
+          lat:
+            locations.find((loc) => loc.gpsNumber === motorcycleData?.GPSnumber)
+              ?.lat || 0,
+          lng:
+            locations.find((loc) => loc.gpsNumber === motorcycleData?.GPSnumber)
+              ?.lng || 0,
           driverName: driverData
             ? `${driverData.Fname} ${driverData.Lname}`
             : 'Unknown',
@@ -317,7 +323,11 @@ console.log('locations Company Names:', locations); // Log the unique company na
           shortCompanyName: employerData?.ShortCompanyName || 'N/A',
           Type: motorcycleData?.Type || 'N/A',
           LicensePlate: motorcycleData?.LicensePlate || 'N/A',
-          status: gpsState.active.some(item => item.gpsNumber === motorcycleData?.GPSnumber) ? 'Active' : 'Inactive'
+          status: gpsState.active.some(
+            (item) => item.gpsNumber === motorcycleData?.GPSnumber
+          )
+            ? 'Active'
+            : 'Inactive',
         };
       }
     );
@@ -333,7 +343,9 @@ console.log('locations Company Names:', locations); // Log the unique company na
 
   useEffect(() => {
     const fetchUniqueCompanyNames = () => {
-      const companyNames = motorcyclesData.map((item) => item.shortCompanyName || item.ShortCompanyName);
+      const companyNames = motorcyclesData.map(
+        (item) => item.shortCompanyName || item.ShortCompanyName
+      );
       const uniqueNames = [...new Set(companyNames)]; // Get unique names
       setUniqueCompanyNames(uniqueNames);
     };
@@ -489,28 +501,53 @@ console.log('locations Company Names:', locations); // Log the unique company na
     setFilters({ company: newCompany, status: newStatus });
   };
 
-  const filterMotorcycle = (motorcycle) => {
-     const gpsStatus = gpsState.active.includes(motorcycle.gpsNumber)
-       ? 'Active'
-       : 'Inactive';
-     const status = motorcycle.status || gpsStatus;
-    const searchFilter =
-      searchQuery === '' ||
-      (motorcycle.driverName &&
-        motorcycle.driverName
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase())) ||
-      (motorcycle.driverID &&
-        motorcycle.driverID.toLowerCase().includes(searchQuery.toLowerCase()));
-    const companyFilter = filters.company.length
-      ? filters.company.includes(motorcycle.shortCompanyName)
-      : true;
-    const statusFilter = filters.status.length
-      ? filters.status.includes(status)
-      : true;
+  const filterMotorcycle = useCallback(
+    (motorcycle) => {
+      const gpsStatus = gpsState.active.includes(motorcycle.gpsNumber)
+        ? 'Active'
+        : 'Inactive';
+      const status = motorcycle.status || gpsStatus;
+      const searchFilter =
+        searchQuery === '' ||
+        (motorcycle.driverName &&
+          motorcycle.driverName
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase())) ||
+        (motorcycle.driverID &&
+          motorcycle.driverID
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()));
+      const companyFilter = filters.company.length
+        ? filters.company.includes(motorcycle.shortCompanyName)
+        : true;
+      const statusFilter = filters.status.length
+        ? filters.status.includes(status)
+        : true;
 
-    return searchFilter && companyFilter && statusFilter;
-  };
+      return searchFilter && companyFilter && statusFilter;
+    },
+    [filters, searchQuery, gpsState.active]
+  );
+
+  // Update motorcyclesData whenever filters change
+  useEffect(() => {
+    setFilteredMotorcyclesData(motorcyclesData.filter(filterMotorcycle));
+  }, [motorcyclesData, filterMotorcycle, setFilteredMotorcyclesData]);
+
+  // Add this state variable
+  const [heatmapData, setHeatmapData] = useState(
+    filteredMotorcyclesData.map((motor) => {
+      return new window.google.maps.LatLng(motor.lat, motor.lng);
+    })
+  );
+
+  // Add this useEffect to update heatmap data when filtered data changes
+  useEffect(() => {
+    const newHeatmapData = filteredMotorcyclesData.map((motor) => {
+      return new window.google.maps.LatLng(motor.lat, motor.lng);
+    });
+    setHeatmapData(newHeatmapData);
+  }, [filteredMotorcyclesData]);
 
   return (
     <div style={{ display: 'flex', height: '80vh' }}>
@@ -711,13 +748,14 @@ console.log('locations Company Names:', locations); // Log the unique company na
         </div>
 
         <ul style={{ listStyleType: 'none', padding: '0' }}>
-          {motorcyclesData
-            .filter(filterMotorcycle)
+          {filteredMotorcyclesData
             .sort((a, b) =>
               (a.driverName || '').localeCompare(b.driverName || '')
             )
             .map((item, index) => {
-              const gpsStatus = gpsState.active.includes(item.gpsNumber) ? 'Active' : 'Inactive';
+              const gpsStatus = gpsState.active.includes(item.gpsNumber)
+                ? 'Active'
+                : 'Inactive';
               const status = item.status || gpsStatus;
               // Determine which ID to use for expansion
               const motorcycleIDToUse = item.MotorcycleID || item.motorcycleID;
@@ -748,13 +786,14 @@ console.log('locations Company Names:', locations); // Log the unique company na
                       <strong style={{ color: '#059855' }}>
                         Driver Name:
                       </strong>{' '}
-                      {capitalizeName(item.driverName)}<br />
+                      {capitalizeName(item.driverName)}
+                      <br />
                       <strong style={{ color: '#059855' }}>Status:</strong>{' '}
-                        {status === 'Active' ? (
-                          <span style={{ color: 'green' }}>{status}</span>
-                        ) : (
-                          <span style={{ color: 'red' }}>{status}</span>
-                        )}
+                      {status === 'Active' ? (
+                        <span style={{ color: 'green' }}>{status}</span>
+                      ) : (
+                        <span style={{ color: 'red' }}>{status}</span>
+                      )}
                     </div>
 
                     <button
@@ -868,28 +907,29 @@ console.log('locations Company Names:', locations); // Log the unique company na
                           marginTop: '5px',
                         }}
                       >
-<button
-  onClick={() => {
-    navigate(`/gdtdriverdetails/${item.driverID}`, { state: { from: "Heatmap" } });
-  }}
-  style={{
-    backgroundColor: '#059855',
-    color: 'white',
-    border: 'none',
-    marginBottom: '5px',
-    padding: '5px',
-    width: '120px',
-    cursor: 'pointer',
-  }}
->
-  Full Information
-</button>
+                        <button
+                          onClick={() => {
+                            navigate(`/gdtdriverdetails/${item.driverID}`, {
+                              state: { from: 'Heatmap' },
+                            });
+                          }}
+                          style={{
+                            backgroundColor: '#059855',
+                            color: 'white',
+                            border: 'none',
+                            marginBottom: '5px',
+                            padding: '5px',
+                            width: '120px',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Full Information
+                        </button>
 
                         <button
                           onClick={() => {
                             const clickedLocation = item;
-                            console.log(
-                              'Clicked Location Coordinates:', item )
+                            console.log('Clicked Location Coordinates:', item);
                             if (clickedLocation) {
                               setMapCenter({
                                 lat: clickedLocation.lat,
@@ -933,9 +973,7 @@ console.log('locations Company Names:', locations); // Log the unique company na
         // onLoad={() => setIsMapLoaded(true)}
       >
         <HeatmapLayerF
-          data={motorcyclesData.filter(filterMotorcycle).map((motor) => {
-            return new window.google.maps.LatLng(motor.lat, motor.lng);
-          })}
+          data={heatmapData}
           options={{
             radius: 30,
             opacity: 0.7,
@@ -952,7 +990,7 @@ console.log('locations Company Names:', locations); // Log the unique company na
 
         {/* Render markers for static motorcycles regardless of zoom level */}
         {zoomLevel >= 16 &&
-          motorcyclesData.map((item, index) => (
+          filteredMotorcyclesData.map((item, index) => (
             <MarkerF
               key={`static-${index}`}
               position={{ lat: item.lat, lng: item.lng }}
@@ -1011,7 +1049,9 @@ console.log('locations Company Names:', locations); // Log the unique company na
               </h4>
               <p style={{ margin: '0' }}>
                 <strong style={{ color: '#059855' }}>ID:</strong>{' '}
-                {motorcycleDetails?.MotorcycleID || motorcycleDetails?.motorcycleID || 'N/A'}
+                {motorcycleDetails?.MotorcycleID ||
+                  motorcycleDetails?.motorcycleID ||
+                  'N/A'}
               </p>
               <p style={{ margin: '0' }}>
                 <strong style={{ color: '#059855' }}>GPS Number:</strong>{' '}
