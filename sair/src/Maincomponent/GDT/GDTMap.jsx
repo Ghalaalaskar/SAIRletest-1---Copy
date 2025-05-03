@@ -1,11 +1,13 @@
-import React, { useEffect, useState, useCallback } from 'react';
+ import React, { useEffect, useState, useCallback } from 'react';
 import {
   GoogleMap,
   InfoWindowF,
   MarkerF,
   HeatmapLayerF,
+  HeatmapLayer,
 } from '@react-google-maps/api';
 import motorcycle from '../../images/motorcycle.png';
+import { FaExclamationTriangle } from 'react-icons/fa';
 import '../../css/CustomModal.css';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../../firebase';
@@ -171,6 +173,39 @@ const staticMotorcycleData = [
   },
 ];
 
+const HeatMapWrapper = ({ heatmapData }) => {
+  const heatmapRef = React.useRef(null);
+
+  const onHeatmapLoad = React.useCallback((heatmapLayer) => {
+    heatmapRef.current = heatmapLayer;
+  }, []);
+
+  React.useEffect(() => {
+    if (heatmapRef.current) {
+      heatmapRef.current.setData(heatmapData);
+    }
+  }, [heatmapData]);
+
+  return (
+    <HeatmapLayerF
+      onLoad={onHeatmapLoad}
+      data={heatmapData}
+      options={{
+        radius: 30,
+        opacity: 0.7,
+        gradient: [
+          'rgba(0, 0, 255, 0)', // Transparent blue
+          'rgba(0, 255, 255, 1)', // Cyan
+          'rgba(0, 255, 0, 1)', // Green
+          'rgba(255, 255, 0, 1)', // Yellow
+          'rgba(255, 128, 0, 1)', // Orange
+          'rgba(255, 0, 0, 1)', // Red
+        ],
+      }}
+    />
+  );
+};
+
 const GDTMap = ({ locations }) => {
   const [gpsState, setGpsState] = useState({ active: [], inactive: [] });
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -193,7 +228,7 @@ const GDTMap = ({ locations }) => {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [uniqueCompanyNames, setUniqueCompanyNames] = useState([]);
-  console.log('locations Company Names:', locations); // Log the unique company names
+
   const combinedOptions = [
     // Companies
     ...[...uniqueCompanyNames].sort().map((name) => ({
@@ -216,7 +251,9 @@ const GDTMap = ({ locations }) => {
   // Function to fetch GPS state from the server
   const fetchGpsState = async () => {
     try {
-      const response = await fetch('https://sair-server.onrender.com/api/gps-state'); // need to change port after host the server!!     const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/gps-state`);   هنا بعد ما نرفع السيرفر نحط ال url
+      const response = await fetch(
+        'https://sair-server.onrender.com/api/gps-state'
+      ); // need to change port after host the server!!     const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/gps-state`);   هنا بعد ما نرفع السيرفر نحط ال url
 
       if (!response.ok) {
         throw new Error('Network response was not ok');
@@ -237,8 +274,9 @@ const GDTMap = ({ locations }) => {
 
     // Then keep fetching every 10 seconds
     const interval = setInterval(() => {
+      console.log('Fetching GPS state... 5000500050005000'); // Log when fetching starts
       fetchGpsState();
-    }, 15000); // 10 seconds
+    }, 3000); // 10 seconds
 
     // Cleanup the interval when component unmounts
     return () => clearInterval(interval);
@@ -342,18 +380,34 @@ const GDTMap = ({ locations }) => {
   }, [gpsState.active, gpsState.inactive, fetchMotorcycleAndDriverData]);
 
   useEffect(() => {
-    const fetchUniqueCompanyNames = () => {
-      const companyNames = motorcyclesData.map(
-        (item) => item.shortCompanyName || item.ShortCompanyName
-      );
-      const uniqueNames = [...new Set(companyNames)]; // Get unique names
-      setUniqueCompanyNames(uniqueNames);
+    const fetchUniqueCompanyNames = async () => {
+      try {
+        // Query the Employer collection in Firestore
+        const employerCollection = collection(db, 'Employer');
+        const employerSnapshot = await getDocs(employerCollection);
+
+        // Extract unique company names from the snapshot
+        const companyNames = employerSnapshot.docs
+          .map((doc) => {
+            const data = doc.data();
+            return data.ShortCompanyName || data.CompanyName;
+          })
+          .filter(Boolean); // Remove any undefined or null values
+
+        // Filter out duplicates by creating a Set and converting back to array
+        const uniqueNames = [...new Set(companyNames)];
+        console.log('Fetched unique company names:', uniqueNames);
+
+        // Update state with the company names
+        setUniqueCompanyNames(uniqueNames);
+      } catch (error) {
+        console.error('Error fetching company names:', error);
+      }
     };
 
-    if (motorcyclesData.length > 0) {
-      fetchUniqueCompanyNames();
-    }
-  }, [motorcyclesData]);
+    // Run this function when component mounts
+    fetchUniqueCompanyNames();
+  }, []); // Empty dependency array so it only runs once when component mounts
 
   const motorcycleIcon = {
     url: motorcycle, // Example default icon
@@ -748,7 +802,13 @@ const GDTMap = ({ locations }) => {
         </div>
 
         <ul style={{ listStyleType: 'none', padding: '0' }}>
-          {filteredMotorcyclesData
+        {filteredMotorcyclesData.length === 0 ? (
+    <div style={{ marginTop: '100px', textAlign: 'center' }}>
+      <FaExclamationTriangle style={{ color: 'grey', fontSize: '24px' }} />
+      <p style={{fontSize:'16px'}}>No motorcycles available based on the selected filters and search.</p>
+    </div>
+  ) : (
+          filteredMotorcyclesData
             .sort((a, b) =>
               (a.driverName || '').localeCompare(b.driverName || '')
             )
@@ -957,7 +1017,8 @@ const GDTMap = ({ locations }) => {
                   )}
                 </li>
               );
-            })}
+            })
+        )}
         </ul>
       </div>
 
@@ -972,21 +1033,7 @@ const GDTMap = ({ locations }) => {
         onClick={() => setSelectedLocation(null)}
         // onLoad={() => setIsMapLoaded(true)}
       >
-        <HeatmapLayerF
-          data={heatmapData}
-          options={{
-            radius: 30,
-            opacity: 0.7,
-            gradient: [
-              'rgba(0, 0, 255, 0)', // Transparent blue
-              'rgba(0, 255, 255, 1)', // Cyan
-              'rgba(0, 255, 0, 1)', // Green
-              'rgba(255, 255, 0, 1)', // Yellow
-              'rgba(255, 128, 0, 1)', // Orange
-              'rgba(255, 0, 0, 1)', // Red
-            ],
-          }}
-        />
+        <HeatMapWrapper heatmapData={heatmapData} />
 
         {/* Render markers for static motorcycles regardless of zoom level */}
         {zoomLevel >= 16 &&
