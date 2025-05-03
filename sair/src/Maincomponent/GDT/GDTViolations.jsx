@@ -227,8 +227,7 @@ const options = [
   const handleViewViolations = () => {
     if (violations.length > 0) {
       const basePath = "/gdtricklessdrives";
-      const path = company ? `${basePath}?company=${encodeURIComponent(company)}` : basePath;
-      navigate(path);
+      navigate(basePath);
     } else {
       setIsPopupVisible(true);
     }
@@ -421,6 +420,10 @@ const options = [
   };
   // Slice the filtered violations for current page
 const paginatedViolations = filteredViolations.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+const paginatedData = paginatedViolations.slice((currentPage - 1) * 5, currentPage * 5);
+
+
   return (
     <>
       <Header active="gdtviolations" />
@@ -685,7 +688,7 @@ const paginatedViolations = filteredViolations.slice((currentPage - 1) * pageSiz
           </div>
 <Table
   columns={columns}
-  dataSource={paginatedViolations}
+  dataSource={paginatedData}//{paginatedViolations}
   rowKey="id"
   rowClassName={(record) =>
     clickedViolations.includes(record.id) ? "" : s.highlightRow
@@ -735,13 +738,24 @@ const paginatedViolations = filteredViolations.slice((currentPage - 1) * pageSiz
   </div>
 
   {/* Right side: Pagination */}
-  <Pagination
+  {/* <Pagination
     current={currentPage}
     total={filteredViolations.length}
     pageSize={5}
     onChange={handlePageChange}
     style={{ margin: '-30px 0 0 0' }}
-  />
+  /> */}
+
+  
+  <Pagination
+  current={currentPage}
+  pageSize={5}
+  total={filteredViolations.length}
+  onChange={(page) => setCurrentPage(page)}
+  showSizeChanger={false}
+  showLessItems
+/>
+  
 </div>
 
           {/* Popup for no violations */}

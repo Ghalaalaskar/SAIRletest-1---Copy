@@ -1,13 +1,12 @@
- import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   GoogleMap,
   InfoWindowF,
   MarkerF,
   HeatmapLayerF,
-  HeatmapLayer,
 } from '@react-google-maps/api';
-import motorcycle from '../../images/motorcycle.png';
 import { FaExclamationTriangle } from 'react-icons/fa';
+import motorcycle from '../../images/motorcycle.png';
 import '../../css/CustomModal.css';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../../firebase';
@@ -19,11 +18,12 @@ import q from '../../css/Violations.module.css';
 import s from '../../css/ComplaintList.module.css'; // CSS module for ComplaintList
 
 const containerStyle = {
-  width: '74%', // Set the map width
-  height: '590px', // Set the map height
+  width: '98%', // Set the map width
+  height: '566px', // Set the map height
   margin: 'auto', // Center the map
   marginRight: '8px',
   marginLeft: '8px',
+  marginTop:'-23px'
 };
 
 // Fix: Move static data outside component to prevent re-creation on each render
@@ -173,8 +173,10 @@ const staticMotorcycleData = [
   },
 ];
 
-const HeatMapWrapper = ({ heatmapData }) => {
+const HeatMapWrapper = ({ heatmapData, visible }) => {
   const heatmapRef = React.useRef(null);
+  const mapRef = React.useRef(null);
+  const prevVisibleRef = React.useRef(visible);
 
   const onHeatmapLoad = React.useCallback((heatmapLayer) => {
     heatmapRef.current = heatmapLayer;
@@ -182,9 +184,33 @@ const HeatMapWrapper = ({ heatmapData }) => {
 
   React.useEffect(() => {
     if (heatmapRef.current) {
-      heatmapRef.current.setData(heatmapData);
+      // Store map reference when available
+      if (!mapRef.current && heatmapRef.current.getMap()) {
+        mapRef.current = heatmapRef.current.getMap();
+      }
+
+      // Handle visibility changes
+      if (visible !== prevVisibleRef.current) {
+        prevVisibleRef.current = visible;
+
+        if (visible) {
+          heatmapRef.current.setMap(mapRef.current);
+        } else {
+          heatmapRef.current.setMap(null);
+        }
+      }
+
+      // Handle data changes only when visible
+      if (visible && heatmapData && heatmapData.length > 0) {
+        heatmapRef.current.setData(heatmapData);
+      }
     }
-  }, [heatmapData]);
+  }, [heatmapData, visible]);
+
+  // Only render when visible or first mount
+  if (!visible && heatmapRef.current) {
+    return null;
+  }
 
   return (
     <HeatmapLayerF
@@ -253,14 +279,14 @@ const GDTMap = ({ locations }) => {
     try {
       const response = await fetch(
         'https://sair-server.onrender.com/api/gps-state'
+        // 'https://sair-server.onrender.com/api/gps-state'
       ); // need to change port after host the server!!     const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/gps-state`);   هنا بعد ما نرفع السيرفر نحط ال url
 
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
-      console.log('Response:', response); // Log the response object
       const data = await response.json();
-      console.log('Fetched GPS State:', data);
+      console.log('Fetched GPS State data :', data);
       setGpsState(data);
     } catch (error) {
       console.error('Error fetching GPS state:', error);
@@ -276,7 +302,7 @@ const GDTMap = ({ locations }) => {
     const interval = setInterval(() => {
       console.log('Fetching GPS state... 5000500050005000'); // Log when fetching starts
       fetchGpsState();
-    }, 3000); // 10 seconds
+    }, 1000); // 10 seconds
 
     // Cleanup the interval when component unmounts
     return () => clearInterval(interval);
@@ -409,11 +435,24 @@ const GDTMap = ({ locations }) => {
     fetchUniqueCompanyNames();
   }, []); // Empty dependency array so it only runs once when component mounts
 
-  const motorcycleIcon = {
-    url: motorcycle, // Example default icon
-    scaledSize: new window.google.maps.Size(50, 50), // Size of the icon
-    origin: new window.google.maps.Point(0, 0), // Origin point of the icon
-    anchor: new window.google.maps.Point(25, 50), // Anchor point of the icon
+  // Create a function to calculate icon size based on zoom level
+  const getIconSize = (zoomLevel) => {
+    // Base size for different zoom levels
+    if (zoomLevel <= 10) return 20; // Small at far zoom
+    if (zoomLevel <= 14) return 30; // Medium at medium zoom
+    if (zoomLevel <= 16) return 40; // Larger at closer zoom
+    return 50; // Full size when very close
+  };
+
+  // Update the motorcycleIcon to be a function that uses the current zoom level
+  const getMotorcycleIcon = (zoomLevel) => {
+    const size = getIconSize(zoomLevel);
+    return {
+      url: motorcycle,
+      scaledSize: new window.google.maps.Size(size, size),
+      origin: new window.google.maps.Point(0, 0),
+      anchor: new window.google.maps.Point(size / 2, size), // Adjust anchor point based on size
+    };
   };
 
   const handleMapLoad = (mapInstance) => {
@@ -603,11 +642,16 @@ const GDTMap = ({ locations }) => {
     setHeatmapData(newHeatmapData);
   }, [filteredMotorcyclesData]);
 
+  // Add these state variables at the beginning of your component
+  const [showMarkers, setShowMarkers] = useState(true);
+  const [showHeatmap, setShowHeatmap] = useState(true);
+
   return (
     <div style={{ display: 'flex', height: '80vh' }}>
       <div
         style={{
           width: '400px',
+          flexShrink: 0,
           padding: '10px',
           borderRight: '1px solid #ccc',
           backgroundColor: '#f9f9f9',
@@ -803,12 +847,12 @@ const GDTMap = ({ locations }) => {
 
         <ul style={{ listStyleType: 'none', padding: '0' }}>
         {filteredMotorcyclesData.length === 0 ? (
-    <div style={{ marginTop: '100px', textAlign: 'center' }}>
+    <div style={{ marginTop: '50px', textAlign: 'center' }}>
       <FaExclamationTriangle style={{ color: 'grey', fontSize: '24px' }} />
-      <p style={{fontSize:'16px'}}>No motorcycles available based on the selected filters and search.</p>
+      <p>No motorcycles available based on the selected filters and search.</p>
     </div>
   ) : (
-          filteredMotorcyclesData
+    filteredMotorcyclesData
             .sort((a, b) =>
               (a.driverName || '').localeCompare(b.driverName || '')
             )
@@ -1016,124 +1060,169 @@ const GDTMap = ({ locations }) => {
                     </div>
                   )}
                 </li>
-              );
-            })
-        )}
+        );
+      })
+  )}
         </ul>
       </div>
 
       {/* The gps number in the location saved in array after that query the driver collection and motorcycle then display them in the list */}
-
-      <GoogleMap
-        mapContainerStyle={containerStyle}
-        center={mapCenter}
-        zoom={zoomLevel}
-        onLoad={handleMapLoad}
-        // options={{ styles: beigeMapStyle }}
-        onClick={() => setSelectedLocation(null)}
-        // onLoad={() => setIsMapLoaded(true)}
-      >
-        <HeatMapWrapper heatmapData={heatmapData} />
-
-        {/* Render markers for static motorcycles regardless of zoom level */}
-        {zoomLevel >= 16 &&
-          filteredMotorcyclesData.map((item, index) => (
-            <MarkerF
-              key={`static-${index}`}
-              position={{ lat: item.lat, lng: item.lng }}
-              icon={motorcycleIcon}
-              onClick={() => handleMarkerClick(item.gpsNumber, item)} // Handle click for static motorcycle
-            />
-          ))}
-
-        {selectedLocation && (
-          <InfoWindowF
-            position={{
-              lat: selectedLocation.lat + 0.00005,
-              lng: selectedLocation.lng,
-            }}
-            onCloseClick={() => {
-              setSelectedLocation(null);
-              setDriverDetails(null);
-              setMotorcycleDetails(null);
-              setShortCompanyName('');
-            }}
-            options={{ pixelOffset: new window.google.maps.Size(0, -40) }} // Adjust offset if needed
+      <div style={{ width: '100%', height: '100%',  marginTop:'-30px' }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: '10px',
+            padding: '30px',
+          }}
+        >
+          <label
+            style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
           >
-            <div style={{ margin: 0, padding: '10px', lineHeight: '1.5' }}>
-              <h4
-                style={{
-                  color: '#059855',
-                  margin: '-13px -10px 0px',
-                  padding: '-10px',
-                }}
-              >
-                Driver Information
-              </h4>
-              <p style={{ margin: '0' }}>
-                <strong style={{ color: '#059855' }}>Driver ID:</strong>{' '}
-                {driverDetails?.DriverID || 'N/A'}
-              </p>
-              <p style={{ margin: '0' }}>
-                <strong style={{ color: '#059855' }}>Name:</strong>{' '}
-                {driverDetails
-                  ? `${capitalizeFirstLetter(
-                      driverDetails.Fname
-                    )} ${capitalizeFirstLetter(driverDetails.Lname)}`
-                  : 'N/A'}
-              </p>
-              <p style={{ margin: '0' }}>
-                <strong style={{ color: '#059855' }}>Phone:</strong>{' '}
-                {driverDetails?.PhoneNumber || 'N/A'}
-              </p>
-              <p style={{ marginBottom: '-10px' }}>
-                <strong style={{ color: '#059855' }}>Company Name:</strong>{' '}
-                {capitalizeFirstLetter(shortCompanyName) || 'Not available'}
-              </p>
-              <hr></hr>
-              <h4 style={{ color: '#059855', margin: '-13px -10px 0px' }}>
-                Motorcycle Information
-              </h4>
-              <p style={{ margin: '0' }}>
-                <strong style={{ color: '#059855' }}>ID:</strong>{' '}
-                {motorcycleDetails?.MotorcycleID ||
-                  motorcycleDetails?.motorcycleID ||
-                  'N/A'}
-              </p>
-              <p style={{ margin: '0' }}>
-                <strong style={{ color: '#059855' }}>GPS Number:</strong>{' '}
-                {motorcycleDetails?.GPSnumber || 'N/A'}
-              </p>
-              <p style={{ margin: '0' }}>
-                <strong style={{ color: '#059855' }}>Type:</strong>{' '}
-                {motorcycleDetails?.Type || 'N/A'}
-              </p>
-              <p style={{ margin: '0' }}>
-                <strong style={{ color: '#059855' }}>License Plate:</strong>{' '}
-                {motorcycleDetails?.LicensePlate || 'N/A'}
-              </p>
-              <button
-                onClick={() =>
-                  navigate(`/gdtdriverdetails/${driverDetails?.DriverID}`)
-                }
-                style={{
-                  backgroundColor: '#059855',
-                  color: 'white',
-                  border: 'none',
-                  padding: '5px 10px',
-                  cursor: 'pointer',
-                  width: '120px',
-                  marginLeft: '100px',
-                  marginTop: '10px',
-                  marginBottom: '-25px',
-                }}
-              >
-                Full Information
-              </button>
-            </div>
-          </InfoWindowF>
-        )}
-      </GoogleMap>
+            <input
+              type='checkbox'
+              checked={showMarkers}
+              onChange={() => setShowMarkers(!showMarkers)}
+              style={{ marginRight: '8px' }}
+            />
+            <span style={{ color: '#059855', fontWeight: '500' }}>
+              Show Motorcycles
+            </span>
+          </label>
+
+          <label
+            style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+          >
+            <input
+              type='checkbox'
+              checked={showHeatmap}
+              onChange={() => setShowHeatmap(!showHeatmap)}
+              style={{ marginRight: '8px' }}
+            />
+            <span style={{ color: '#059855', fontWeight: '500' }}>
+              Show Heatmap
+            </span>
+          </label>
+        </div>
+
+        <GoogleMap
+          mapContainerStyle={containerStyle}
+          center={mapCenter}
+          zoom={zoomLevel}
+          onLoad={handleMapLoad}
+          // options={{ styles: beigeMapStyle }}
+          onClick={() => setSelectedLocation(null)}
+          // onLoad={() => setIsMapLoaded(true)}
+        >
+          <HeatMapWrapper heatmapData={heatmapData} visible={showHeatmap} />
+
+          {/* Render markers for motorcycles only if showMarkers is true */}
+          {showMarkers &&
+  filteredMotorcyclesData.map((item, index) => {
+    // Calculate an offset based on the index
+    const offset = 0.000003 * index; // multiplier
+
+    return (
+      <MarkerF
+        key={`static-${index}`}
+        position={{
+          lat: item.lat + offset,  // Apply offset to latitude
+          lng: item.lng + offset,  // Apply offset to longitude
+        }}
+        icon={getMotorcycleIcon(zoomLevel)}
+        onClick={() => handleMarkerClick(item.gpsNumber, item)} // Handle click for static motorcycle
+      />
+    );
+  })}
+
+          {selectedLocation && (
+            <InfoWindowF
+              position={{
+                lat: selectedLocation.lat + 0.00005,
+                lng: selectedLocation.lng,
+              }}
+              onCloseClick={() => {
+                setSelectedLocation(null);
+                setDriverDetails(null);
+                setMotorcycleDetails(null);
+                setShortCompanyName('');
+              }}
+              options={{ pixelOffset: new window.google.maps.Size(0, -40) }} // Adjust offset if needed
+            >
+              <div style={{ margin: 0, padding: '10px', lineHeight: '1.5' }}>
+                <h4
+                  style={{
+                    color: '#059855',
+                    margin: '-13px -10px 0px',
+                    padding: '-10px',
+                  }}
+                >
+                  Driver Information
+                </h4>
+                <p style={{ margin: '0' }}>
+                  <strong style={{ color: '#059855' }}>Driver ID:</strong>{' '}
+                  {driverDetails?.DriverID || 'N/A'}
+                </p>
+                <p style={{ margin: '0' }}>
+                  <strong style={{ color: '#059855' }}>Name:</strong>{' '}
+                  {driverDetails
+                    ? `${capitalizeFirstLetter(
+                        driverDetails.Fname
+                      )} ${capitalizeFirstLetter(driverDetails.Lname)}`
+                    : 'N/A'}
+                </p>
+                <p style={{ margin: '0' }}>
+                  <strong style={{ color: '#059855' }}>Phone:</strong>{' '}
+                  {driverDetails?.PhoneNumber || 'N/A'}
+                </p>
+                <p style={{ marginBottom: '-10px' }}>
+                  <strong style={{ color: '#059855' }}>Company Name:</strong>{' '}
+                  {capitalizeFirstLetter(shortCompanyName) || 'Not available'}
+                </p>
+                <hr></hr>
+                <h4 style={{ color: '#059855', margin: '-13px -10px 0px' }}>
+                  Motorcycle Information
+                </h4>
+                <p style={{ margin: '0' }}>
+                  <strong style={{ color: '#059855' }}>ID:</strong>{' '}
+                  {motorcycleDetails?.MotorcycleID ||
+                    motorcycleDetails?.motorcycleID ||
+                    'N/A'}
+                </p>
+                <p style={{ margin: '0' }}>
+                  <strong style={{ color: '#059855' }}>GPS Number:</strong>{' '}
+                  {motorcycleDetails?.GPSnumber || 'N/A'}
+                </p>
+                <p style={{ margin: '0' }}>
+                  <strong style={{ color: '#059855' }}>Type:</strong>{' '}
+                  {motorcycleDetails?.Type || 'N/A'}
+                </p>
+                <p style={{ margin: '0' }}>
+                  <strong style={{ color: '#059855' }}>License Plate:</strong>{' '}
+                  {motorcycleDetails?.LicensePlate || 'N/A'}
+                </p>
+                <button
+                  onClick={() =>
+                    navigate(`/gdtdriverdetails/${driverDetails?.DriverID}`)
+                  }
+                  style={{
+                    backgroundColor: '#059855',
+                    color: 'white',
+                    border: 'none',
+                    padding: '5px 10px',
+                    cursor: 'pointer',
+                    width: '120px',
+                    marginLeft: '100px',
+                    marginTop: '10px',
+                    marginBottom: '-25px',
+                  }}
+                >
+                  Full Information
+                </button>
+              </div>
+            </InfoWindowF>
+          )}
+        </GoogleMap>
+      </div>
     </div>
   );
 };
