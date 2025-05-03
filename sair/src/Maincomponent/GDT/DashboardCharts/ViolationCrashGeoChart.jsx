@@ -1,10 +1,7 @@
-
 import { useEffect, useRef, useState } from "react";
 import { db } from "../../../firebase";
 import { collection, getDocs, where, query } from "firebase/firestore";
-import {
-  ResponsiveContainer,
-} from "recharts";
+import { ResponsiveContainer } from "recharts";
 // import Map from "../../Map";
 import { GoogleMap, MarkerF } from "@react-google-maps/api";
 
@@ -16,12 +13,9 @@ const containerStyle = {
 
 const ViolationCrashGeoChart = () => {
   const [data, setData] = useState([]); // Keep the useState here, only once
-
+  const [position, setPosition] = useState([]);
   const [mapCenter, setMapCenter] = useState({ lat: 24.6986, lng: 46.6853 }); // Default center
   const [zoomLevel, setZoomLevel] = useState(11); // Default zoom level
-  const [violationsData, setViolationsData] = useState([])
-  const [crashesData, setCrashesData] = useState([])
-  const [enrichedViolationsData, setEnrichedViolationsData] = useState([]);
   const handleMapLoad = (mapInstance) => {
     mapInstance.addListener("zoom_changed", () => {
       setZoomLevel(mapInstance.getZoom());
@@ -29,6 +23,9 @@ const ViolationCrashGeoChart = () => {
   };
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState("All");
+  const [mergedDatas, setMergedData] = useState({})
+  const [violationPositions, setViolationPositions] = useState([]);
+  const [crashPositions, setCrashPositions] = useState([]);
 
   const options = ["All", "Violation", "Crash"];
 
@@ -36,119 +33,140 @@ const ViolationCrashGeoChart = () => {
     setDropdownOpen(!isDropdownOpen);
   };
 
-  const getAddressFromCoordinates = async (lat, lng) => {
-    return new Promise((resolve, reject) => {
-      const geocoder = new window.google.maps.Geocoder();
-      geocoder.geocode({ location: { lat, lng } }, (results, status) => {
-        if (status === "OK" && results[0]) {
-          // Extract just the city name from address components
-          let cityName = "";
-          for (const component of results[0].address_components) {
-            // Look for locality (city) or sublocality (district/neighborhood)
-            if (component.types.includes("locality") ||
-              component.types.includes("sublocality") ||
-              component.types.includes("administrative_area_level_3")) {
-              cityName = component.long_name;
-              break;
-            }
-          }
-          resolve(cityName || "Unknown city");
-        } else {
-          reject(new Error(`Geocoding failed: ${status}`));
-        }
-      });
-    });
-  };
-
-
   const handleOptionClick = (option) => {
     setSelectedOption(option);
     setDropdownOpen(false);
   };
 
+  function getDistrictFromCoords(lat, lng) {
+    return new Promise((resolve, reject) => {
+      if (!window.google || !window.google.maps) {
+        return reject('Google Maps JS API is not loaded.');
+      }
+
+      const geocoder = new window.google.maps.Geocoder();
+      const latlng = { lat, lng };
+
+      geocoder.geocode({ location: latlng }, (results, status) => {
+        if (status === 'OK' && results.length > 0) {
+          for (const result of results) {
+            for (const component of result.address_components) {
+              if (
+                component.types.includes("sublocality") ||
+                component.types.includes("neighborhood")
+              ) {
+                return resolve(component.long_name); // district name only
+              }
+            }
+          }
+
+          // Fallback if no sublocality or neighborhood found
+          resolve("District not found");
+        } else {
+          reject(`Geocoder failed due to: ${status}`);
+        }
+      });
+    });
+  }
+
+
   // Riyadh Neighborhoods
-  const neighborhoods = [
-    "Al Hamra"
-  ];
+  const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
   useEffect(() => {
-    const fetchViolations = async () => {
-      try {
+    const loadData = async () => {
+      let districtVoliationCount = {};
+  
+      const allViolations = [];
+      const allCrashes = [];
+  
+      const fetchViolations = async () => {
+        try {
         const querySnapshot = await getDocs(collection(db, "Violation"));
         const violationsMap = new window.Map();
-        const allViolations = [];
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
     
-        querySnapshot.forEach((doc) => {
-          const { time } = doc.data();
-          const dataValue = doc.data();
-          if (!time) return;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
     
-          allViolations.push(dataValue);
-    
-          const violationDate = new Date(time * 1000);
-          violationDate.setHours(0, 0, 0, 0); // Normalize to start of day
-    
-          const formattedDate = violationDate.toLocaleDateString("en-GB", {
+        for (
+          let d = new Date(oneWeekAgo);
+          d <= today;
+          d.setDate(d.getDate() + 1)
+        ) {
+          const formattedDate = d.toLocaleDateString("en-GB", {
             day: "2-digit",
             month: "long",
-            year: "numeric", // Add year if you expect long-term data
           });
+          violationsMap.set(formattedDate, 0);
+        }
     
-          violationsMap.set(
-            formattedDate,
-            (violationsMap.get(formattedDate) || 0) + 1
-          );
+        const allViolations = [];
+        const allPositionVolation = [];
+    
+        querySnapshot.forEach((doc) => {
+          const { time, position } = doc.data();
+          if (!time || !position) return;
+    
+          allViolations.push(position);
+          allPositionVolation.push({ lat: position.latitude, lng: position.longitude });
+    
+          const violationDate = new Date(time * 1000);
+          violationDate.setHours(0, 0, 0, 0);
+    
+          if (violationDate >= oneWeekAgo) {
+            const formattedDate = violationDate.toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "long",
+            });
+            violationsMap.set(
+              formattedDate,
+              (violationsMap.get(formattedDate) || 0) + 1
+            );
+          }
         });
     
-        const chartData = Array.from(violationsMap, ([date, count]) => ({
-          date,
-          count,
-        }));
-    
-        setViolationsData(chartData);
-        setData(chartData);
-    
-        const enrichData = async () => {
+        // Resolve district names
+        const DistrictResults = [];
+        for (let i = 0; i < allViolations.length; i++) {
+          const { latitude, longitude } = allViolations[i];
           try {
-            const enrichedData = await Promise.all(
-              allViolations.map(async (violation) => {
-                if (violation.position && !violation.formattedAddress) {
-                  try {
-                    let formattedAddress = violation.location || "";
-                    if (!formattedAddress && violation.position.latitude && violation.position.longitude) {
-                      formattedAddress = await getAddressFromCoordinates(
-                        violation.position.latitude,
-                        violation.position.longitude
-                      );
-                    }
-                    return {
-                      ...violation,
-                      formattedAddress
-                    };
-                  } catch (error) {
-                    console.error("Error geocoding address:", error);
-                    return {
-                      ...violation,
-                      formattedAddress: "Address could not be determined"
-                    };
-                  }
-                }
-                return violation;
-              })
-            );
-    
-            setEnrichedViolationsData(enrichedData);
+            const district = await getDistrictFromCoords(latitude, longitude);
+            DistrictResults.push(district);
           } catch (error) {
-            console.error("Error enriching data:", error);
+            DistrictResults.push("Unknown");
           }
-        };
+          await sleep(200);
+        }
     
-        enrichData();
+        // Group by district
+        const districtPositionMap = new Map();
+        for (let i = 0; i < DistrictResults.length; i++) {
+          const district = DistrictResults[i];
+          const { latitude, longitude } = allViolations[i];
     
+          if (!districtPositionMap.has(district)) {
+            districtPositionMap.set(district, {
+              position: { lat: latitude, lng: longitude },
+              total: 1
+            });
+          } else {
+            districtPositionMap.get(district).total += 1;
+          }
+        }
+    
+        // One circle per district
+        const result = Array.from(districtPositionMap.values());
+        setViolationPositions(result);
+        districtVoliationCount = DistrictResults.reduce((acc, district) => {
+          acc[district] = (acc[district] || 0) + 1;
+          return acc;
+        }, {});
       } catch (error) {
         console.error("Error fetching violations:", error);
       }
-    };    
+    };   
 
     const fetchCrashes = async () => {
       try {
@@ -159,45 +177,123 @@ const ViolationCrashGeoChart = () => {
         const querySnapshot = await getDocs(q);
     
         const crashesMap = new window.Map();
-        const allCrashes = [];
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
     
-        querySnapshot.forEach((doc) => {
-          const { time } = doc.data();
-          const dataValue = doc.data();
-          if (!time) return;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
     
-          allCrashes.push(dataValue);
-    
-          const crashDate = new Date(time * 1000);
-          crashDate.setHours(0, 0, 0, 0); // Normalize to start of day
-    
-          const formattedDate = crashDate.toLocaleDateString("en-GB", {
+        for (
+          let d = new Date(oneWeekAgo);
+          d <= today;
+          d.setDate(d.getDate() + 1)
+        ) {
+          const formattedDate = d.toLocaleDateString("en-GB", {
             day: "2-digit",
             month: "long",
-            year: "numeric", // Include year for clarity over long time range
           });
+          crashesMap.set(formattedDate, 0);
+        }
     
-          crashesMap.set(
-            formattedDate,
-            (crashesMap.get(formattedDate) || 0) + 1
-          );
+        const allCrashes = [];
+        const allPositionCrashes = [];
+    
+        querySnapshot.forEach((doc) => {
+          const { time, position } = doc.data();
+          if (!time || !position) return;
+    
+          allCrashes.push(position);
+          allPositionCrashes.push({ lat: position.latitude, lng: position.longitude });
+    
+          const crashDate = new Date(time * 1000);
+          crashDate.setHours(0, 0, 0, 0);
+    
+          if (crashDate >= oneWeekAgo) {
+            const formattedDate = crashDate.toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "long",
+            });
+            crashesMap.set(
+              formattedDate,
+              (crashesMap.get(formattedDate) || 0) + 1
+            );
+          }
         });
     
-        const CrashchartData = Array.from(crashesMap, ([date, count]) => ({
-          date,
-          count,
-        }));
+        // Resolve district names
+        const DistrictResults = [];
+        for (let i = 0; i < allCrashes.length; i++) {
+          const { latitude, longitude } = allCrashes[i];
+          try {
+            const district = await getDistrictFromCoords(latitude, longitude);
+            DistrictResults.push(district);
+          } catch (error) {
+            DistrictResults.push("Unknown");
+          }
+          await sleep(200);
+        }
     
-        setCrashesData(CrashchartData);
-        setData(CrashchartData);
-      } catch (error) {
-        console.error("Error fetching crash:", error);
-      }
-    };    
+        // Group by district
+        const districtPositionMap = new Map();
+        for (let i = 0; i < DistrictResults.length; i++) {
+          const district = DistrictResults[i];
+          const { latitude, longitude } = allCrashes[i];
+    
+          if (!districtPositionMap.has(district)) {
+            districtPositionMap.set(district, {
+              position: { lat: latitude, lng: longitude },
+              total: 1
+            });
+          } else {
+            districtPositionMap.get(district).total += 1;
+          }
+        }
+    
+        // One circle per district
+        const result = Array.from(districtPositionMap.values());
+        setCrashPositions(result);
+        const districtCrashCount = DistrictResults.reduce((acc, district) => {
+          acc[district] = (acc[district] || 0) + 1;
+          return acc;
+        }, {});
 
-    fetchCrashes();
-    fetchViolations();
-  }, []);
+        const allDistricts = new Set([
+          ...Object.keys(districtCrashCount),
+          ...Object.keys(districtVoliationCount),
+        ]);
+
+        const mergedData = {};
+        for (const district of allDistricts) {
+          mergedData[district] = {
+            crash: districtCrashCount[district] || 0,
+            violation: districtVoliationCount[district] || 0,
+          };
+        }
+
+        setMergedData(mergedData);
+
+      } catch (error) {
+        console.error("Error fetching crashes:", error);
+      }
+    };
+
+    // Wait for violations first, then crashes
+    await fetchViolations();
+    await fetchCrashes();
+  };
+  loadData();
+}, []);
+
+  let filteredPositions = [];
+
+  if (selectedOption === "All") {
+    filteredPositions = [...violationPositions, ...crashPositions];
+  } else if (selectedOption === "Violation") {
+    filteredPositions = [...violationPositions];
+  } else if (selectedOption === "Crash") {
+    filteredPositions = [...crashPositions];
+  }
+
 
   return (
     <ResponsiveContainer width="100%" height="100%">
@@ -323,23 +419,25 @@ const ViolationCrashGeoChart = () => {
               zoom={zoomLevel}
               onLoad={handleMapLoad}
             >
-              <MarkerF
-                position={{ lat: 24.7783, lng: 46.7614 }}
-                label={{
-                  text: String(violationsData.length + crashesData.length),
-                  color: "white",
-                  fontSize: "12px",
-                  fontWeight: "bold",
-                }}
-                icon={{
-                  path: window.google.maps.SymbolPath.CIRCLE,
-                  fillColor: "red",
-                  fillOpacity: 1,
-                  strokeWeight: 0,
-                  // scale is in pixels—100 is huge! try ~10 for a 20px diameter
-                  scale: 20,
-                }}
-              />
+              {filteredPositions.map((p, i) => (
+                <MarkerF
+                  key={i}
+                  position={p}
+                  label={{
+                    text: String(p.total),
+                    color: "white",
+                    fontSize: "12px",
+                    fontWeight: "bold",
+                  }}
+                  icon={{
+                    path: window.google.maps.SymbolPath.CIRCLE,
+                    fillColor: "red",
+                    fillOpacity: 1,
+                    strokeWeight: 0,
+                    scale: 20,
+                  }}
+                />
+              ))}
             </GoogleMap>
           </div>
         </div>
@@ -374,7 +472,7 @@ const ViolationCrashGeoChart = () => {
                       borderBottom: "2px solid #ddd",
                     }}
                   >
-                    Neighborhood Name
+                    District Name
                   </th>
                   <th
                     style={{
@@ -406,8 +504,15 @@ const ViolationCrashGeoChart = () => {
                 </tr>
               </thead>
               <tbody>
-                {neighborhoods.map((neighborhood, index) => {
-                  return (
+                {Object.keys(mergedDatas).length === 0 ? (
+                  <tr>
+                    <td colSpan={4} style={{ textAlign: "center", padding: "20px" }}>
+                      {/* loading spinner if you have one */}
+                      {/* <span>Loading data...</span> */}
+                    </td>
+                  </tr>
+                ) : (
+                  Object.entries(mergedDatas).map(([district, data], index) => (
                     <tr key={index}>
                       <td
                         style={{
@@ -415,7 +520,7 @@ const ViolationCrashGeoChart = () => {
                           borderBottom: "1px solid #ddd",
                         }}
                       >
-                        Al Hamra
+                        {district}
                       </td>
                       <td
                         style={{
@@ -423,7 +528,7 @@ const ViolationCrashGeoChart = () => {
                           borderBottom: "1px solid #ddd",
                         }}
                       >
-                        {violationsData.length}
+                        {data.violation}
                       </td>
                       <td
                         style={{
@@ -431,7 +536,7 @@ const ViolationCrashGeoChart = () => {
                           borderBottom: "1px solid #ddd",
                         }}
                       >
-                        {crashesData.length}
+                        {data.crash}
                       </td>
                       <td
                         style={{
@@ -439,11 +544,12 @@ const ViolationCrashGeoChart = () => {
                           borderBottom: "1px solid #ddd",
                         }}
                       >
-                        {violationsData.length + crashesData.length} {/* Display calculated total */}
+                        {data.violation + data.crash}
                       </td>
                     </tr>
-                  );
-                })}
+                  ))
+                )}
+
               </tbody>
             </table>
           </div>
