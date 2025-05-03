@@ -1394,7 +1394,7 @@ const CrashList = () => {
           <div
             style={{
               display: "flex",
-              justifyContent: (company || GDT)  ? 'space-between' : 'flex-end',
+              justifyContent: (company || GDTID)  ? 'space-between' : 'flex-end',
               alignItems: "center",
               marginTop: "16px",
             }}
