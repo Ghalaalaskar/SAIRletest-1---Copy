@@ -305,6 +305,12 @@ const options = [
     const matchesStatusFilter = filters.status.length === 0 ||
       filters.status.includes(violation.Status);
 
+    
+    const matchesCompany =
+    company && company !== "all"
+      ? drivers[violation.driverID]?.companyName === company
+      : true;
+
     console.log(`Checking violation: ${violation.id} - Status: ${violation.Status}, 
                  Matches Status Filter: ${matchesStatusFilter}, 
                  Matches Search Query: ${matchesSearchQuery}, 
@@ -312,7 +318,7 @@ const options = [
                  Violation Date: ${violationDate}, 
                  Search Date: ${formattedSearchDate}`);
 
-    return matchesSearchQuery && matchesSearchDate && matchesTypeFilter && matchesStatusFilter;
+    return matchesSearchQuery && matchesSearchDate && matchesTypeFilter && matchesStatusFilter && matchesCompany;
   })
   .sort((a, b) => (b.time || 0) - (a.time || 0));
   
