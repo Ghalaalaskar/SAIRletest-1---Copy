@@ -549,16 +549,17 @@ const EditDriver = () => {
                 </div>
 
                 <div>
-                  <button type="submit" className={s.editBtn}>
-                    Update Driver
-                  </button>
-                  <button
+                <button
                                 onClick={() => { navigate('/driverslist');}}
                                 className={s.profileCancel}
                                
                             >
                                 Cancel
                             </button>
+                  <button type="submit" className={s.editBtn}>
+                    Update Driver
+                  </button>
+                 
                 </div>
               </form>
             )}
