@@ -227,8 +227,7 @@ const options = [
   const handleViewViolations = () => {
     if (violations.length > 0) {
       const basePath = "/gdtricklessdrives";
-      const path = company ? `${basePath}?company=${encodeURIComponent(company)}` : basePath;
-      navigate(path);
+      navigate(basePath);
     } else {
       setIsPopupVisible(true);
     }
