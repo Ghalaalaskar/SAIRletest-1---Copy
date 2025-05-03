@@ -551,10 +551,14 @@ const capitalizeFirstLetter = (string) => {
         <span> / </span>
         <a onClick={() => navigate("/gdtprofile")}>Profile</a>
       </div>
-      <div className={s.forme}>
+      <div className={s.forme} style={{
+        marginBottom:"10px"
+      }}>
         <main className={s.container}>
           <form onSubmit={handleSave} noValidate>
-            <h2 className="title">My Profile</h2>
+            <h2 className="title" style={{
+        marginTop:"20px"
+      }} >My Profile</h2>
 
             <div className={s.formRow}>
               <div>
@@ -867,7 +871,9 @@ const capitalizeFirstLetter = (string) => {
               </>
             )}
 
-            <div>
+            <div style={{
+        marginBottom:"20px"
+      }}>
               {editMode ? (
                 <div>
                   <button
