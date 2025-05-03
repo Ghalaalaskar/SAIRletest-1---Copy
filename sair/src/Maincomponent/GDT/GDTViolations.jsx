@@ -421,7 +421,7 @@ const options = [
   // Slice the filtered violations for current page
 const paginatedViolations = filteredViolations.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
-const paginatedData = paginatedViolations.slice((currentPage - 1) * 5, currentPage * 5);
+const paginatedData = filteredViolations.slice((currentPage - 1) * 5, currentPage * 5);
 
 
   return (
