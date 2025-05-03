@@ -1025,7 +1025,7 @@ const startMonitoring = () => {
   setInterval(async () => {
     console.log("Running Wialon monitoring...");
     await monitorWialon();
-  }, 10000);
+  }, 3000);
 };
 
 app.get('/api/gps-state', (req, res) => {

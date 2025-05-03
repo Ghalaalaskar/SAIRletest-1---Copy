@@ -424,7 +424,10 @@ const options = [
   };
   // Slice the filtered violations for current page
 const paginatedViolations = filteredViolations.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-  return (
+const paginatedData = filteredViolations.slice((currentPage - 1) * 5, currentPage * 5);
+  
+
+return (
     <>
       <Header active="gdtviolations" />
       <div className="breadcrumb">
@@ -668,12 +671,12 @@ const paginatedViolations = filteredViolations.slice((currentPage - 1) * pageSiz
           )}
 <Table
   columns={columns}
-  dataSource={paginatedViolations}
+  dataSource={paginatedData}
   rowKey="id"
   rowClassName={(record) =>
     clickedViolations.includes(record.id) ? "" : s.highlightRow
   }
-  pagination={false} // Disable internal pagination
+  pagination={false}
 />
 
 {/* Flex container for button and pagination */}<div style={{
@@ -705,9 +708,11 @@ const paginatedViolations = filteredViolations.slice((currentPage - 1) * pageSiz
   {/* Right side: Pagination */}
   <Pagination
     current={currentPage}
+    pageSize={5}
     total={filteredViolations.length}
-    pageSize={pageSize}
-    onChange={handlePageChange}
+    onChange={(page) => setCurrentPage(page)}
+    showSizeChanger={false}
+    showLessItems
     // style={{ marginLeft: '20px' }} // Add margin for spacing
   />
 </div>

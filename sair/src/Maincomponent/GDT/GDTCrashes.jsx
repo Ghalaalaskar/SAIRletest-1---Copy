@@ -307,10 +307,10 @@ const CrashList = () => {
       if (!isRelevantStatus) return false;
 
       // If GDTID is passed, show only crashes responded by that GDT
-      if (GDTID) {
-        if (!crash.RespondedBy) return false; // Exclude null/undefined
-        if (crash.RespondedBy !== GDTID) return false;
-      }
+      // if (GDTID) {
+      //   if (!crash.RespondedBy) return false; // Exclude null/undefined
+      //   if (crash.RespondedBy !== GDTID) return false;
+      // }
 
       const crashDate = crash.time
         ? new Date(crash.time * 1000).toISOString().split("T")[0]
@@ -335,11 +335,14 @@ const CrashList = () => {
         ? drivers[crash.driverID]?.companyName === company
         : true;   
 
+      
+    const matchesGDT = GDTID ? crash.RespondedBy === GDTID : true;
+
       const matchesSearchQuery =
         driverId.includes(searchQuery) ||
         licensePlate.toLowerCase().includes(searchQuery.toLowerCase());
 
-      return matchesSearchQuery && matchesSearchDate && matchesCompany;
+      return matchesSearchQuery && matchesSearchDate && matchesCompany && matchesGDT;
     })
     .filter(filterByStatus)
     .sort((a, b) => (b.time || 0) - (a.time || 0));
@@ -596,6 +599,9 @@ const CrashList = () => {
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );  
+
+  const paginatedData = filteredCrashes.slice((currentPage - 1) * 5, currentPage * 5);
+
 
 
   return (
@@ -1372,10 +1378,10 @@ const CrashList = () => {
 
           <Table
             columns={columns}
-            dataSource={filteredCrashes}
+            dataSource={paginatedData}
             rowKey="id"
             // pagination={{ pageSize: 5 }}
-            pagination={GDTID || company ? false : { pageSize: 5 }}
+            pagination={false}
             onRow={(record) => ({
               style: {
                 backgroundColor:
@@ -1388,7 +1394,7 @@ const CrashList = () => {
           <div
             style={{
               display: "flex",
-              justifyContent: "space-between",
+              justifyContent: (company || GDT)  ? 'space-between' : 'flex-end',
               alignItems: "center",
               marginTop: "16px",
             }}
@@ -1409,15 +1415,14 @@ const CrashList = () => {
                 Go Back
               </Button>
             )}
-
-            {(GDTID || company) && ( 
-              <Pagination
-              defaultCurrent={1}
-              total={filteredCrashes.length}
-              pageSize={5}
-              style={{ margin: '-25px 0 0 0' }}
-            />
-              )}
+            <Pagination
+            current={currentPage}
+            pageSize={5}
+            total={filteredCrashes.length}
+            onChange={(page) => setCurrentPage(page)}
+            showSizeChanger={false}
+            showLessItems
+          />
           </div>
         </div>
       </main>
