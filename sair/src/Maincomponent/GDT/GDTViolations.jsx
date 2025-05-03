@@ -296,7 +296,16 @@ const options = [
                                licensePlate.toLowerCase().includes(searchQuery.toLowerCase()) ||
                                violation.driverID.toString().includes(searchQuery.toLowerCase()); // Check Driver ID
 
-    const matchesSearchDate = formattedSearchDate ? violationDate === formattedSearchDate : true;
+    //const matchesSearchDate = formattedSearchDate ? violationDate === formattedSearchDate : true;
+    const violationDateObj = violation.time ? new Date(violation.time * 1000) : null;
+    const searchDateObj = searchDate ? new Date(searchDate) : null;
+    
+    const matchesSearchDate = !searchDateObj || (
+      searchDateObj.getDate() === 1
+        ? (violationDateObj?.getMonth() === searchDateObj.getMonth() &&
+        violationDateObj?.getFullYear() === searchDateObj.getFullYear())
+        : (violationDateObj?.toDateString() === searchDateObj.toDateString())
+    );
 
     const matchesTypeFilter = filters.type.length === 0 ||
       (filters.type.includes("Reckless Violations") && violation.isReckless) ||
