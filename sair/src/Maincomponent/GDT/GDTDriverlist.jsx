@@ -205,6 +205,8 @@ const DriverList = () => {
     setIsPopupVisibleStaff(false);
   };
 
+  const paginatedData = filteredData.slice((currentPage - 1) * 5, currentPage * 5);
+
   return (
     <div>
       <Header active="gdtdriverlist" />
@@ -255,9 +257,9 @@ const DriverList = () => {
 
 <Table
   columns={columns}
-  dataSource={filteredData}
+  dataSource={paginatedData}
   rowKey="id"
-  pagination={company? false : {pageSize: 5}}
+  pagination={false}
   style={{
     width: '1200px',
     whiteSpace: 'nowrap',
@@ -542,7 +544,7 @@ const DriverList = () => {
               <div
               style={{
                 display: "flex",
-                justifyContent: "space-between",
+                justifyContent: company ? 'space-between' : 'flex-end',
                 alignItems: "center",
                 marginTop: "16px",
               }}
@@ -562,15 +564,14 @@ const DriverList = () => {
           Go Back
         </Button>
       )}
-      {company && (
         <Pagination
-          current={currentPage}
-          pageSize={5}
-          total={filteredData.length}
-          onChange={(page) => setCurrentPage(page)}
-          showSizeChanger={false}
-        />
-    )}
+        current={currentPage}
+        pageSize={5}
+        total={filteredData.length}
+        onChange={(page) => setCurrentPage(page)}
+        showSizeChanger={false}
+        showLessItems
+      />
     </div>
       </main>
     </div>

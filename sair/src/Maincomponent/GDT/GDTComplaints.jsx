@@ -480,8 +480,8 @@ const GDTComplaintList = () => {
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
-  // Slice the filtered violations for current page
-const paginatedViolations = filteredComplaints.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  
+const paginatedData = filteredComplaints.slice((currentPage - 1) * 5, currentPage * 5);
 
   return (
     <>
@@ -1182,9 +1182,9 @@ const paginatedViolations = filteredComplaints.slice((currentPage - 1) * pageSiz
 
           <Table
             columns={columns}
-            dataSource={filteredComplaints}
+            dataSource={paginatedData}  //{filteredComplaints}
             rowKey="id"
-            pagination={(GDTID|| company) ? false: {pageSize: 5}}
+            pagination={false}
             onRow={(record) => ({
               style: {
                 backgroundColor:
@@ -1197,7 +1197,7 @@ const paginatedViolations = filteredComplaints.slice((currentPage - 1) * pageSiz
           <div
             style={{
               display: "flex",
-              justifyContent: "space-between",
+              justifyContent: company ? 'space-between' : 'flex-end',
               alignItems: "center",
               marginTop: "16px",
             }}
@@ -1219,15 +1219,15 @@ const paginatedViolations = filteredComplaints.slice((currentPage - 1) * pageSiz
               </Button>
             )}
 
-            {(GDTID || company) && (
-             <Pagination
-             current={currentPage}
-             total={filteredComplaints.length}
-             pageSize={5}
-             onChange={handlePageChange}
-             style={{ marginLeft: "auto", marginBottom: "20px" }}
-           /> 
-            )}
+            
+          <Pagination
+          current={currentPage}
+          pageSize={5}
+          total={filteredComplaints.length}
+          onChange={(page) => setCurrentPage(page)}
+          showSizeChanger={false}
+          showLessItems
+        />
           </div>
         </div>
       </main>
