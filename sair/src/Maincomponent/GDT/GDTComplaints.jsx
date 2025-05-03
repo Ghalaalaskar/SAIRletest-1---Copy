@@ -480,7 +480,7 @@ const GDTComplaintList = () => {
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
-  
+
 const paginatedData = filteredComplaints.slice((currentPage - 1) * 5, currentPage * 5);
 
   return (
@@ -1197,7 +1197,7 @@ const paginatedData = filteredComplaints.slice((currentPage - 1) * 5, currentPag
           <div
             style={{
               display: "flex",
-              justifyContent: company ? 'space-between' : 'flex-end',
+              justifyContent: (company || GDTID) ? 'space-between' : 'flex-end',
               alignItems: "center",
               marginTop: "16px",
             }}
