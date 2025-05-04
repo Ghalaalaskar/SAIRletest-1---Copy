@@ -522,7 +522,7 @@ motorcycleQuerySnapshot.docs[0].data();
                        const MotorcycleID = motorcycleData.MotorcycleID;
                        const Type = motorcycleData.Type;
                     const CrashID = generateCrashId();
-                    const newCrashTime = 1746370685; // Last message time from Wialon unit.lmsg.rt
+                    const newCrashTime = unit.lmsg.rt; // Last message time from Wialon unit.lmsg.rt
                     console.log("Crash time:", newCrashTime);
 
                     const position = { longitude: pos.x, latitude: pos.y };
@@ -1013,8 +1013,8 @@ const monitorWialon = async () => {
   try {
     const sessionId = await loginToWialon();
     const units = await fetchUnits(sessionId);
-    // processUnits1(units,sessionId);
-    // processUnits2(units,sessionId);
+       processUnits1(units,sessionId);
+       processUnits2(units,sessionId);
     // processUnits3(units,sessionId);
     await fetchActiveLocations(units, sessionId);
 
