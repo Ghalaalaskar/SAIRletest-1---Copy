@@ -260,7 +260,7 @@ const fetchDrivers = useCallback(async () => {
     console.error("Error marking notification as read:", error);
   }
 };
-
+//
  // Fetch violation data
   const fetchViolations = useCallback((driverIds) => {
     const chunkSize = 10; // Customize as needed
@@ -268,7 +268,7 @@ const fetchDrivers = useCallback(async () => {
       const chunk = driverIds.slice(i, i + chunkSize);
       const violationCollection = query(
         collection(db, 'Violation'),
-        where('driverID', 'in', chunk),
+        where('driverID', 'in', driverIds),
         where('Status','==','Active'),
         orderBy('time', 'desc') 
       );
@@ -290,7 +290,7 @@ const fetchDrivers = useCallback(async () => {
         })
 
         localStorage.setItem(`notReadViolations22gdt_${GDTUID}`, JSON.stringify(updatedReadViolations));///for the red circul
-        
+
     //     const hasNew = 
     //   Object.keys(notReadCrashes).length > 0 ||
     //   Object.keys(notReadViolations).length > 0 ||
@@ -303,8 +303,10 @@ const fetchDrivers = useCallback(async () => {
     // localStorage.setItem(`hasNewCrashesgdt_${GDTUID}`, JSON.stringify(hasNew));
     // setHasNewCrashesgdt(hasNew);
     //   }
-
         setnotReadViolations(newViolation);
+        console.log(notReadViolations);
+
+
       });
       
         ///ABOUT RED CIRCULE VISIBILITY
@@ -602,14 +604,14 @@ const fetchDrivers = useCallback(async () => {
       sessionStorage.removeItem("FirstName");
       sessionStorage.removeItem("isAdmin");
 
-      localStorage.removeItem(`readCrashesgdt_${GDTUID}`);
-      localStorage.removeItem(`notReadCrashes22gdt_${GDTUID}`);
+      // localStorage.removeItem(`readCrashesgdt_${GDTUID}`);
+      // localStorage.removeItem(`notReadCrashes22gdt_${GDTUID}`);
 
-      localStorage.removeItem(`readViolationsgdt_${GDTUID}`);
-      localStorage.removeItem(`notReadViolations22gdt_${GDTUID}`);
+      // localStorage.removeItem(`readViolationsgdt_${GDTUID}`);
+      // localStorage.removeItem(`notReadViolations22gdt_${GDTUID}`);
 
-      localStorage.removeItem(`readComplaintsgdt_${GDTUID}`);
-      localStorage.removeItem(`notReadComplaints22gdt_${GDTUID}`);
+      // localStorage.removeItem(`readComplaintsgdt_${GDTUID}`);
+      // localStorage.removeItem(`notReadComplaints22gdt_${GDTUID}`);
       
       localStorage.removeItem(`hasNewCrashesgdt_${GDTUID}`);
 
