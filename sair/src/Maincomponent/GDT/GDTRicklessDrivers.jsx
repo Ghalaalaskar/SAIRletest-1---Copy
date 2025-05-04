@@ -11,6 +11,7 @@ import {
   getDocs,
   updateDoc,
 } from "firebase/firestore";
+import { FaEye } from 'react-icons/fa';
 import EyeIcon from "../../images/eye.png";
 import successImage from "../../images/Sucess.png";
 import errorImage from "../../images/Error.png";
@@ -19,7 +20,7 @@ import { Button, Table, Modal, Pagination } from "antd";
 import Header from "./GDTHeader";
 import "../../css/CustomModal.css";
 import s from "../../css/DriverList.module.css";
-import { useNavigate } from "react-router-dom";
+import { Link,useNavigate } from "react-router-dom";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 
 const DriverList = () => {
@@ -255,12 +256,19 @@ const DriverList = () => {
       key: "Details",
       align: "center",
       render: (text, record) => (
-        <img
-          style={{ cursor: "pointer" }}
-          src={EyeIcon}
-          alt="Details"
-          onClick={() => viewDriverDetails(record.DriverID)}
-        />
+        // <img
+        //   style={{ cursor: "pointer" }}
+        //   src={EyeIcon}
+        //   alt="Details"
+        //   onClick={() => viewDriverDetails(record.DriverID)}
+        // />
+         <Link
+                  to={`/gdtviolationdriver/${record.DriverID}`}
+                >
+                   <FaEye
+                                       style={{ cursor: 'pointer', fontSize: '1.5em', color: '#059855' }} 
+                                     />
+                </Link>
       ),
     },
   ];
