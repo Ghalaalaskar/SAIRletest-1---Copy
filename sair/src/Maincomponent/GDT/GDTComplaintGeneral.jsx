@@ -189,7 +189,7 @@ const GDTComplaintGeneral = () => {
   };
 
   const goBack = () => {
-    navigate(-1); // Navigate back to the previous page
+    navigate(-2); // Navigate back to the previous page
   };
 
   const formatDateTime = (timestamp) => {
