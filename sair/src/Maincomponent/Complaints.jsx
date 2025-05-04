@@ -23,6 +23,12 @@ const ComplaintList = () => {
 
   const employerUID = sessionStorage.getItem('employerUID');
 
+    // State to track viewed complaints
+    const [viewedComplaints, setViewedComplaints] = useState(() => {
+      const storedViewedComplaints = localStorage.getItem('viewedComplaints');
+      return storedViewedComplaints ? JSON.parse(storedViewedComplaints) : {};
+    });
+
   useEffect(() => {
     const fetchDriversAndComplaints = async () => {
       if (!employerUID) return;
@@ -384,6 +390,16 @@ const ComplaintList = () => {
             dataSource={filteredComplaints}
             rowKey="id"
             pagination={{ pageSize: 5 }}
+            onRow={(record) => ({
+              style: {
+                backgroundColor: !viewedComplaints[record.id] ? '#d0e0d0' : 'transparent',
+              },
+              onClick: () => {
+                const updatedViewedComplaints = { ...viewedComplaints, [record.id]: true };
+                setViewedComplaints(updatedViewedComplaints);
+                localStorage.setItem('viewedComplaints', JSON.stringify(updatedViewedComplaints));
+              },
+            })}
           />
         </div>
       </main>

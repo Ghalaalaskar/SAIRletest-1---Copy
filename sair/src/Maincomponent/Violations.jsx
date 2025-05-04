@@ -602,6 +602,11 @@ const ViolationList = () => {
             dataSource={filteredViolations.slice((currentPage - 1) * pageSize, currentPage * pageSize)} // Paginate data
             rowKey="id"
             pagination={false} 
+            onRow={(record) => ({
+              style: {
+                backgroundColor: !viewedViolations[record.id] ? '#d0e0d0' : 'transparent',
+              },
+            })}
           />
         
 
