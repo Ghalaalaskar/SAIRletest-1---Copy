@@ -530,7 +530,7 @@ motorcycleQuerySnapshot.docs[0].data();
 
                     const recentSpeeds = {};
                     const to = newCrashTime; // Current time
-                    const from = to - 1000; // Check the last 10 seconds for relevant messages
+                    const from = to - 8000; // Check the last 10 seconds for relevant messages
                     console.log("Fetching messages from:", from, "to:", to);
 
                         const messages = await
@@ -568,7 +568,7 @@ prevRead.time;
 / deltaTime;
                                     console.log("Deceleration:", deceleration);
 
-                                    if (deceleration <= -7) { 
+                                    if (deceleration <= 2) { 
                                         console.log("Potential crash detected for:", GPSserialnumber);
                                         // Check for recent crashes in Firestore
                                         const starttime = newCrashTime - 5 * 60; // 5 minutes earlier
@@ -1013,7 +1013,7 @@ const monitorWialon = async () => {
     const sessionId = await loginToWialon();
     const units = await fetchUnits(sessionId);
     //    processUnits1(units,sessionId);
-    //    processUnits2(units,sessionId);
+       processUnits2(units,sessionId);
     processUnits3(units,sessionId);
     await fetchActiveLocations(units, sessionId);
 
