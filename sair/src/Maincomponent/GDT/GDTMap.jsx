@@ -1099,7 +1099,7 @@ const GDTMap = ({ locations }) => {
               style={{ marginRight: '8px' }}
             />
             <span style={{ color: '#059855', fontWeight: '500' }}>
-              Show Heatmap
+              Show Heatmap Spots
             </span>
           </label>
         </div>
