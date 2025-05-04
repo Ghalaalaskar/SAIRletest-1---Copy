@@ -250,14 +250,21 @@ const GDTComplaintList = () => {
   };  
 
   useEffect(() => {
-    const getName = async () => {
-      if (GDTID) {
-        const info = await fetchGDTName(GDTID);
-        setGdtInfo(info);
+    if (!GDTID) return;
+  
+    const gdtQuery = query(collection(db, "GDT"), where("ID", "==", GDTID));
+    const unsubscribe = onSnapshot(gdtQuery, (snapshot) => {
+      if (!snapshot.empty) {
+        const data = snapshot.docs[0].data();
+        setGdtInfo(data);
+      } else {
+        console.error("No GDT found with ID:", GDTID);
+        setGdtInfo(null);
       }
-    };
-    getName();
-  }, [GDTID]);
+    });
+  
+    return () => unsubscribe();
+  }, [GDTID]);  
 
   const handleViewDetails = (record) => {
     const updatedViewedComplaints = { ...viewedComplaints, [record.id]: true };
