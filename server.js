@@ -522,7 +522,7 @@ motorcycleQuerySnapshot.docs[0].data();
                        const MotorcycleID = motorcycleData.MotorcycleID;
                        const Type = motorcycleData.Type;
                     const CrashID = generateCrashId();
-                    const newCrashTime = unit.lmsg.rt; // Last message time from Wialon
+                    const newCrashTime = 1746370685; // Last message time from Wialon unit.lmsg.rt
                     console.log("Crash time:", newCrashTime);
 
                     const position = { longitude: pos.x, latitude: pos.y };
