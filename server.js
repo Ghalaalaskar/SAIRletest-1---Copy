@@ -289,7 +289,7 @@ count30);
 storeHistory(ViolationID, driverid, GPSserialnumber, Brand,
 LicensePlate, Model, MotorcycleID, Type);
                                     } else {
-                                        const tenMinutesInSeconds = 10 * 60;
+                                        const tenMinutesInSeconds = 7 * 60;
 
                                         if
 (!areDatesEqual(lastViolation.data().time, newViolationTime)) {
