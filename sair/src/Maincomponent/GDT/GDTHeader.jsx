@@ -171,7 +171,7 @@ const fetchDrivers = useCallback(async () => {
       const twentyFourHoursAgo = now - 24 * 60 * 60;
       const crashCollection = query(
         collection(db, 'Crash'),
-        where('driverID', 'in', chunk),
+        where('driverID', 'in', driverIds),
         where('Status', '==', 'Emergency SOS'),
         where('RespondedBy', '==', null),
         where("time", ">=", twentyFourHoursAgo), 
@@ -361,7 +361,7 @@ const fetchDrivers = useCallback(async () => {
       const chunk = driverIds.slice(i, i + chunkSize);
       const complaintCollection = query(
         collection(db, 'Complaint'),
-        where('driverID', 'in', chunk),
+        where('driverID', 'in', driverIds),
         where('RespondedBy', '==', null),
         orderBy('DateTime', 'desc') 
       );
