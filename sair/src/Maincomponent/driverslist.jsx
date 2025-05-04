@@ -112,7 +112,7 @@ const DriverList = () => {
       ),
     },
     {
-      title: 'Report',
+      title: 'Export',
       key: 'Report',
       align: 'center',
       render: (text, record) => (
