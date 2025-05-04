@@ -345,6 +345,7 @@ const options = [
       dataIndex: "violationID",
       key: "violationID",
       align: "center",
+      
     },
     {
       title: "Driver ID",
@@ -356,6 +357,7 @@ const options = [
       title: "Driver Name",
       key: "driverName",
       align: "center",
+      width: 185,
       render: (text, record) => {
         const driverName = drivers[record.driverID]?.name || "";
         return capitalizeFirstLetter(driverName);
@@ -374,6 +376,7 @@ const options = [
       title: "Motorcycle License Plate",
       key: "motorcyclePlate",
       align: "center",
+      width: 205,
       render: (text, record) => motorcycles[record.violationID] || "   ", // Use violationID for lookup
     },
     {
@@ -381,12 +384,14 @@ const options = [
       dataIndex: "driverSpeed",
       key: "driverSpeed",
       align: "center",
+      width: 30,
     },
     {
       title: "Type",
       dataIndex: "violationType",
       key: "violationType",
       align: "center",
+      width: 153,
       render: (text, record) =>
         record.isReckless ? "Reckless Violation" : "Regular Violation",
     },

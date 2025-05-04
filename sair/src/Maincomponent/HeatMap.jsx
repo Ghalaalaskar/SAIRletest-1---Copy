@@ -1402,10 +1402,11 @@ const center = lastKnownLocations.length > 0
                 lastKnownLocations.find(
                   (loc) => loc.gpsNumber === item.gpsNumber
                 ) || item;
+                const offset = 0.000005 * index; // multiplier
               return (
                 <MarkerF
                   key={`${item.gpsNumber}-${item.lat}-${item.lng}`}
-                  position={{ lat: location.lat, lng: location.lng }}
+                  position={{ lat: location.lat + offset, lng: location.lng + offset }}
                   icon={getMotorcycleIcon(zoomLevel)}
                   onClick={() =>
                     handleMarkerClick(location.gpsNumber, location)
