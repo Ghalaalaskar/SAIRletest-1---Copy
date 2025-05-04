@@ -77,7 +77,7 @@ const ViolationGeneral = () => {
   };
 
   const goBack = () => {
-    navigate(-2); // Navigate back to the previous page
+    navigate(-1); // Navigate back to the previous page
   };
 
   const formatDate = (time) => {
