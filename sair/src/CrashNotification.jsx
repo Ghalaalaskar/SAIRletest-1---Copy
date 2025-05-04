@@ -178,7 +178,7 @@ const cleanupcomplaintListeners = () => {
       const chunk = driverIds.slice(i, i + chunkSize);
       const crashQuery = query(
         collection(db, 'Crash'),
-        where('driverID', 'in', chunk),
+        where('driverID', 'in', driverIds),
         where('Status', '==', 'Emergency SOS'),
         where('RespondedBy', '==', null),
 
@@ -265,7 +265,7 @@ localStorage.setItem("notifiedCrashesEmployer", JSON.stringify(notifiedCrashesEm
       const chunk = driverIds.slice(i, i + chunkSize);
       const violationQuery = query(
         collection(db, "Violation"),
-        where("driverID", "in", chunk),
+        where("driverID", "in", driverIds),
         where('Status','==','Active')
       );
 
@@ -341,7 +341,7 @@ localStorage.setItem("notifiedViolationEmployer", JSON.stringify(notifiedViolati
         const chunk = driverIds.slice(i, i + chunkSize);
         const complaintQuery = query(
          collection(db, 'Complaint'),
-                 where('driverID', 'in', chunk),
+                 where('driverID', 'in', driverIds),
                  where('RespondedBy', '==', null),
         );
   

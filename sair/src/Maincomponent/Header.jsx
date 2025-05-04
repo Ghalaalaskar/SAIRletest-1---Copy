@@ -187,7 +187,7 @@ const Header = ({ active }) => {
       const twentyFourHoursAgo = now - 24 * 60 * 60;
       const crashCollection = query(
         collection(db, 'Crash'),
-        where('driverID', 'in', chunk),
+        where('driverID', 'in', driverIds),
         where('Status', '==', 'Emergency SOS'),
         where('RespondedBy', '==', null),
         where("time", ">=", twentyFourHoursAgo), 

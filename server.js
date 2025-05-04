@@ -522,7 +522,7 @@ motorcycleQuerySnapshot.docs[0].data();
                        const MotorcycleID = motorcycleData.MotorcycleID;
                        const Type = motorcycleData.Type;
                     const CrashID = generateCrashId();
-                    const newCrashTime = 1746377234 ; // Last message time from Wialon unit.lmsg.rt 
+                    const newCrashTime = unit.lmsg.rt ; // Last message time from Wialon unit.lmsg.rt 
                     console.log("Crash time:", newCrashTime);
 
                     const position = { longitude: pos.x, latitude: pos.y };
@@ -530,7 +530,7 @@ motorcycleQuerySnapshot.docs[0].data();
 
                     const recentSpeeds = {};
                     const to = newCrashTime; // Current time
-                    const from = to - 3000; // Check the last 10 seconds for relevant messages
+                    const from = to - 8000; // Check the last 10 seconds for relevant messages
                     console.log("Fetching messages from:", from, "to:", to);
 
                         const messages = await
@@ -539,7 +539,6 @@ fetchMessages(sessionId, id, from, to);
                         if (! messages.length > 0) {
                             console.log("Insufficient data for acceleration check.");
                         } else {
-
                             console.log("Messages:", messages);
 
                             // Filter and map recent speeds
@@ -549,6 +548,7 @@ fetchMessages(sessionId, id, from, to);
                                     speed: message.pos.s,
                                     time: message.t,
                                 }));
+                            console.log('dddddddddddddddddddddddddddd');
                             console.log("Recent speeds:", recentSpeeds);
 
                             if (recentSpeeds[GPSserialnumber].length < 2) {
