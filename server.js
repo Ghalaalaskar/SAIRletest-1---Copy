@@ -147,13 +147,13 @@ try {
             const GPSserialnumber = unit.nm; // Get unit name as GPS serial number
             console.log('gpsnum:', GPSserialnumber);
 
-            const maxSpeed = 90;//await fetchMaxSpeed( pos.y,pos.x ); Fetch max speed
+            const maxSpeed = await fetchMaxSpeed( pos.y,pos.x );//await fetchMaxSpeed( pos.y,pos.x ); Fetch max speed
             console.log('Max speed from API in process method:', maxSpeed);
 
             if (maxSpeed !== 0 ) {
                 console.log(maxSpeed);
                 console.log('hhhere');
-                const driverSpeed = 105; // Get the driver's speed  pos.s
+                const driverSpeed = pos.s; // Get the driver's speed  pos.s
                 console.log('driverspeed:', driverSpeed);
 
                 if (driverSpeed > maxSpeed) {
@@ -289,7 +289,7 @@ count30);
 storeHistory(ViolationID, driverid, GPSserialnumber, Brand,
 LicensePlate, Model, MotorcycleID, Type);
                                     } else {
-                                        const tenMinutesInSeconds = 7 * 60;
+                                        const tenMinutesInSeconds = 10 * 60;
 
                                         if
 (!areDatesEqual(lastViolation.data().time, newViolationTime)) {
@@ -492,7 +492,7 @@ const processUnits2 = async (units,sessionId) => {
         if (pos) {
             const GPSserialnumber = unit.nm; // Unit name in Wialon
             console.log("GPS Serial Number:", GPSserialnumber);
-             const driverSpeed = 30; //pos.s; Speed from position
+             const driverSpeed = pos.s; //pos.s; Speed from position
             console.log("Driver Speed:", driverSpeed);
 
             // Query for the driver in Firestore
@@ -530,7 +530,7 @@ motorcycleQuerySnapshot.docs[0].data();
 
                     const recentSpeeds = {};
                     const to = newCrashTime; // Current time
-                    const from = to - 8000; // Check the last 10 seconds for relevant messages
+                    const from = to - 1000; // Check the last 10 seconds for relevant messages
                     console.log("Fetching messages from:", from, "to:", to);
 
                         const messages = await
@@ -548,7 +548,6 @@ fetchMessages(sessionId, id, from, to);
                                     speed: message.pos.s,
                                     time: message.t,
                                 }));
-                            console.log('dddddddddddddddddddddddddddd');
                             console.log("Recent speeds:", recentSpeeds);
 
                             if (recentSpeeds[GPSserialnumber].length < 2) {
@@ -569,7 +568,7 @@ prevRead.time;
 / deltaTime;
                                     console.log("Deceleration:", deceleration);
 
-                                    if (deceleration <= 2) { //-7
+                                    if (deceleration <= -7) { 
                                         console.log("Potential crash detected for:", GPSserialnumber);
                                         // Check for recent crashes in Firestore
                                         const starttime = newCrashTime - 5 * 60; // 5 minutes earlier
@@ -1014,8 +1013,8 @@ const monitorWialon = async () => {
     const sessionId = await loginToWialon();
     const units = await fetchUnits(sessionId);
     //    processUnits1(units,sessionId);
-       processUnits2(units,sessionId);
-    // processUnits3(units,sessionId);
+    //    processUnits2(units,sessionId);
+    processUnits3(units,sessionId);
     await fetchActiveLocations(units, sessionId);
 
   } catch (error) {
