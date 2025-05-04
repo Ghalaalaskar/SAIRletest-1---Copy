@@ -492,7 +492,7 @@ const processUnits2 = async (units,sessionId) => {
         if (pos) {
             const GPSserialnumber = unit.nm; // Unit name in Wialon
             console.log("GPS Serial Number:", GPSserialnumber);
-             const driverSpeed = pos.s; //pos.s; Speed from position
+             const driverSpeed = 20; //pos.s; Speed from position
             console.log("Driver Speed:", driverSpeed);
 
             // Query for the driver in Firestore
