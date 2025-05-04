@@ -320,7 +320,6 @@ const ViolationList = () => {
       render: (text, record) => (
         <Link
           to={`/violation/general/${record.id}`}
-          onClick={() => handleViewDetails(record)}
         >
           <FaEye
             style={{
