@@ -189,7 +189,7 @@ const GDTComplaintGeneral = () => {
   };
 
   const goBack = () => {
-    navigate(-1); // Navigate back to the previous page
+    navigate(-2); // Navigate back to the previous page
   };
 
   const formatDateTime = (timestamp) => {
@@ -402,7 +402,7 @@ const GDTComplaintGeneral = () => {
     }
   };
 
-  // Determine the active state for the Header rawan
+  // Determine the active state for the Header
   let activeHeader;
   if (from === "GDTViolationDetail") {
     activeHeader = location.state?.previousList || "gdtcomplaints"; // Default to 'complaints' if not set
@@ -438,7 +438,6 @@ const GDTComplaintGeneral = () => {
           )}
           {from === "GDTViolationDetails" && (
             <>
-              {/* rawan */}
               <a onClick={() => navigate("/gdtdriverslist")}>Driver List</a>
               <span> / </span>
               <a

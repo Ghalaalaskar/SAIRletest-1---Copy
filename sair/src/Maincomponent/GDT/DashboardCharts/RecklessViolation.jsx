@@ -148,6 +148,7 @@ const RecklessViolation = () => {
             count30: counts.count30,
             count50: counts.count50,
             totalViolations,
+            companyName
           };
         });
 

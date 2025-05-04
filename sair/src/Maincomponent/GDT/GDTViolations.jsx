@@ -227,8 +227,7 @@ const options = [
   const handleViewViolations = () => {
     if (violations.length > 0) {
       const basePath = "/gdtricklessdrives";
-      const path = company ? `${basePath}?company=${encodeURIComponent(company)}` : basePath;
-      navigate(path);
+      navigate(basePath);
     } else {
       setIsPopupVisible(true);
     }
@@ -297,7 +296,16 @@ const options = [
                                licensePlate.toLowerCase().includes(searchQuery.toLowerCase()) ||
                                violation.driverID.toString().includes(searchQuery.toLowerCase()); // Check Driver ID
 
-    const matchesSearchDate = formattedSearchDate ? violationDate === formattedSearchDate : true;
+    //const matchesSearchDate = formattedSearchDate ? violationDate === formattedSearchDate : true;
+    const violationDateObj = violation.time ? new Date(violation.time * 1000) : null;
+    const searchDateObj = searchDate ? new Date(searchDate) : null;
+    
+    const matchesSearchDate = !searchDateObj || (
+      searchDateObj.getDate() === 1
+        ? (violationDateObj?.getMonth() === searchDateObj.getMonth() &&
+        violationDateObj?.getFullYear() === searchDateObj.getFullYear())
+        : (violationDateObj?.toDateString() === searchDateObj.toDateString())
+    );
 
     const matchesTypeFilter = filters.type.length === 0 ||
       (filters.type.includes("Reckless Violations") && violation.isReckless) ||
@@ -306,6 +314,12 @@ const options = [
     const matchesStatusFilter = filters.status.length === 0 ||
       filters.status.includes(violation.Status);
 
+    
+    const matchesCompany =
+    company && company !== "all"
+      ? drivers[violation.driverID]?.companyName === company
+      : true;
+
     console.log(`Checking violation: ${violation.id} - Status: ${violation.Status}, 
                  Matches Status Filter: ${matchesStatusFilter}, 
                  Matches Search Query: ${matchesSearchQuery}, 
@@ -313,7 +327,7 @@ const options = [
                  Violation Date: ${violationDate}, 
                  Search Date: ${formattedSearchDate}`);
 
-    return matchesSearchQuery && matchesSearchDate && matchesTypeFilter && matchesStatusFilter;
+    return matchesSearchQuery && matchesSearchDate && matchesTypeFilter && matchesStatusFilter && matchesCompany;
   })
   .sort((a, b) => (b.time || 0) - (a.time || 0));
   
@@ -422,7 +436,7 @@ const options = [
   // Slice the filtered violations for current page
 const paginatedViolations = filteredViolations.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
-const paginatedData = paginatedViolations.slice((currentPage - 1) * 5, currentPage * 5);
+const paginatedData = filteredViolations.slice((currentPage - 1) * 5, currentPage * 5);
 
 
   return (

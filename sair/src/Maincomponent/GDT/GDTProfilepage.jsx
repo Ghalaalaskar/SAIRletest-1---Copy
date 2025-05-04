@@ -554,7 +554,7 @@ const capitalizeFirstLetter = (string) => {
       <div className={s.forme} style={{
         marginBottom:"10px"
       }}>
-        <main className={s.container}>
+        <div className={s.container}>
           <form onSubmit={handleSave} noValidate>
             <h2 className="title" style={{
         marginTop:"20px"
@@ -926,7 +926,7 @@ const capitalizeFirstLetter = (string) => {
               />
             </div>
           </Modal>
-        </main>
+        </div>
       </div>
     </div>
   );

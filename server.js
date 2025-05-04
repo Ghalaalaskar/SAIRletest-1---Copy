@@ -147,13 +147,13 @@ try {
             const GPSserialnumber = unit.nm; // Get unit name as GPS serial number
             console.log('gpsnum:', GPSserialnumber);
 
-            const maxSpeed = await fetchMaxSpeed( pos.y,pos.x ); //Fetch max speed
+            const maxSpeed = 90;//await fetchMaxSpeed( pos.y,pos.x ); Fetch max speed
             console.log('Max speed from API in process method:', maxSpeed);
 
             if (maxSpeed !== 0 ) {
                 console.log(maxSpeed);
                 console.log('hhhere');
-                const driverSpeed = pos.s; // Get the driver's speed
+                const driverSpeed = 105; // Get the driver's speed  pos.s
                 console.log('driverspeed:', driverSpeed);
 
                 if (driverSpeed > maxSpeed) {
@@ -492,7 +492,7 @@ const processUnits2 = async (units,sessionId) => {
         if (pos) {
             const GPSserialnumber = unit.nm; // Unit name in Wialon
             console.log("GPS Serial Number:", GPSserialnumber);
-             const driverSpeed = pos.s; //pos.s; Speed from position
+             const driverSpeed = 30; //pos.s; Speed from position
             console.log("Driver Speed:", driverSpeed);
 
             // Query for the driver in Firestore
@@ -522,7 +522,7 @@ motorcycleQuerySnapshot.docs[0].data();
                        const MotorcycleID = motorcycleData.MotorcycleID;
                        const Type = motorcycleData.Type;
                     const CrashID = generateCrashId();
-                    const newCrashTime = unit.lmsg.rt; // Last message time from Wialon
+                    const newCrashTime = 1746370685; // Last message time from Wialon unit.lmsg.rt
                     console.log("Crash time:", newCrashTime);
 
                     const position = { longitude: pos.x, latitude: pos.y };
@@ -569,7 +569,7 @@ prevRead.time;
 / deltaTime;
                                     console.log("Deceleration:", deceleration);
 
-                                    if (deceleration <= -7) { //-7
+                                    if (deceleration <= 2) { //-7
                                         console.log("Potential crash detected for:", GPSserialnumber);
                                         // Check for recent crashes in Firestore
                                         const starttime = newCrashTime - 5 * 60; // 5 minutes earlier
@@ -844,6 +844,8 @@ position, speed, time) => {
             timestamp: admin.firestore.Timestamp.now(),
             Status: "Pending",
             RespondedBy:null,
+            isAuto:true,
+            isAutoshown:true,
         });
         console.log('Crash stored successfully.');
     } catch (e) {
@@ -1011,9 +1013,9 @@ const monitorWialon = async () => {
   try {
     const sessionId = await loginToWialon();
     const units = await fetchUnits(sessionId);
-    // processUnits1(units,sessionId);
+    processUnits1(units,sessionId);
     // processUnits2(units,sessionId);
-    processUnits3(units,sessionId);
+    // processUnits3(units,sessionId);
     await fetchActiveLocations(units, sessionId);
 
   } catch (error) {
