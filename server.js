@@ -289,7 +289,7 @@ count30);
 storeHistory(ViolationID, driverid, GPSserialnumber, Brand,
 LicensePlate, Model, MotorcycleID, Type);
                                     } else {
-                                        const tenMinutesInSeconds = 10 * 60;
+                                        const tenMinutesInSeconds = 7 * 60;
 
                                         if
 (!areDatesEqual(lastViolation.data().time, newViolationTime)) {
@@ -522,7 +522,7 @@ motorcycleQuerySnapshot.docs[0].data();
                        const MotorcycleID = motorcycleData.MotorcycleID;
                        const Type = motorcycleData.Type;
                     const CrashID = generateCrashId();
-                    const newCrashTime = unit.lmsg.rt; // Last message time from Wialon unit.lmsg.rt
+                    const newCrashTime = 1746377234 ; // Last message time from Wialon unit.lmsg.rt 
                     console.log("Crash time:", newCrashTime);
 
                     const position = { longitude: pos.x, latitude: pos.y };
@@ -530,7 +530,7 @@ motorcycleQuerySnapshot.docs[0].data();
 
                     const recentSpeeds = {};
                     const to = newCrashTime; // Current time
-                    const from = to - 1000; // Check the last 10 seconds for relevant messages
+                    const from = to - 3000; // Check the last 10 seconds for relevant messages
                     console.log("Fetching messages from:", from, "to:", to);
 
                         const messages = await
@@ -1014,7 +1014,7 @@ const monitorWialon = async () => {
     const sessionId = await loginToWialon();
     const units = await fetchUnits(sessionId);
        processUnits1(units,sessionId);
-       processUnits2(units,sessionId);
+    //    processUnits2(units,sessionId);
     // processUnits3(units,sessionId);
     await fetchActiveLocations(units, sessionId);
 
