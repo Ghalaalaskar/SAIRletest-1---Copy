@@ -121,7 +121,7 @@ export const GDTNotification = () => {
       const chunk = driverIds.slice(i, i + chunkSize);
       const crashQuery = query(
         collection(db, 'Crash'),
-        where('driverID', 'in', chunk),
+        where('driverID', 'in', driverIds),
         where('Status', '==', 'Emergency SOS'),
         where('RespondedBy', '==', null),
 
@@ -185,7 +185,7 @@ console.log('in gdt local storage',notifiedCrashes);
       const chunk = driverIds.slice(i, i + chunkSize);
       const ViolationQuery = query(
         collection(db, "Violation"),
-        where("driverID", "in", chunk),
+        where("driverID", "in", driverIds),
         where('Status','==','Active')
       );
 
@@ -235,7 +235,7 @@ console.log('in gdt local storage',notifiedCrashes);
       const chunk = driverIds.slice(i, i + chunkSize);
       const ComplaintQuery = query(
         collection(db, "Complaint"),
-        where("driverID", "in", chunk),
+        where("driverID", "in", driverIds),
         where('RespondedBy', '==', null),
       );
 
