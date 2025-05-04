@@ -352,7 +352,7 @@ s
             pagination={false} // Disable internal pagination
             onRow={(record) => ({
               style: {
-                backgroundColor: !viewedCrashes[record.id] ? '#f0f8f0' : 'transparent',
+                backgroundColor: !viewedCrashes[record.id] ? '#d0e0d0' : 'transparent',
               },
             })}
           />
