@@ -533,7 +533,7 @@ motorcycleQuerySnapshot.docs[0].data();
                     const from = to - 3000; // Check the last 10 seconds for relevant messages
                     console.log("Fetching messages from:", from, "to:", to);
 
-                        const messages = accwait
+                        const messages = await
 fetchMessages(sessionId, id, from, to);
 
                         if (! messages.length > 0) {
