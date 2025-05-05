@@ -397,36 +397,40 @@ const GDTDashBoard = () => {
       console.error("Error fetching Crash data:", error);
     }
   };
-
   useEffect(() => {
-    const fetchLastCrash = async () => {
-      try {
-        const crashQuery = query(
-          collection(db, "Crash"),
-          orderBy("time", "desc"),
-          limit(1)
-        );
-    
-        const querySnapshot = await getDocs(crashQuery);
+    const crashQuery = query(
+      collection(db, "Crash"),
+      orderBy("time", "desc"),
+      limit(1)
+    );
+  
+    const unsubscribe = onSnapshot(
+      crashQuery,
+      (querySnapshot) => {
         if (!querySnapshot.empty) {
-          const lastCrash = querySnapshot.docs[0].data();
-          setLastCrashTime(new Date(lastCrash.time * 1000).toLocaleString());
+          const doc = querySnapshot.docs[0];
+          const data = doc.data();
+  
           setLastCrash({
-            id: querySnapshot.docs[0].id, // Capture the document ID
+            id: doc.id,
+            Status: data.Status,
           });
-          setResponseBy(lastCrash.RespondedBy); // Set the responder's ID
+  
+          setLastCrashTime(new Date(data.time * 1000).toLocaleString());
+          setResponseBy(data.RespondedBy); // set responder ID
         } else {
           console.log("No crashes detected.");
         }
-      } catch (error) {
-        console.error("Error fetching last crash:", error);
+      },
+      (error) => {
+        console.error("Error with onSnapshot:", error);
       }
-    };
-
-    fetchLastCrash();
-    console.log("Last Crash Time:", lastCrashTime);
-    console.log("Response By:", responseBy);
+    );
+  
+    // Clean up the real-time listener
+    return () => unsubscribe();
   }, []);
+  
   return (
     <div>
       <Header active="GDTDashBoard" />
@@ -491,19 +495,30 @@ const GDTDashBoard = () => {
                 <strong>{lastCrashTime || "No data available"}</strong>
               </span>
               <span style={{ color: responseBy ? "black" : "red" }}>
-                {responseBy ? (
-                  <>
-                    Response By:{" "}
-                    <strong>
-                      <ResponseBy respondedBy={responseBy} />
-                    </strong>
-                  </>
-                ) : (
-                  <>
-             <Link to={`/gdtcrash/general/${lastCrash?.id}`} 
-             style={{ color:"red", textDecoration: "underline"  }}
-             > Needs Response</Link></>
-                )}
+              {lastCrash?.Status === "Emergency SOS" && responseBy ? (
+                <>
+                  Response By:{" "}
+                  <strong>
+                    <ResponseBy respondedBy={responseBy} />
+                  </strong>
+                </>
+              ) : lastCrash?.Status === "Emergency SOS" && !responseBy ? (
+                <>
+                  <Link 
+                    to={`/gdtcrash/general/${lastCrash?.id}`} 
+                    style={{ color: "red", textDecoration: "underline" }}
+                  >
+                    Needs Response
+                  </Link>
+                </>
+              ) : lastCrash?.Status === "Denied" && !responseBy ? (
+                <Link 
+                    to={`/gdtcrash/general/${lastCrash?.id}`} 
+                    style={{ color: "grey", textDecoration: "underline" }}
+                  >
+                    No Response Needed
+                  </Link>
+              ) : "null"}
               </span>
             </div>
           </div>
