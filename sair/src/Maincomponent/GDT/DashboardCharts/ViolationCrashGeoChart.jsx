@@ -1,310 +1,135 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { db } from "../../../firebase";
 import { collection, getDocs, where, query } from "firebase/firestore";
 import { ResponsiveContainer } from "recharts";
-// import Map from "../../Map";
 import { GoogleMap, MarkerF } from "@react-google-maps/api";
 
-const containerStyle = {
-  width: "100%", // Set the map width
-  height: "600px", // Set the map height
-  margin: "auto", // Center the map
-};
+const containerStyle = { width: "100%", height: "600px", margin: "auto" };
 
 const ViolationCrashGeoChart = () => {
-  const [data, setData] = useState([]); // Keep the useState here, only once
-  const [position, setPosition] = useState([]);
-  const [mapCenter, setMapCenter] = useState({ lat: 24.6986, lng: 46.6853 }); // Default center
-  const [zoomLevel, setZoomLevel] = useState(11); // Default zoom level
-  const handleMapLoad = (mapInstance) => {
-    mapInstance.addListener("zoom_changed", () => {
-      setZoomLevel(mapInstance.getZoom());
-    });
-  };
-  const [isDropdownOpen, setDropdownOpen] = useState(false);
+  const [districtData, setDistrictData] = useState([]);
   const [selectedOption, setSelectedOption] = useState("All");
-  const [mergedDatas, setMergedData] = useState({})
-  const [violationPositions, setViolationPositions] = useState([]);
-  const [crashPositions, setCrashPositions] = useState([]);
-
+  const [isDropdownOpen, setDropdownOpen] = useState(false);
   const options = ["All", "Violation", "Crash"];
+  const mapCenter = { lat: 24.6986, lng: 46.6853 };
+  const zoomLevel = 11;
 
-  const toggleDropdown = () => {
-    setDropdownOpen(!isDropdownOpen);
+  // Alias map for Arabic neighborhoods
+  const aliasMap = {
+    "حي الملقا": "Al Malqa",
+    "الملقا": "Al Malqa",
+    "ملقا": "Al Malqa",
   };
 
-  const handleOptionClick = (option) => {
-    setSelectedOption(option);
-    setDropdownOpen(false);
-  };
+  const toggleDropdown = () => setDropdownOpen(prev => !prev);
+  const handleOptionClick = opt => { setSelectedOption(opt); setDropdownOpen(false); };
 
-  function getDistrictFromCoords(lat, lng) {
-    return new Promise((resolve, reject) => {
-      if (!window.google || !window.google.maps) {
-        return reject('Google Maps JS API is not loaded.');
-      }
-
-      const geocoder = new window.google.maps.Geocoder();
-      const latlng = { lat, lng };
-
-      geocoder.geocode({ location: latlng }, (results, status) => {
-        if (status === 'OK' && results.length > 0) {
-          for (const result of results) {
-            for (const component of result.address_components) {
-              if (
-                component.types.includes("sublocality") ||
-                component.types.includes("neighborhood")
-              ) {
-                return resolve(component.long_name); // district name only
-              }
+  // Geocode: prioritize English sublocalities/neighborhoods and skip generic locality 'Riyadh'
+  const getDistrict = (lat, lng) =>
+        new Promise(resolve => {
+          if (!window.google?.maps) return resolve("Unknown");
+          const geo = new window.google.maps.Geocoder();
+          const typesOrder = [
+            'sublocality_level_1',
+            'sublocality',
+            'neighborhood',
+            'administrative_area_level_3',
+            'administrative_area_level_2'
+          ];
+          geo.geocode({ location: { lat, lng }, language: 'en' }, (res, status) => {
+            if (status === 'OK' && res.length) {
+              const arabic = /[\u0600-\u06FF]/;
+              // 1) scan ALL results for the first English component in our expanded list
+              for (let type of typesOrder) {
+                for (let result of res) {
+                  const c = result.address_components.find(c =>
+                  c.types.includes(type) && !arabic.test(c.long_name)
+                  );
+              if (c) {
+                    let name = c.long_name;
+                    Object.entries(aliasMap).forEach(([k, v]) => {
+                      if (name.includes(k)) name = v;
+                    });
+                    return resolve(name);
+                  }
+                }
             }
-          }
-
-          // Fallback if no sublocality or neighborhood found
-          resolve("District not found");
-        } else {
-          reject(`Geocoder failed due to: ${status}`);
-        }
-      });
-    });
-  }
-
-
-  // Riyadh Neighborhoods
-  const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+  
+              // 2) fallback: split formatted_address but SKIP any leading plus‑codes
+              const parts = res[0].formatted_address.split(',').map(p => p.trim());
+              let name = parts.find(p => !/^[A-Z0-9+]{4,}$/i.test(p)) || parts[0];
+           Object.entries(aliasMap).forEach(([k, v]) => {
+                if (name.includes(k)) name = v;
+              });
+           return resolve(name);
+            }
+          resolve('Unknown');
+        });
+       });
 
   useEffect(() => {
-    const loadData = async () => {
-      let districtVoliationCount = {};
-  
-      const allViolations = [];
-      const allCrashes = [];
-  
-      const fetchViolations = async () => {
-        try {
-        const querySnapshot = await getDocs(collection(db, "Violation"));
-        const violationsMap = new window.Map();
-        const oneWeekAgo = new Date();
-        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-    
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-    
-        for (
-          let d = new Date(oneWeekAgo);
-          d <= today;
-          d.setDate(d.getDate() + 1)
-        ) {
-          const formattedDate = d.toLocaleDateString("en-GB", {
-            day: "2-digit",
-            month: "long",
-          });
-          violationsMap.set(formattedDate, 0);
-        }
-    
-        const allViolations = [];
-        const allPositionVolation = [];
-    
-        querySnapshot.forEach((doc) => {
-          const { time, position } = doc.data();
-          if (!time || !position) return;
-    
-          allViolations.push(position);
-          allPositionVolation.push({ lat: position.latitude, lng: position.longitude });
-    
-          const violationDate = new Date(time * 1000);
-          violationDate.setHours(0, 0, 0, 0);
-    
-          if (violationDate >= oneWeekAgo) {
-            const formattedDate = violationDate.toLocaleDateString("en-GB", {
-              day: "2-digit",
-              month: "long",
-            });
-            violationsMap.set(
-              formattedDate,
-              (violationsMap.get(formattedDate) || 0) + 1
-            );
-          }
-        });
-    
-        // Resolve district names
-        const DistrictResults = [];
-        for (let i = 0; i < allViolations.length; i++) {
-          const { latitude, longitude } = allViolations[i];
-          try {
-            const district = await getDistrictFromCoords(latitude, longitude);
-            DistrictResults.push(district);
-          } catch (error) {
-            DistrictResults.push("Unknown");
-          }
-          await sleep(200);
-        }
-    
-        // Group by district
-        const districtPositionMap = new Map();
-        for (let i = 0; i < DistrictResults.length; i++) {
-          const district = DistrictResults[i];
-          const { latitude, longitude } = allViolations[i];
-    
-          if (!districtPositionMap.has(district)) {
-            districtPositionMap.set(district, {
-              position: { lat: latitude, lng: longitude },
-              total: 1
-            });
-          } else {
-            districtPositionMap.get(district).total += 1;
-          }
-        }
-    
-        // One circle per district
-        const result = Array.from(districtPositionMap.values());
-        setViolationPositions(result);
-        districtVoliationCount = DistrictResults.reduce((acc, district) => {
-          acc[district] = (acc[district] || 0) + 1;
-          return acc;
-        }, {});
-      } catch (error) {
-        console.error("Error fetching violations:", error);
-      }
-    };   
-
-    const fetchCrashes = async () => {
+    let mounted = true;
+    const fetchAll = async () => {
       try {
-        const q = query(
-          collection(db, "Crash"),
-          where("Status", "==", "Emergency SOS")
-        );
-        const querySnapshot = await getDocs(q);
-    
-        const crashesMap = new window.Map();
-        const oneWeekAgo = new Date();
-        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-    
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-    
-        for (
-          let d = new Date(oneWeekAgo);
-          d <= today;
-          d.setDate(d.getDate() + 1)
-        ) {
-          const formattedDate = d.toLocaleDateString("en-GB", {
-            day: "2-digit",
-            month: "long",
-          });
-          crashesMap.set(formattedDate, 0);
-        }
-    
-        const allCrashes = [];
-        const allPositionCrashes = [];
-    
-        querySnapshot.forEach((doc) => {
-          const { time, position } = doc.data();
-          if (!time || !position) return;
-    
-          allCrashes.push(position);
-          allPositionCrashes.push({ lat: position.latitude, lng: position.longitude });
-    
-          const crashDate = new Date(time * 1000);
-          crashDate.setHours(0, 0, 0, 0);
-    
-          if (crashDate >= oneWeekAgo) {
-            const formattedDate = crashDate.toLocaleDateString("en-GB", {
-              day: "2-digit",
-              month: "long",
-            });
-            crashesMap.set(
-              formattedDate,
-              (crashesMap.get(formattedDate) || 0) + 1
-            );
-          }
-        });
-    
-        // Resolve district names
-        const DistrictResults = [];
-        for (let i = 0; i < allCrashes.length; i++) {
-          const { latitude, longitude } = allCrashes[i];
-          try {
-            const district = await getDistrictFromCoords(latitude, longitude);
-            DistrictResults.push(district);
-          } catch (error) {
-            DistrictResults.push("Unknown");
-          }
-          await sleep(200);
-        }
-    
-        // Group by district
-        const districtPositionMap = new Map();
-        for (let i = 0; i < DistrictResults.length; i++) {
-          const district = DistrictResults[i];
-          const { latitude, longitude } = allCrashes[i];
-    
-          if (!districtPositionMap.has(district)) {
-            districtPositionMap.set(district, {
-              position: { lat: latitude, lng: longitude },
-              total: 1
-            });
-          } else {
-            districtPositionMap.get(district).total += 1;
-          }
-        }
-    
-        // One circle per district
-        const result = Array.from(districtPositionMap.values());
-        setCrashPositions(result);
-        const districtCrashCount = DistrictResults.reduce((acc, district) => {
-          acc[district] = (acc[district] || 0) + 1;
-          return acc;
-        }, {});
-
-        const allDistricts = new Set([
-          ...Object.keys(districtCrashCount),
-          ...Object.keys(districtVoliationCount),
+        const [vSnap, cSnap] = await Promise.all([
+          getDocs(collection(db, 'Violation')),
+          getDocs(query(collection(db, 'Crash'), where('Status', '==', 'Emergency SOS'))),
         ]);
+        const events = [];
+        vSnap.forEach(doc => {
+          const d = doc.data();
+          if (d.time && d.position) events.push({ ...d.position, type: 'violation' });
+        });
+        cSnap.forEach(doc => {
+          const d = doc.data();
+          if (d.time && d.position) events.push({ ...d.position, type: 'crash' });
+        });
 
-        const mergedData = {};
-        for (const district of allDistricts) {
-          mergedData[district] = {
-            crash: districtCrashCount[district] || 0,
-            violation: districtVoliationCount[district] || 0,
-          };
-        }
+        const enriched = await Promise.all(
+          events.map(async ev => {
+            const district = await getDistrict(ev.latitude, ev.longitude);
+            return { ...ev, district };
+          })
+        );
 
-        setMergedData(mergedData);
+        const mapAgg = new Map();
+        enriched.forEach(ev => {
+          const name = (ev.district || 'Unknown').trim();
+          if (!mapAgg.has(name)) {
+            mapAgg.set(name, { violation: 0, crash: 0, latSum: 0, lngSum: 0, count: 0 });
+          }
+          const entry = mapAgg.get(name);
+          entry[ev.type]++;
+          entry.latSum += ev.latitude;
+          entry.lngSum += ev.longitude;
+          entry.count++;
+        });
 
-      } catch (error) {
-        console.error("Error fetching crashes:", error);
+        const dataArr = Array.from(mapAgg.entries()).map(([district, e]) => ({
+          district,
+          violation: e.violation,
+          crash: e.crash,
+          total: e.violation + e.crash,
+          position: { lat: e.latSum / e.count, lng: e.lngSum / e.count },
+        }));
+
+        if (mounted) setDistrictData(dataArr);
+      } catch (err) {
+        console.error('Error fetching data:', err);
       }
     };
+    fetchAll();
+    return () => { mounted = false; };
+  }, []);
 
-    // Wait for violations first, then crashes
-    await fetchViolations();
-    await fetchCrashes();
-  };
-  loadData();
-}, []);
-
-  let filteredPositions = [];
-
-  if (selectedOption === "All") {
-    filteredPositions = [...violationPositions, ...crashPositions];
-  } else if (selectedOption === "Violation") {
-    filteredPositions = [...violationPositions];
-  } else if (selectedOption === "Crash") {
-    filteredPositions = [...crashPositions];
-  }
-
+  const filtered = districtData.filter(d => {
+    if (selectedOption === 'All') return true;
+    return selectedOption === 'Violation' ? d.violation > 0 : d.crash > 0;
+  });
 
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <div
-        style={{
-          width: "100%",
-          height: "400px",
-          display: "flex",
-          justifyContent: "space-between",
-        }}
-      >
+      <div style={{ width: "100%", height: "400px", display: "flex", justifyContent: "space-between" }}>
         {/* Map Container */}
         <div
           style={{
@@ -317,93 +142,17 @@ const ViolationCrashGeoChart = () => {
             background: "#f4f4f4",
           }}
         >
-          {/* Dropdown Filter Container */}
-          <div
-            className="searchContainer"
-            style={{
-              position: "absolute",
-              top: "10px",
-              right: "10px",
-              zIndex: 10,
-            }}
-          >
-            <div
-              className="selectWrapper"
-              style={{
-                border: "2px solid #4CAF50",
-                backgroundColor: "#FFFFFF",
-                color: "black",
-                borderRadius: "5px",
-                padding: "5px",
-                fontWeight: "normal",
-              }}
-            >
-              <div
-                className={`customSelect ${isDropdownOpen ? "open" : ""}`}
-                onClick={toggleDropdown}
-                style={{
-                  cursor: "pointer",
-                  padding: "5px 10px",
-                  position: "relative",
-                  width: "200px",
-                  textAlign: "left",
-                }}
-              >
-                {selectedOption === "All" ? (
-                  <span>Filter by Incident Type</span>
-                ) : (
-                  selectedOption
-                )}
-                <span
-                  style={{
-                    position: "absolute",
-                    right: "10px",
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    border: "solid #4CAF50",
-                    borderWidth: "0 2px 2px 0",
-                    display: "inline-block",
-                    padding: "3px",
-                    transform: isDropdownOpen
-                      ? "translateY(-50%) rotate(-135deg)"
-                      : "translateY(-50%) rotate(45deg)",
-                  }}
-                />
+          {/* Dropdown Filter */}
+          <div className="searchContainer" style={{ position: "absolute", top: 10, right: 10, zIndex: 10 }}>
+            <div className="selectWrapper" style={{ border: "2px solid #4CAF50", backgroundColor: "#fff", borderRadius: 5, padding: 5 }}>
+              <div onClick={toggleDropdown} style={{ cursor: "pointer", padding: "5px 10px", width: 200, position: "relative", textAlign: "left" }}>
+                {selectedOption === 'All' ? 'Filter by Incident Type' : selectedOption}
               </div>
               {isDropdownOpen && (
-                <div
-                  className="dropdownMenu"
-                  style={{
-                    position: "absolute",
-                    zIndex: 1000,
-                    backgroundColor: "#fff",
-                    border: "1px solid #ddd",
-                    top: "100%",
-                    left: "0",
-                    right: "0",
-                    textAlign: "left",
-                    borderRadius: "5px",
-                    fontWeight: "normal",
-                  }}
-                >
-                  {options.map((option) => (
-                    <div
-                      key={option}
-                      className="dropdownOption"
-                      onClick={() => handleOptionClick(option)}
-                      style={{
-                        padding: "10px",
-                        cursor: "pointer",
-                        transition: "background-color 0.3s",
-                      }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.backgroundColor = "#f0f0f0")
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.backgroundColor = "transparent")
-                      }
-                    >
-                      {option}
+                <div className="dropdownMenu" style={{ position: "absolute", top: "100%", left: 0, right: 0, background: "#fff", border: "1px solid #ddd", borderRadius: 5, zIndex: 1000 }}>
+                  {options.map(opt => (
+                    <div key={opt} onClick={() => handleOptionClick(opt)} style={{ padding: 10, cursor: "pointer" }} onMouseEnter={e => e.currentTarget.style.backgroundColor = "#f0f0f0"} onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}>
+                      {opt}
                     </div>
                   ))}
                 </div>
@@ -412,34 +161,19 @@ const ViolationCrashGeoChart = () => {
           </div>
 
           {/* Google Map */}
-          <div style={{ width: "100%", height: "100%", borderRadius: "15px" }}>
-            <GoogleMap
-              mapContainerStyle={containerStyle}
-              center={mapCenter}
-              zoom={zoomLevel}
-              onLoad={handleMapLoad}
-            >
-              {filteredPositions.map((p, i) => (
+          <GoogleMap mapContainerStyle={containerStyle} center={mapCenter} zoom={zoomLevel}>
+            {filtered.map((d, i) => {
+              const count = selectedOption === 'All' ? d.total : selectedOption === 'Violation' ? d.violation : d.crash;
+              return (
                 <MarkerF
                   key={i}
-                  position={p}
-                  label={{
-                    text: String(p.total),
-                    color: "white",
-                    fontSize: "12px",
-                    fontWeight: "bold",
-                  }}
-                  icon={{
-                    path: window.google.maps.SymbolPath.CIRCLE,
-                    fillColor: "red",
-                    fillOpacity: 1,
-                    strokeWeight: 0,
-                    scale: 20,
-                  }}
+                  position={d.position}
+                  label={{ text: String(count), color: "white", fontSize: "12px", fontWeight: "bold" }}
+                  icon={{ path: window.google.maps.SymbolPath.CIRCLE, fillColor: "red", fillOpacity: 1, scale: 20, strokeWeight: 0 }}
                 />
-              ))}
-            </GoogleMap>
-          </div>
+              );
+            })}
+          </GoogleMap>
         </div>
 
         {/* Table Container */}
@@ -447,109 +181,38 @@ const ViolationCrashGeoChart = () => {
           style={{
             width: "48%",
             height: "100%",
-            background: "#ffffff",
+            background: "#fff",
             borderRadius: "15px",
             boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-            padding: "0 20px 20px 20px",
-            overflow: "hidden", // Prevent overflow on outer div
+            padding: "0 20px 20px",
+            overflow: "hidden",
           }}
         >
           <div style={{ maxHeight: "400px", overflowY: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead
-                style={{
-                  position: "sticky",
-                  top: 0,
-                  background: "#FAFAFA",
-                  zIndex: 1,
-                }}
-              >
+              <thead style={{ position: "sticky", top: 0, background: "#FAFAFA", zIndex: 1 }}>
                 <tr style={{ color: "#000000E0" }}>
-                  <th
-                    style={{
-                      padding: "10px",
-                      textAlign: "left",
-                      borderBottom: "2px solid #ddd",
-                    }}
-                  >
-                    District Name
-                  </th>
-                  <th
-                    style={{
-                      padding: "10px",
-                      textAlign: "left",
-                      borderBottom: "2px solid #ddd",
-                    }}
-                  >
-                    Number of Violations
-                  </th>
-                  <th
-                    style={{
-                      padding: "10px",
-                      textAlign: "left",
-                      borderBottom: "2px solid #ddd",
-                    }}
-                  >
-                    Number of Crashes
-                  </th>
-                  <th
-                    style={{
-                      padding: "10px",
-                      textAlign: "left",
-                      borderBottom: "2px solid #ddd",
-                    }}
-                  >
-                    Total Incidents
-                  </th>
+                  <th style={{ padding: "10px", textAlign: "left", borderBottom: "2px solid #ddd" }}>Neighborhood Name</th>
+                  <th style={{ padding: "10px", textAlign: "left", borderBottom: "2px solid #ddd" }}>Number of Violations</th>
+                  <th style={{ padding: "10px", textAlign: "left", borderBottom: "2px solid #ddd" }}>Number of Crashes</th>
+                  <th style={{ padding: "10px", textAlign: "left", borderBottom: "2px solid #ddd" }}>Total Incidents</th>
                 </tr>
               </thead>
               <tbody>
-                {Object.keys(mergedDatas).length === 0 ? (
+                {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={4} style={{ textAlign: "center", padding: "20px" }}>
-                      {/* loading spinner if you have one */}
-                      {/* <span>Loading data...</span> */}
-                    </td>
+                    <td colSpan={4} style={{ textAlign: "center", padding: "20px" }}>Loading data...</td>
                   </tr>
                 ) : (
-                  Object.entries(mergedDatas).map(([district, data], index) => (
-                    <tr key={index}>
-                      <td
-                        style={{
-                          padding: "10px",
-                          borderBottom: "1px solid #ddd",
-                        }}
-                      >
-                        {district}
-                      </td>
-                      <td
-                        style={{
-                          padding: "10px",
-                          borderBottom: "1px solid #ddd",
-                        }}
-                      >
-                        {data.violation}
-                      </td>
-                      <td
-                        style={{
-                          padding: "10px",
-                          borderBottom: "1px solid #ddd",
-                        }}
-                      >
-                        {data.crash}
-                      </td>
-                      <td
-                        style={{
-                          padding: "10px",
-                          borderBottom: "1px solid #ddd",
-                        }}
-                      >
-                        {data.violation + data.crash}
-                      </td>
+                  filtered.map((d, idx) => (
+                    <tr key={idx}>
+                      <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>{d.district}</td>
+                      <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>{d.violation}</td>
+                      <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>{d.crash}</td>
+                      <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>{d.total}</td>
                     </tr>
                   ))
                 )}
-
               </tbody>
             </table>
           </div>
