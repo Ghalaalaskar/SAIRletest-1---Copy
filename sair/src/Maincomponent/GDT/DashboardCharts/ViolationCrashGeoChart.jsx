@@ -24,8 +24,7 @@ const ViolationCrashGeoChart = () => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState("All");
   const [mergedDatas, setMergedData] = useState({})
-  const [violationPositions, setViolationPositions] = useState([]);
-  const [crashPositions, setCrashPositions] = useState([]);
+
 
   const options = ["All", "Violation", "Crash"];
 
@@ -74,22 +73,24 @@ const ViolationCrashGeoChart = () => {
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
   useEffect(() => {
-    const loadData = async () => {
-      let districtVoliationCount = {};
-  
-      const allViolations = [];
-      const allCrashes = [];
-  
-      const fetchViolations = async () => {
-        try {
+    let districtCrashCount;
+    let districtVoliationCount;
+    const allViolations = [];
+    const allCrashes = [];
+    const allPositionVolation = [];
+    const allPositionCrashes = [];
+
+    const fetchViolations = async () => {
+      try {
         const querySnapshot = await getDocs(collection(db, "Violation"));
         const violationsMap = new window.Map();
         const oneWeekAgo = new Date();
         oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-    
+
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-    
+
+        // Initialize map with all dates in the past week
         for (
           let d = new Date(oneWeekAgo);
           d <= today;
@@ -101,20 +102,20 @@ const ViolationCrashGeoChart = () => {
           });
           violationsMap.set(formattedDate, 0);
         }
-    
-        const allViolations = [];
-        const allPositionVolation = [];
-    
+
+        const allPosition = [];
+
+
         querySnapshot.forEach((doc) => {
           const { time, position } = doc.data();
-          if (!time || !position) return;
-    
+          if (!time) return; // Ensure time exists
+
           allViolations.push(position);
           allPositionVolation.push({ lat: position.latitude, lng: position.longitude });
-    
-          const violationDate = new Date(time * 1000);
-          violationDate.setHours(0, 0, 0, 0);
-    
+
+          const violationDate = new Date(time * 1000); // Convert Unix timestamp
+          violationDate.setHours(0, 0, 0, 0); // Normalize to start of day
+
           if (violationDate >= oneWeekAgo) {
             const formattedDate = violationDate.toLocaleDateString("en-GB", {
               day: "2-digit",
@@ -126,47 +127,33 @@ const ViolationCrashGeoChart = () => {
             );
           }
         });
-    
-        // Resolve district names
+
         const DistrictResults = [];
+
+
         for (let i = 0; i < allViolations.length; i++) {
           const { latitude, longitude } = allViolations[i];
           try {
             const district = await getDistrictFromCoords(latitude, longitude);
             DistrictResults.push(district);
           } catch (error) {
-            DistrictResults.push("Unknown");
+            DistrictResults.push('Error: ' + error);
           }
+
+          // Wait 200ms between requests to avoid rate-limiting
           await sleep(200);
         }
-    
-        // Group by district
-        const districtPositionMap = new Map();
-        for (let i = 0; i < DistrictResults.length; i++) {
-          const district = DistrictResults[i];
-          const { latitude, longitude } = allViolations[i];
-    
-          if (!districtPositionMap.has(district)) {
-            districtPositionMap.set(district, {
-              position: { lat: latitude, lng: longitude },
-              total: 1
-            });
-          } else {
-            districtPositionMap.get(district).total += 1;
-          }
-        }
-    
-        // One circle per district
-        const result = Array.from(districtPositionMap.values());
-        setViolationPositions(result);
         districtVoliationCount = DistrictResults.reduce((acc, district) => {
           acc[district] = (acc[district] || 0) + 1;
           return acc;
         }, {});
+
+        console.log(allPosition, "allPosition Voliation")
+        // setPosition(allPosition);
       } catch (error) {
         console.error("Error fetching violations:", error);
       }
-    };   
+    };
 
     const fetchCrashes = async () => {
       try {
@@ -175,14 +162,15 @@ const ViolationCrashGeoChart = () => {
           where("Status", "==", "Emergency SOS")
         );
         const querySnapshot = await getDocs(q);
-    
+
         const crashesMap = new window.Map();
         const oneWeekAgo = new Date();
         oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-    
+
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-    
+
+        // Initialize map with all dates in the past week
         for (
           let d = new Date(oneWeekAgo);
           d <= today;
@@ -194,20 +182,18 @@ const ViolationCrashGeoChart = () => {
           });
           crashesMap.set(formattedDate, 0);
         }
-    
-        const allCrashes = [];
-        const allPositionCrashes = [];
-    
+
+
         querySnapshot.forEach((doc) => {
           const { time, position } = doc.data();
-          if (!time || !position) return;
-    
+          if (!time) return; // Ensure time exists
+
           allCrashes.push(position);
           allPositionCrashes.push({ lat: position.latitude, lng: position.longitude });
-    
-          const crashDate = new Date(time * 1000);
-          crashDate.setHours(0, 0, 0, 0);
-    
+
+          const crashDate = new Date(time * 1000); // Convert Unix timestamp
+          crashDate.setHours(0, 0, 0, 0); // Normalize to start of day
+
           if (crashDate >= oneWeekAgo) {
             const formattedDate = crashDate.toLocaleDateString("en-GB", {
               day: "2-digit",
@@ -219,81 +205,74 @@ const ViolationCrashGeoChart = () => {
             );
           }
         });
-    
-        // Resolve district names
+
+        console.log(allPositionVolation, "Result allPosition Voliation")
+        console.log(allPositionCrashes, "Result allPosition Crashes")
+
+
+        const combined = [...allPositionVolation, ...allPositionCrashes];
+
+        const map = new Map();
+
+        combined.forEach(({ lat, lng }) => {
+          const key = `${lat},${lng}`;
+          if (map.has(key)) {
+            map.get(key).total += 1;
+          } else {
+            map.set(key, {
+              position: { lat, lng },
+              total: 1,
+            });
+          }
+        });
+
+        const result = Array.from(map.values());
+        setPosition(result)
+        console.log(result, "Result");
+
         const DistrictResults = [];
+
         for (let i = 0; i < allCrashes.length; i++) {
           const { latitude, longitude } = allCrashes[i];
           try {
             const district = await getDistrictFromCoords(latitude, longitude);
             DistrictResults.push(district);
           } catch (error) {
-            DistrictResults.push("Unknown");
+            DistrictResults.push('Error: ' + error);
           }
+
+          // Wait 200ms between requests to avoid rate-limiting
           await sleep(200);
         }
-    
-        // Group by district
-        const districtPositionMap = new Map();
-        for (let i = 0; i < DistrictResults.length; i++) {
-          const district = DistrictResults[i];
-          const { latitude, longitude } = allCrashes[i];
-    
-          if (!districtPositionMap.has(district)) {
-            districtPositionMap.set(district, {
-              position: { lat: latitude, lng: longitude },
-              total: 1
-            });
-          } else {
-            districtPositionMap.get(district).total += 1;
-          }
-        }
-    
-        // One circle per district
-        const result = Array.from(districtPositionMap.values());
-        setCrashPositions(result);
-        const districtCrashCount = DistrictResults.reduce((acc, district) => {
+
+
+        districtCrashCount = DistrictResults.reduce((acc, district) => {
           acc[district] = (acc[district] || 0) + 1;
           return acc;
         }, {});
 
-        const allDistricts = new Set([
-          ...Object.keys(districtCrashCount),
-          ...Object.keys(districtVoliationCount),
-        ]);
+        const allDistricts = new Set([...Object.keys(districtCrashCount), ...Object.keys(districtVoliationCount)]);
 
         const mergedData = {};
         for (const district of allDistricts) {
           mergedData[district] = {
             crash: districtCrashCount[district] || 0,
-            violation: districtVoliationCount[district] || 0,
+            violation: districtVoliationCount[district] || 0
           };
         }
 
-        setMergedData(mergedData);
 
+        setMergedData(mergedData)
       } catch (error) {
-        console.error("Error fetching crashes:", error);
+        console.error("Error fetching crash:", error);
       }
     };
 
-    // Wait for violations first, then crashes
-    await fetchViolations();
-    await fetchCrashes();
-  };
-  loadData();
-}, []);
 
-  let filteredPositions = [];
 
-  if (selectedOption === "All") {
-    filteredPositions = [...violationPositions, ...crashPositions];
-  } else if (selectedOption === "Violation") {
-    filteredPositions = [...violationPositions];
-  } else if (selectedOption === "Crash") {
-    filteredPositions = [...crashPositions];
-  }
-
+    fetchCrashes();
+    fetchViolations();
+  }, []);
 
   return (
     <ResponsiveContainer width="100%" height="100%">
@@ -419,10 +398,10 @@ const ViolationCrashGeoChart = () => {
               zoom={zoomLevel}
               onLoad={handleMapLoad}
             >
-              {filteredPositions.map((p, i) => (
+              {position.map((p, i) => (
                 <MarkerF
                   key={i}
-                  position={p}
+                  position={p.position}
                   label={{
                     text: String(p.total),
                     color: "white",
@@ -472,7 +451,7 @@ const ViolationCrashGeoChart = () => {
                       borderBottom: "2px solid #ddd",
                     }}
                   >
-                    District Name
+                    Neighborhood Name
                   </th>
                   <th
                     style={{
@@ -507,8 +486,8 @@ const ViolationCrashGeoChart = () => {
                 {Object.keys(mergedDatas).length === 0 ? (
                   <tr>
                     <td colSpan={4} style={{ textAlign: "center", padding: "20px" }}>
-                      {/* loading spinner if you have one */}
-                      {/* <span>Loading data...</span> */}
+                      {/* Replace this with your loading spinner if you have one */}
+                      <span>Loading data...</span>
                     </td>
                   </tr>
                 ) : (
