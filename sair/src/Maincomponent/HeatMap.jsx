@@ -45,10 +45,11 @@ const containerStyle = {
 // { featureType: "road", stylers: [{ color: "#e6d5c3" }] }, // Light Beige Roads
 // ];
 
-const HeatMapWrapper = ({ heatmapData, visible }) => {
+const HeatMapWrapper = ({ heatmapData, visible = true }) => {
   const heatmapRef = React.useRef(null);
   const mapRef = React.useRef(null);
   const prevVisibleRef = React.useRef(visible);
+  const prevDataLengthRef = React.useRef(0);
 
   const onHeatmapLoad = React.useCallback((heatmapLayer) => {
     heatmapRef.current = heatmapLayer;
@@ -74,7 +75,20 @@ const HeatMapWrapper = ({ heatmapData, visible }) => {
 
       // Handle data changes only when visible
       if (visible && heatmapData && heatmapData.length > 0) {
-        heatmapRef.current.setData(heatmapData);
+        // Check if data length has changed - this indicates filtering happened
+        const currentDataLength = heatmapData.length;
+        if (currentDataLength !== prevDataLengthRef.current) {
+          prevDataLengthRef.current = currentDataLength;
+
+          // Force refresh by temporarily removing and re-adding the heatmap
+          const tempMap = heatmapRef.current.getMap();
+          heatmapRef.current.setMap(null);
+          heatmapRef.current.setData(heatmapData);
+          heatmapRef.current.setMap(tempMap);
+        } else {
+          // Regular data update without refresh
+          heatmapRef.current.setData(heatmapData);
+        }
       }
     }
   }, [heatmapData, visible]);
@@ -916,6 +930,34 @@ const center = lastKnownLocations.length > 0
     setMapRefreshKey((prev) => prev + 1);
   }, [lastKnownLocations]);
 
+  // Add this inside the HeatMap component after all the existing useEffect blocks
+
+  // Update this to match the GDTMap pattern for refreshing heatmap data
+  const memoizedFilteredData = React.useMemo(
+    () => filteredHeatmapData.filter((motor) => motor.lat && motor.lng),
+    [filteredHeatmapData]
+  );
+
+  // Use useCallback to create a stable transform function
+  const transformToLatLng = React.useCallback((items) => {
+    return items.map(
+      (motor) => new window.google.maps.LatLng(motor.lat, motor.lng)
+    );
+  }, []);
+
+  // Create a memoized version of the heatmap data
+  const memoizedHeatmapData = React.useMemo(
+    () => transformToLatLng(memoizedFilteredData),
+    [memoizedFilteredData, transformToLatLng]
+  );
+
+  // Set heatmap data with this stable reference
+  React.useEffect(() => {
+    if (window.google && window.google.maps) {
+      setHeatmapData(memoizedHeatmapData);
+    }
+  }, [memoizedHeatmapData]);
+
   return (
     <div style={{ display: 'flex', height: '80vh' }}>
       <div
@@ -1118,17 +1160,20 @@ const center = lastKnownLocations.length > 0
         </div>
 
         <ul style={{ listStyleType: 'none', padding: '0' }}>
-        {filteredMotorcycles.length === 0 ? (
-    <div style={{ marginTop: '50px', textAlign: 'center' }}>
-      <FaExclamationTriangle style={{ color: 'grey', fontSize: '24px' }} />
-      <p>No motorcycles available based on the selected filters and search.</p>
-    </div>
-  ) : (
-    filteredMotorcycles
-      .sort((a, b) =>
-        (a.driverName || '').localeCompare(b.driverName || '')
-      )
-      .map((item, index) => {
+          {[...filteredMotorcycles]
+            .sort((a, b) =>
+              (a.driverName || '').localeCompare(b.driverName || '')
+            )
+            .map((item, index) => {
+              const isStaticMotorcycle =
+                staticMotorcycleData.some(
+                  (staticItem) => staticItem.MotorcycleID === item.motorcycleID
+                ) ||
+                staticMotorcycleData.some(
+                  (staticItem) => staticItem.MotorcycleID === item.MotorcycleID
+                );
+
+              // Determine which ID to use for expansion
               const motorcycleIDToUse = item.motorcycleID || item.MotorcycleID;
 
               return (
@@ -1330,9 +1375,8 @@ const center = lastKnownLocations.length > 0
                     </div>
                   )}
                 </li>
-        );
-      })
-  )}
+              );
+            })}
         </ul>
       </div>
 
@@ -1372,7 +1416,7 @@ const center = lastKnownLocations.length > 0
               style={{ marginRight: '8px' }}
             />
             <span style={{ color: '#059855', fontWeight: '500' }}>
-              Show Heatmap Spots
+              Show Heatmap
             </span>
           </label>
         </div>
@@ -1388,10 +1432,8 @@ const center = lastKnownLocations.length > 0
         >
           {/* Only render heatmap when showHeatmap is true */}
           <HeatMapWrapper
-            heatmapData={filteredHeatmapData.map(
-              (loc) => new window.google.maps.LatLng(loc.lat, loc.lng)
-            )}
-            visible={showHeatmap}
+            heatmapData={heatmapData}
+            visible={showHeatmap && heatmapData.length > 0}
           />
 
           {/* Only render markers when showMarkers is true */}
@@ -1401,11 +1443,11 @@ const center = lastKnownLocations.length > 0
                 lastKnownLocations.find(
                   (loc) => loc.gpsNumber === item.gpsNumber
                 ) || item;
-                const offset = 0.000005 * index; // multiplier
-              return (
+                const offset = 0.000005 * index;
+                return (
                 <MarkerF
                   key={`${item.gpsNumber}-${item.lat}-${item.lng}`}
-                  position={{ lat: location.lat + offset, lng: location.lng + offset }}
+                  position={{ lat: location.lat, lng: location.lng }}
                   icon={getMotorcycleIcon(zoomLevel)}
                   onClick={() =>
                     handleMarkerClick(location.gpsNumber, location)
