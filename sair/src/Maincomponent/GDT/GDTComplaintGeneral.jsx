@@ -233,62 +233,82 @@ const GDTComplaintGeneral = () => {
 
   const handleAccept = async () => {
     setModalVisible(false); // Close the modal
-
+  
     try {
-      console.log("Current Complaint ID:", currentComplaint?.complaintId);
+      console.log("Current Complaint ID:", currentComplaint?.ComplaintID);
       console.log("Complaint ID:", complaintId);
-
-      // Validate Complaint ID
+  
       if (!complaintId) {
         console.error("Complaint ID is missing");
         return;
       }
-
-      // Validate GDT responder details
+  
       if (!GDT?.ID) {
         console.error("Responder details are incomplete");
         return;
       }
-
+  
       console.log("Before checking Firestore document");
-
-      // Reference the Firestore document
+  
+      // Reference the complaint document using the doc ID
       const complaintDocRef = doc(db, "Complaint", complaintId);
-
-      // Check if document exists
       const docSnapshot = await getDoc(complaintDocRef);
+  
       if (!docSnapshot.exists()) {
-        console.error("No document found with ID:", complaintId);
+        console.error("No Complaint document found with ID:", complaintId);
         return;
       }
-
+  
+      const complaintData = docSnapshot.data();
+      const violationId = currentComplaint?.ViolationID;
+  
+      if (!violationId) {
+        console.error("Violation ID not found in complaint data");
+        return;
+      }
+      
+      const violationQuery = query(
+        collection(db, "Violation"),
+        where("violationID", "==", violationId)
+      );
+      const violationSnapshot = await getDocs(violationQuery);
+  
+      if (violationSnapshot.empty) {
+        console.error("No Violation document found with ViolationID:", violationId);
+        return;
+      }
+  
+      const violationDocRef = violationSnapshot.docs[0].ref;
+  
       console.log("Document exists. Preparing update...");
-
-      // Define fields to update
+  
       const updateData = {
-        RespondedBy: GDT.ID, // Always update RespondedBy
-        Status: "Accepted", // Always update Status
+        RespondedBy: GDT.ID,
+        Status: "Accepted",
       };
-
-      // Only update GDTResponse if userInput is not empty
+  
       if (userInput && userInput.trim() !== "") {
         updateData.GDTResponse = userInput;
       }
-
-      // Perform the update
+  
+      const updateViolation = {
+        Status: "Revoked",
+      };
+  
       await updateDoc(complaintDocRef, updateData);
-
-      // Update local state
+      await updateDoc(violationDocRef, updateViolation);
+  
       setCurrentComplaint((prevComplaint) => ({
         ...prevComplaint,
         ...updateData,
       }));
-
-      console.log("Complaint response updated successfully:", updateData);
+  
+      console.log("Complaint and violation updated successfully.");
     } catch (error) {
       console.error("Error updating complaint response:", error);
     }
   };
+  
 
   const handleReject = async () => {
     if (!userInput.trim()) {

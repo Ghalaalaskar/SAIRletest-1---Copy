@@ -169,8 +169,10 @@ const chartData = Array.from(employerMap.entries()).map(
           width={visibleData.length * 150}
           margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
           onClick={(state) => {
-            const company = state?.activePayload?.[0]?.payload?.companyName;
-            if (company) {
+            const payload = state?.activePayload?.[0]?.payload;
+            const company = payload?.companyName;
+            const value = payload?.value;
+            if (company && value > 0) {
               navigate(`/GDTCrashes?company=${encodeURIComponent(company)}`);
             }
           }}
