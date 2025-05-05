@@ -9,6 +9,7 @@ import motorcycle from '../images/motorcycle.png';
 import '../css/CustomModal.css';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
+import { FaExclamationTriangle } from 'react-icons/fa';
 import {
   collection,
   query,
@@ -1117,20 +1118,17 @@ const center = lastKnownLocations.length > 0
         </div>
 
         <ul style={{ listStyleType: 'none', padding: '0' }}>
-          {[...filteredMotorcycles]
-            .sort((a, b) =>
-              (a.driverName || '').localeCompare(b.driverName || '')
-            )
-            .map((item, index) => {
-              const isStaticMotorcycle =
-                staticMotorcycleData.some(
-                  (staticItem) => staticItem.MotorcycleID === item.motorcycleID
-                ) ||
-                staticMotorcycleData.some(
-                  (staticItem) => staticItem.MotorcycleID === item.MotorcycleID
-                );
-
-              // Determine which ID to use for expansion
+        {filteredMotorcycles.length === 0 ? (
+    <div style={{ marginTop: '50px', textAlign: 'center' }}>
+      <FaExclamationTriangle style={{ color: 'grey', fontSize: '24px' }} />
+      <p>No motorcycles available based on the selected filters and search.</p>
+    </div>
+  ) : (
+    filteredMotorcycles
+      .sort((a, b) =>
+        (a.driverName || '').localeCompare(b.driverName || '')
+      )
+      .map((item, index) => {
               const motorcycleIDToUse = item.motorcycleID || item.MotorcycleID;
 
               return (
@@ -1332,8 +1330,9 @@ const center = lastKnownLocations.length > 0
                     </div>
                   )}
                 </li>
-              );
-            })}
+        );
+      })
+  )}
         </ul>
       </div>
 
