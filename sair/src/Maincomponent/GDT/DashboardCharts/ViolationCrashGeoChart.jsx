@@ -418,6 +418,7 @@ const ViolationCrashGeoChart = () => {
                 />
               ))}
             </GoogleMap>
+            {/*  */}
           </div>
         </div>
 
