@@ -17,6 +17,7 @@ const ViolationsTable = () => {
   const [driverName, setDriverName] = useState("");
   const location = useLocation();
   const state = location.state;
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     if (!driverId) {
@@ -149,6 +150,7 @@ const ViolationsTable = () => {
   if (error) {
     return <div>{error}</div>; // Display error message if there's an error
   }
+  const paginatedData = violations.slice((currentPage - 1) * 5, currentPage * 5);
 
   return (
     <>
@@ -193,8 +195,8 @@ const ViolationsTable = () => {
           Violations for : {capitalizeFirstLetter(driverName)}
         </h2>
         <Table
-          dataSource={violations}
           columns={columns}
+          dataSource={paginatedData}
           pagination={false}
           rowKey="id"
           style={{ width: "1200px", margin: "0 auto", marginBottom: "20px" }}
@@ -222,11 +224,23 @@ const ViolationsTable = () => {
 
           {/* Pagination component */}
           <Pagination
-            defaultCurrent={1}
-            total={violations.length}
+            defaultCurrent={currentPage}
             pageSize={5}
+            total={violations.length}
+            onChange={(page) => setCurrentPage(page)}
             showSizeChanger={false}
+            showLessItems
           />
+          {/* 
+          <Pagination
+          current={currentPage}
+          pageSize={5}
+          total={filteredCrashes.length}
+          onChange={(page) => setCurrentPage(page)}
+          showSizeChanger={false}
+          showLessItems
+        />
+          */}
         </div>
       </div>
     </>
