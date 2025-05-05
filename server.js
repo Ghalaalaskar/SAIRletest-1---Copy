@@ -566,6 +566,7 @@ currRead.speed - prevRead.speed;
 prevRead.time;
                                     const deceleration = deltaVelocity
 / deltaTime;
+console.log('ffffffffffffffffffffffffffffff');
                                     console.log("Deceleration:", deceleration);
 
                                     if (deceleration <= 2) { 
