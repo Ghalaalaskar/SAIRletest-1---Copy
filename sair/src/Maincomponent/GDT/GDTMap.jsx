@@ -173,10 +173,11 @@ const staticMotorcycleData = [
   },
 ];
 
-const HeatMapWrapper = ({ heatmapData, visible }) => {
+const HeatMapWrapper = ({ heatmapData, visible = true }) => {
   const heatmapRef = React.useRef(null);
   const mapRef = React.useRef(null);
   const prevVisibleRef = React.useRef(visible);
+  const prevDataLengthRef = React.useRef(0);
 
   const onHeatmapLoad = React.useCallback((heatmapLayer) => {
     heatmapRef.current = heatmapLayer;
@@ -202,7 +203,20 @@ const HeatMapWrapper = ({ heatmapData, visible }) => {
 
       // Handle data changes only when visible
       if (visible && heatmapData && heatmapData.length > 0) {
-        heatmapRef.current.setData(heatmapData);
+        // Check if data length has changed - this indicates filtering happened
+        const currentDataLength = heatmapData.length;
+        if (currentDataLength !== prevDataLengthRef.current) {
+          prevDataLengthRef.current = currentDataLength;
+
+          // Force refresh by temporarily removing and re-adding the heatmap
+          const tempMap = heatmapRef.current.getMap();
+          heatmapRef.current.setMap(null);
+          heatmapRef.current.setData(heatmapData);
+          heatmapRef.current.setMap(tempMap);
+        } else {
+          // Regular data update without refresh
+          heatmapRef.current.setData(heatmapData);
+        }
       }
     }
   }, [heatmapData, visible]);
@@ -279,7 +293,6 @@ const GDTMap = ({ locations }) => {
     try {
       const response = await fetch(
         'https://sair-server.onrender.com/api/gps-state'
-        // 'https://sair-server.onrender.com/api/gps-state'
       ); // need to change port after host the server!!     const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/gps-state`);   هنا بعد ما نرفع السيرفر نحط ال url
 
       if (!response.ok) {
@@ -302,7 +315,7 @@ const GDTMap = ({ locations }) => {
     const interval = setInterval(() => {
       console.log('Fetching GPS state... 5000500050005000'); // Log when fetching starts
       fetchGpsState();
-    }, 1000); // 10 seconds
+    }, 1000); // 1 seconds
 
     // Cleanup the interval when component unmounts
     return () => clearInterval(interval);
@@ -625,7 +638,7 @@ const GDTMap = ({ locations }) => {
   // Update motorcyclesData whenever filters change
   useEffect(() => {
     setFilteredMotorcyclesData(motorcyclesData.filter(filterMotorcycle));
-  }, [motorcyclesData, filterMotorcycle, setFilteredMotorcyclesData]);
+  }, [motorcyclesData, filterMotorcycle, setFilteredMotorcyclesData, filters]);
 
   // Add this state variable
   const [heatmapData, setHeatmapData] = useState(
@@ -636,9 +649,11 @@ const GDTMap = ({ locations }) => {
 
   // Add this useEffect to update heatmap data when filtered data changes
   useEffect(() => {
+    console.log('>>>>>> Filtered Motorcycles Data:', filteredMotorcyclesData); // Log the filtered data
     const newHeatmapData = filteredMotorcyclesData.map((motor) => {
       return new window.google.maps.LatLng(motor.lat, motor.lng);
     });
+    console.log('>>>>>> New Heatmap Data:', newHeatmapData); // Log the new heatmap data
     setHeatmapData(newHeatmapData);
   }, [filteredMotorcyclesData]);
 
@@ -1113,26 +1128,29 @@ const GDTMap = ({ locations }) => {
           onClick={() => setSelectedLocation(null)}
           // onLoad={() => setIsMapLoaded(true)}
         >
-          <HeatMapWrapper heatmapData={heatmapData} visible={showHeatmap} />
+          <HeatMapWrapper
+            heatmapData={heatmapData}
+            visible={showHeatmap && heatmapData.length > 0}
+          />
 
           {/* Render markers for motorcycles only if showMarkers is true */}
           {showMarkers &&
-  filteredMotorcyclesData.map((item, index) => {
-    // Calculate an offset based on the index
-    const offset = 0.000003 * index; // multiplier
-
-    return (
-      <MarkerF
-        key={`static-${index}`}
-        position={{
-          lat: item.lat + offset,  // Apply offset to latitude
-          lng: item.lng + offset,  // Apply offset to longitude
-        }}
-        icon={getMotorcycleIcon(zoomLevel)}
-        onClick={() => handleMarkerClick(item.gpsNumber, item)} // Handle click for static motorcycle
-      />
-    );
-  })}
+            filteredMotorcyclesData.map((item, index) => {
+              // Calculate an offset based on the index
+              const offset = 0.000003 * index; // multiplier
+          
+              return (
+                <MarkerF
+                  key={`static-${index}`}
+                  position={{
+                    lat: item.lat + offset,  // Apply offset to latitude
+                    lng: item.lng + offset,  // Apply offset to longitude
+                  }}
+                  icon={getMotorcycleIcon(zoomLevel)}
+                  onClick={() => handleMarkerClick(item.gpsNumber, item)} // Handle click for static motorcycle
+                />
+              );
+            })}
 
           {selectedLocation && (
             <InfoWindowF
