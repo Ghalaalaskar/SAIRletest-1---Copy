@@ -121,12 +121,11 @@ const ViolationCrashGeoChart = () => {
     fetchAll();
     return () => { mounted = false; };
   }, []);
-
-  const filtered = districtData.filter(d => {
+  const filteredMapData = districtData.filter(d => {
     if (selectedOption === 'All') return true;
     return selectedOption === 'Violation' ? d.violation > 0 : d.crash > 0;
   });
-
+  
   return (
     <ResponsiveContainer width="100%" height="100%">
       <div style={{ width: "100%", height: "400px", display: "flex", justifyContent: "space-between" }}>
@@ -147,6 +146,10 @@ const ViolationCrashGeoChart = () => {
             <div className="selectWrapper" style={{ border: "2px solid #4CAF50", backgroundColor: "#fff", borderRadius: 5, padding: 5 }}>
               <div onClick={toggleDropdown} style={{ cursor: "pointer", padding: "5px 10px", width: 200, position: "relative", textAlign: "left" }}>
                 {selectedOption === 'All' ? 'Filter by Incident Type' : selectedOption}
+                <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: "12px" }}>
+                <i className="fas fa-chevron-down" style={{ marginLeft: 8 }}></i>
+
+                </span>
               </div>
               {isDropdownOpen && (
                 <div className="dropdownMenu" style={{ position: "absolute", top: "100%", left: 0, right: 0, background: "#fff", border: "1px solid #ddd", borderRadius: 5, zIndex: 1000 }}>
@@ -159,10 +162,10 @@ const ViolationCrashGeoChart = () => {
               )}
             </div>
           </div>
-
+  
           {/* Google Map */}
           <GoogleMap mapContainerStyle={containerStyle} center={mapCenter} zoom={zoomLevel}>
-            {filtered.map((d, i) => {
+            {filteredMapData.map((d, i) => {
               const count = selectedOption === 'All' ? d.total : selectedOption === 'Violation' ? d.violation : d.crash;
               return (
                 <MarkerF
@@ -175,7 +178,7 @@ const ViolationCrashGeoChart = () => {
             })}
           </GoogleMap>
         </div>
-
+  
         {/* Table Container */}
         <div
           style={{
@@ -199,12 +202,12 @@ const ViolationCrashGeoChart = () => {
                 </tr>
               </thead>
               <tbody>
-                {filtered.length === 0 ? (
+                {districtData.length === 0 ? (
                   <tr>
                     <td colSpan={4} style={{ textAlign: "center", padding: "20px" }}>Loading data...</td>
                   </tr>
                 ) : (
-                  filtered.map((d, idx) => (
+                  districtData.map((d, idx) => (
                     <tr key={idx}>
                       <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>{d.district}</td>
                       <td style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>{d.violation}</td>
@@ -219,7 +222,7 @@ const ViolationCrashGeoChart = () => {
         </div>
       </div>
     </ResponsiveContainer>
-  );
+  );  
 };
 
 export default ViolationCrashGeoChart;
