@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { collection, query, where, getDocs } from "firebase/firestore";
-import { Table } from "antd";
+import { Table, Button } from "antd";
 import { db } from "../firebase";
 import Header from "./Header";
 import s from "../css/VDriver.module.css";
 import EyeIcon from "../images/eye.png";
 import { FaEye } from "react-icons/fa"; 
 import "../css/CustomModal.css";
+import { ArrowLeftOutlined } from "@ant-design/icons";
 
 
 const ViolationsTable = () => {
@@ -126,6 +127,10 @@ const ViolationsTable = () => {
     return <div>{error}</div>; // Display error message if there's an error
   }
 
+  const goBack = () => {
+    navigate(-1); // Navigates to the previous page
+  };
+
   return (
     <>
       <Header active={activeHeader} />
@@ -168,6 +173,27 @@ const ViolationsTable = () => {
         </h2>
         <Table dataSource={violations} columns={columns} rowKey="id" />
       </div>
+      <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginTop: "-55px",
+                  marginLeft:'240px'
+                }}
+              >
+                <Button
+                  onClick={goBack}
+                  style={{
+                    height: "60px",
+                    fontSize: "15px",
+                    color: "#059855",
+                    borderColor: "#059855",
+                  }}
+                >
+                  <ArrowLeftOutlined style={{ marginRight: "8px" }} /> Go Back
+                </Button>
+                </div>
     </>
   );
 };

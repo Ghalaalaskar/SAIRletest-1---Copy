@@ -40,17 +40,18 @@ const ViolationList = () => {
     const [selectedValues, setSelectedValues] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const pageSize = 5;
+  const employerUID = sessionStorage.getItem("employerUID");
     const options = [
       { value: "Reckless Violations", label: "Reckless Violations" },
       { value: "Regular Violations", label: "Regular Violations" },
       { value: "Active", label: "Active" },
       { value: "Revoked", label: "Revoked" },
     ];
-  const [viewedViolations, setViewedViolations] = useState(() => {
-    const storedViewedViolations = localStorage.getItem("viewedViolations");
-    return storedViewedViolations ? JSON.parse(storedViewedViolations) : {};
+    const [viewedViolations, setViewedViolations] = useState(() => {
+      const storedViewedViolations = localStorage.getItem("viewedViolations");
+      return storedViewedViolations ? JSON.parse(storedViewedViolations) : {};
   });
-  const employerUID = sessionStorage.getItem("employerUID");
+
   const [violationTypeFilter, setViolationTypeFilter] = useState("");
   const [complaints, setComplaints] = useState({});
   useEffect(() => {
@@ -125,7 +126,6 @@ const ViolationList = () => {
   };
 
   
-
   const fetchViolations = (driverIDs) => {
     const violationCollection = query(
       collection(db, "Violation"),
@@ -223,15 +223,9 @@ const ViolationList = () => {
   const handleViewDetails = (record) => {
     const updatedViewedViolations = { ...viewedViolations, [record.id]: true };
     setViewedViolations(updatedViewedViolations);
-    localStorage.setItem(
-      "viewedViolations",
-      JSON.stringify(updatedViewedViolations)
-    );
+    localStorage.setItem("viewedViolations", JSON.stringify(updatedViewedViolations));
+};
 
-    // Navigate after updating the state
-    navigate(`/violation/general/${record.id}`);
-  };
-  console.log("Session Storage:", sessionStorage.getItem("viewedViolations"));
   const capitalizeFirstLetter = (string) => {
     if (!string) return "";
     return string
@@ -316,23 +310,21 @@ const ViolationList = () => {
       align: "center",
       render: (text, record) => formatDate(record.time),
     },
-    {
-      title: "Violation Details",
-      key: "Details",
-      align: "center",
-      render: (text, record) => (
-        <Link
-          to={`/violation/general/${record.id}`}
-        >
-          <FaEye
-            style={{
-              cursor: "pointer",
-              color: "#059855", // Set color to match your theme
-              fontSize: "24px", // Adjust size as needed
-            }}
-          />
-        </Link>
-      ),
+       {
+        title: "Violation Details",
+        key: "Details",
+        align: "center",
+        render: (text, record) => (
+            <Link to={`/violation/general/${record.id}`} onClick={() => handleViewDetails(record)}>
+                <FaEye
+                    style={{
+                        cursor: "pointer",
+                        color: "#059855", // Set color to match your theme
+                        fontSize: "24px", // Adjust size as needed
+                    }}
+                />
+            </Link>
+        ),
     },
     {
       title: "Complaint Details",
@@ -405,10 +397,10 @@ const ViolationList = () => {
                 </svg>
                 <input
                   type="text"
-                  placeholder="Search by Violation ID Driver Name or License Plate"
+                  placeholder="Search by Violation ID, Driver Name or License Plate"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  style={{ width: "320px" }}
+                  style={{ width: "322px" }}
                 />
               </div>
                <div className={s.searchContainer} >
@@ -599,17 +591,17 @@ const ViolationList = () => {
                           </div>
                         </div>
 
-          <Table
-            columns={columns}
-            dataSource={filteredViolations.slice((currentPage - 1) * pageSize, currentPage * pageSize)} // Paginate data
-            rowKey="id"
-            pagination={false} 
-            onRow={(record) => ({
-              style: {
-                backgroundColor: !viewedViolations[record.id] ? '#d0e0d0' : 'transparent',
-              },
-            })}
-          />
+                        <Table
+    columns={columns}
+    dataSource={filteredViolations.slice((currentPage - 1) * pageSize, currentPage * pageSize)}
+    rowKey="id"
+    pagination={false}
+    onRow={(record) => ({
+        style: {
+            backgroundColor: viewedViolations[record.id] ? 'transparent' : '#d0e0d0',
+        },
+    })}
+/>
         
 
           {/* Flex container for button and pagination */}
