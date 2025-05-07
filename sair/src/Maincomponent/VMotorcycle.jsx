@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { Table } from 'antd';
+import { Table, Button } from 'antd';
 import { db } from '../firebase';
 import Header from './Header';
 import s from "../css/VDriver.module.css";
 import { FaEye } from "react-icons/fa";
 import EyeIcon from '../images/eye.png';
 import '../css/CustomModal.css';
+import { ArrowLeftOutlined } from "@ant-design/icons";
 
 const VMotorcycle  = () => {
   const { motorcycleId } = useParams(); // Get motorcycleId from URL parameters
@@ -39,7 +40,9 @@ const VMotorcycle  = () => {
 
     fetchViolations();
   }, [motorcycleId]);
-
+  const goBack = () => {
+    navigate(-1); // Navigates to the previous page
+  };
   const formatDate = (time) => {
     const date = new Date(time * 1000); // Assuming timestamp is in seconds
     const year = date.getFullYear();
@@ -89,17 +92,24 @@ const VMotorcycle  = () => {
       key: 'actions',
       align: 'center',
       render: (_, record) => (
-        <Link to={`/violation/detail/${record.id}`} state={{ from: 'motorcycle' }}>
-          <FaEye
-            style={{
-              cursor: 'pointer',
-              color: '#059855', // Set color to match your theme
-              fontSize: '24px', // Adjust size as needed
-            }}
-          />
-        </Link>
+          <Link 
+              to={`/violation/detail/${record.id}`} 
+              state={{ 
+                  from: 'motorcycle',  
+                  breadcrumbsParam: 'motorcycle', 
+                  motorcycleId: motorcycleId 
+              }}
+          >
+              <FaEye
+                  style={{
+                      cursor: 'pointer',
+                      color: '#059855',
+                      fontSize: '24px',
+                  }}
+              />
+          </Link>
       ),
-    }
+  },
   ];
 
   if (error) {
@@ -123,6 +133,17 @@ const VMotorcycle  = () => {
       <div className={s.container}>
         <h2 className={s.title}>Violations for Motorcycle ID: {motorcycleId}</h2>
         <Table dataSource={violations} columns={columns} rowKey="id" />
+        <Button
+                          onClick={goBack}
+                          style={{
+                            height: "60px",
+                            fontSize: "15px",
+                            color: "#059855",
+                            borderColor: "#059855",
+                          }}
+                        >
+                          <ArrowLeftOutlined style={{ marginRight: "8px" }} /> Go Back
+                        </Button>
       </div>
     </>
   );
