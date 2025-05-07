@@ -876,6 +876,13 @@ const capitalizeFirstLetter = (string) => {
       }}>
               {editMode ? (
                 <div>
+                   <button
+                    type="button"
+                    className={s.profileCancel}
+                    onClick={handleCancel}
+                  >
+                    Cancel
+                  </button>
                   <button
                     type="submit"
                     className={s.profilesave}
@@ -883,13 +890,7 @@ const capitalizeFirstLetter = (string) => {
                   >
                     {loading ? "Save Changes" : "Save Changes"}
                   </button>
-                  <button
-                    type="button"
-                    className={s.profileCancel}
-                    onClick={handleCancel}
-                  >
-                    Cancel
-                  </button>
+                 
                 </div>
               ) : (
                 <button
