@@ -933,10 +933,10 @@ db.collection('PotentialViolation')
                             if (!querySnapshot.empty) {
                                 const lastViolation = querySnapshot.docs[0];
 
-                                    const threeMinutesInSeconds = 3 * 60;
+                                    const threeMinutesInSeconds = 5 * 60;
 
                                     if (PotentialViolationTime -lastViolation.data().time > threeMinutesInSeconds) {
-                                       console.log('exceed 3 min.');
+                                       console.log('exceed 5 min.');
                                        
 
                                        await
@@ -1015,7 +1015,7 @@ const monitorWialon = async () => {
     const units = await fetchUnits(sessionId);
     //    processUnits1(units,sessionId);
     //    processUnits2(units,sessionId);
-    // processUnits3(units,sessionId);
+    processUnits3(units,sessionId);
     await fetchActiveLocations(units, sessionId);
 
   } catch (error) {
