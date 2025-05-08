@@ -875,14 +875,14 @@ console.log('potentiaaaaaaaaaaaaaaaaaaaaaaal');
             const GPSserialnumber = unit.nm; // Get unit name as GPS serial number
             console.log('gpsnum:', GPSserialnumber);
 
-             const maxSpeed =  60; //await fetchMaxSpeed(pos.y, pos.x);  Fetch max speed   50;
+             const maxSpeed =  await fetchMaxSpeed(pos.y, pos.x);; //  Fetch max speed   
             console.log('Max speed from API in process method:', maxSpeed);
 
             if (maxSpeed !== 0) {
-                const driverSpeed = pos.s; // Get the driver's speed     80;
+                const driverSpeed = pos.s; // Get the driver's speed     
                 console.log('driverspeed:', driverSpeed);
 
-                if (driverSpeed+10 == maxSpeed || driverSpeed+10 > maxSpeed) {
+                if (driverSpeed+10 == maxSpeed) {
                     const driverQuerySnapshot = await db.collection('Driver')
                         .where('GPSnumber', '==', GPSserialnumber)
                         .get();
@@ -1015,7 +1015,7 @@ const monitorWialon = async () => {
     const units = await fetchUnits(sessionId);
     //    processUnits1(units,sessionId);
     //    processUnits2(units,sessionId);
-    // processUnits3(units,sessionId);
+    processUnits3(units,sessionId);
     await fetchActiveLocations(units, sessionId);
 
   } catch (error) {
