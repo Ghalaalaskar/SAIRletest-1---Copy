@@ -116,12 +116,11 @@ const DriverList = () => {
       key: 'Report',
       align: 'center',
       render: (text, record) => (
-        <Tooltip title="Download Report"  overlayInnerStyle={{ backgroundColor: 'rgba(5, 152, 85, 0.7)', color: 'white' }}  >
           <DownloadOutlined 
             onClick={() => generatePDF(record)} 
             style={{ cursor: 'pointer', fontSize: '20px', color:'#059855' }} 
           />
-        </Tooltip>
+
       ),
     }
   ];
@@ -320,7 +319,14 @@ const DriverList = () => {
           id: doc.id,
           ...doc.data(),
         }));
-        setDriverData(driverList);
+            // Sort drivers by full name (Fname Lname)
+    driverList.sort((a, b) => {
+      const fullNameA = `${a.Fname} ${a.Lname}`.toLowerCase();
+      const fullNameB = `${b.Fname} ${b.Lname}`.toLowerCase();
+      return fullNameA.localeCompare(fullNameB); // A to Z sorting
+    });
+
+    setDriverData(driverList);
       });
       return () => unsubscribe();
     };

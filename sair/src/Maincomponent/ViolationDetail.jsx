@@ -31,7 +31,7 @@ const ViolationDetail = () => {
   const from = location.state?.from; // Get the source of navigation
   const [breadcrumbParam, setBreadcrumbParam] = useState("");
   const { driverId } = location.state || {}; // Get driverId from state
-
+  const { motorcycleId } = location.state || {};
   const fetchComplaints = async (violationID) => {
     try {
       const complaintsQuery = query(
@@ -55,19 +55,25 @@ const ViolationDetail = () => {
 
   const handleViewComplaints = () => {
     if (complaints.length > 0) {
-      navigate(`/complaint/general/${complaints[0].id}`, {
-        state: {
-          from: "ViolationDetails",
-          violationId: complaints[0].violationID,
-          previousList:
-            from === "motorcycle" ? "motorcycleslist" : "driverslist",
-        },
-      }); // Pass the violationId here } });
-      // Navigate to the first complaint
+        navigate(`/complaint/general/${complaints[0].id}`, {
+            state: {
+                from: 
+                    from === "RecklessDriversList" ? "RecklessDriversList" :
+                    from === "ViolationList" ? "ViolationList" :
+                    from === "motorcycle" ? "motorcycleslist" :
+                    "ViolationDetails",// Default to ViolationDetails if not from the above
+                violationId: complaints[0].violationID,
+                previousList:
+                    from === "motorcycle" ? "motorcycleslist" :
+                    from === "RecklessDriversList" ? "recklessdriverslist" :
+                    from === "ViolationList" ? "violationslist" : 
+                    "driverslist",
+            },
+        });
     } else {
-      setIsPopupVisible(true); // Show popup if no complaints exist
+        setIsPopupVisible(true);
     }
-  };
+};
 
   // Function to fetch motorcycle data based on violationID
   const fetchMotorcycles = async (VID) => {
@@ -206,13 +212,34 @@ const ViolationDetail = () => {
         </>
       );
     }
+    else if (breadcrumbParam === "motorcycle") {
+      return (
+        <>
+        <a onClick={() => navigate('/employer-home')}>Home</a>
+        <span> / </span>
+        <a onClick={() => navigate('/motorcycleslist')}>Motorcycles List</a>
+        <span> / </span>
+        <a onClick={() => navigate(`/motorcycle-details/${motorcycleId}`)}>Motorcycle Details</a>
+        <span> / </span>
+        <a>Violations List</a>
+        <span> / </span>
+        <a>Violation Details</a>
+    </>
+      );
+    }
     return null;
   };
   return (
     <div>
-      <Header
-        active={from === "motorcycle" ? "motorcycleslist" : "driverslist"}
-      />
+<Header
+  active={
+    from === "motorcycle"
+      ? "motorcycleslist"
+      : from === "RecklessDriversList"
+      ? "violations"
+      : "driverslist"
+  }
+/>
 
       <div className="breadcrumb">{generateBreadcrumb()}</div>
       <main className={s.violation}>

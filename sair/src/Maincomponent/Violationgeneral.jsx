@@ -28,6 +28,7 @@ const ViolationGeneral = () => {
   const [companyName, setCompanyName] = useState("");
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const location = useLocation(); // Use useLocation to get the location object
+  const complaintId = location.state?.complaintId;
   useEffect(() => {
     const fetchViolationDetails = async () => {
       try {
@@ -203,11 +204,24 @@ const ViolationGeneral = () => {
         </>
       );
     }
+    else if (breadcrumbParam === "ComplaintGeneral") {
+      return (
+          <>
+              <a onClick={() => navigate("/employer-home")}>Home</a>
+              <span> / </span>
+              <a onClick={() => navigate("/complaints")}>Complaints List</a>
+              <span> / </span>
+              <a onClick={() => navigate(`/complaint/general/${complaintId}`)}>Complaint Details</a>
+              <span> / </span>
+              <a>Violation Details</a>
+          </>
+      );
+  }
     return null;
   };
   return (
     <div>
-      <Header active="violations" />
+<Header active={location.state?.from === "ComplaintGeneral" ? "complaints" : "violations"} />
 
       <div className="breadcrumb">{generateBreadcrumb()}</div>
 

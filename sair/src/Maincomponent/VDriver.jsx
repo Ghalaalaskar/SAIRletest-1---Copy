@@ -106,21 +106,28 @@ const ViolationsTable = () => {
       render: (text, record) => formatDate(record.time),
     },
     {
-      title: "Details",
-      key: "actions",
-      align: "center",
-      className: "svg",
-      render: (_, record) => (
-        <Link to={`/violation/detail/${record.id}`} state={{driverId, breadcrumbParam: "breadcrumbParam",from: "driver" }}>
-<FaEye
-            style={{
-              cursor: "pointer",
-              color: "#059855", // Set color to match your theme
-              fontSize: "24px", // Adjust size as needed
+  title: "Details",
+  key: "actions",
+  align: "center",
+  render: (_, record) => (
+<Link 
+            to={`/violation/detail/${record.id}`} 
+            state={{ 
+                driverId, 
+                breadcrumbParam: "breadcrumbParam", 
+                from: "RecklessDriversList" ? "RecklessDriversList" : "driverslist" 
             }}
-          />        </Link>
-      ),
-    },
+        >
+            <FaEye
+                style={{
+                    cursor: "pointer",
+                    color: "#059855",
+                    fontSize: "24px",
+                }}
+            />
+        </Link>
+  ),
+}
   ];
 
   if (error) {

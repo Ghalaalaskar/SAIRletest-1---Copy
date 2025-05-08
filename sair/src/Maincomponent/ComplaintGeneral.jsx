@@ -71,12 +71,17 @@ const ComplaintGeneral = () => {
     const viewViolation = () => {
         if (violationDocId) {
             navigate(`/violation/general/${violationDocId}`, {
-              state: { from: "GDTComplaintGeneral", breadcrumbParam: "From Complaint" },
+                state: {
+                    from: "ComplaintGeneral",
+                    breadcrumbParam: "ComplaintGeneral",
+                    complaintId: complaintId,
+                    previousList: "violations", // Set this to indicate the source is violations
+                },
             });
-          } else {
+        } else {
             console.error("No violation document ID found.");
-          }
-        };
+        }
+    };
 
     const formatDateTime = (timestamp) => {
         if (timestamp && timestamp.seconds) {
@@ -87,14 +92,14 @@ const ComplaintGeneral = () => {
     };
   // Determine the active state for the Header
   let activeHeader;
-  if (from === 'ViolationDetails') {
-    activeHeader = location.state?.previousList || 'complaints'; // Default to 'complaints' if not set
+  if (from === 'ViolationDetails' || location.state?.previousList === 'violations') {
+      activeHeader = 'violations'; // Set to violations if coming from ViolationDetails
   } else if (from === 'ViolationGeneral') {
-    activeHeader = 'violations';
-  } else if (location.state?.from === 'ViolationList') {
-    activeHeader = 'violations'; // Set active to violations if coming from ViolationList
-} else{
-    activeHeader = 'complaints'; // Default case
+      activeHeader = 'violations';
+  } else if (from === 'RecklessDriversList') {
+      activeHeader = 'violations'; // Set active to violations if coming from ViolationList
+  } else {
+      activeHeader = 'complaints'; // Default case
   }
     return (
         
@@ -104,46 +109,59 @@ const ComplaintGeneral = () => {
         <Header active={activeHeader} />
 
         <div className="breadcrumb">
-            <a onClick={() => navigate('/employer-home')}>Home</a>
+    <a onClick={() => navigate('/employer-home')}>Home</a>
+    <span> / </span>
+    {from === 'ViolationGeneral' && (
+        <>
+            <a onClick={() => navigate('/violations')}>Violations List</a>
             <span> / </span>
-            {from === 'ViolationGeneral' && (
-                <>
-                    <a onClick={() => navigate('/violations')}>Violations List</a>
-                    <span> / </span>
-                    <a onClick={() => navigate(`/violation/general/${violationId}`)}>Violation Details</a>
-                    <span> / </span>
-                    <a onClick={() => navigate(`/complaint/general/${complaintId}`)}>Complaint Details</a>
-                </>
-            )}
-            {from === 'ViolationDetails' && (
-                <>
+            <a onClick={() => navigate(`/violation/general/${violationId}`)}>Violation Details</a>
+            <span> / </span>
+            <a onClick={() => navigate(`/complaint/general/${complaintId}`)}>Complaint Details</a>
+        </>
+    )}
+    {from === 'ViolationDetails' && (
+        <>
+            <a onClick={() => navigate('/driverslist')}>Driver List</a>
+            <span> / </span>
+            <a onClick={() => navigate(`/driver-details/${driverDetails.DriverID}`)}>Drivers Details</a>
+            <span> / </span>
+            <a onClick={() => navigate(`/drivers/${driverDetails.DriverID}/violations`)}>Violations List</a>
+            <span> / </span>
+            <a onClick={() => navigate(`/violation/detail/${violationId}`)}>Violation Details</a>
+            <span> / </span>
+            <a onClick={() => navigate(`/complaint/general/${complaintId}`)}>Complaint Details</a>
+        </>
+    )}
+    {from === 'ViolationList' && (
+        <>
+            <a onClick={() => navigate('/violations')}>Violations List</a>
+            <span> / </span>
+            <a onClick={() => navigate(`/complaint/general/${complaintId}`)}>Complaint Details</a>
+        </>
+    )}
+    {from === 'RecklessDriversList' && ( // Adjusted case for Reckless Drivers List
+        <>
+            <a onClick={() => navigate('/violations')}>Violations List</a>
+            <span> / </span>
+            <a onClick={() => navigate('/recklessdrivers')}>Reckless Drivers List</a>
+            <span> / </span>
+            <a onClick={() => navigate(`/drivers/${driverDetails.DriverID}/violations`)}>Driver Violations List</a>
+            <span> / </span>
+            <a onClick={() => navigate(`/violation/detail/${violationId}`)}>Violation Details</a>
+            <span> / </span>
+            <a onClick={() => navigate(`/complaint/general/${complaintId}`)}>Complaint Details</a>
+        </>
+    )}
+    {!from && (
+        <>
+            <a onClick={() => navigate('/complaints')}>Complaints List</a>
+            <span> / </span>
+            <a onClick={() => navigate(`/complaint/general/${complaintId}`)}>Complaint Details</a>
+        </>
+    )}
+</div>
 
-               <a onClick={() => navigate('/driverslist')}>Driver List</a>
-              <span> / </span>
-                <a onClick={() => navigate(`/driver-details/${driverDetails.DriverID}`)}>Drivers Details</a>
-                <span> / </span>
-                <a onClick={() => navigate(`/drivers/:driverId/violations`)}>Violations List</a>
-               <span> / </span>
-               <a onClick={() => navigate(`/violation/detail/${violationId}`)}>Violation Details</a>
-              <span> / </span>
-              <a onClick={() => navigate(`/complaint/general/${complaintId}`)}>Complaint Details</a>
-                </>
-            )}
-            {from === 'ViolationList' && (
-                <>
-                    <a onClick={() => navigate('/violations')}>Violations List</a>
-                    <span> / </span>
-                    <a onClick={() => navigate(`/complaint/general/${complaintId}`)}>Complaint Details</a>
-                </>
-            )}
-            {!from && (
-                <>
-                    <a onClick={() => navigate('/complaints')}>Complaints List</a>
-                    <span> / </span>
-                    <a onClick={() => navigate(`/complaint/general/${complaintId}`)}>Complaint Details</a>
-                </>
-            )}
-        </div>
     </div>
 
 
