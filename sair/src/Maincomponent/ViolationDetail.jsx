@@ -61,6 +61,7 @@ const ViolationDetail = () => {
                     from === "RecklessDriversList" ? "RecklessDriversList" :
                     from === "ViolationList" ? "ViolationList" :
                     from === "motorcycle" ? "motorcycleslist" :
+                    from === "DriversList" ? "driverslist":
                     "ViolationDetails",// Default to ViolationDetails if not from the above
                 violationId: complaints[0].violationID,
                 previousList:
@@ -68,6 +69,7 @@ const ViolationDetail = () => {
                     from === "RecklessDriversList" ? "recklessdriverslist" :
                     from === "ViolationList" ? "violationslist" : 
                     "driverslist",
+                    driverId: driverId,
             },
         });
     } else {
@@ -181,54 +183,78 @@ const ViolationDetail = () => {
     return num + "th"; // Fallback for numbers greater than 20
   };
   const generateBreadcrumb = () => {
-    if (breadcrumbParam === "Violation List") {
-      return (
-        <>
-          <a onClick={() => navigate("/employer-home")}>Home</a>
-          <span> / </span>
-          <a onClick={() => navigate("/violations")}>Violations List</a>
-          <span> / </span>
-          <a onClick={() => navigate(`/violation/general/${violationId}`)}>
-            Violation Details
-          </a>
-        </>
-      );
-    } else if (breadcrumbParam === "breadcrumbParam") {
-      return (
-        <>
-          <a onClick={() => navigate("/employer-home")}>Home</a>
-          <span> / </span>
-          <a onClick={() => navigate("/violations")}>Violations List</a>
-          <span> / </span>
-          <a onClick={() => navigate("/recklessdrivers")}>
-            Reckless Drivers List
-          </a>
-          <span> / </span>
-          <a onClick={() => navigate(`/drivers/${driverId}/violations`)}>
-            Driver Violations List
-          </a>
-          <span> / </span>
-          <a>Violation Details</a>
-        </>
-      );
-    }
-    else if (breadcrumbParam === "motorcycle") {
-      return (
-        <>
+    return (
+      <>
         <a onClick={() => navigate('/employer-home')}>Home</a>
         <span> / </span>
-        <a onClick={() => navigate('/motorcycleslist')}>Motorcycles List</a>
-        <span> / </span>
-        <a onClick={() => navigate(`/motorcycle-details/${motorcycleId}`)}>Motorcycle Details</a>
-        <span> / </span>
-        <a>Violations List</a>
-        <span> / </span>
-        <a>Violation Details</a>
-    </>
-      );
-    }
-    return null;
+  
+        {breadcrumbParam === "Violation List" && (
+          <>
+            <a onClick={() => navigate("/violations")}>Violations List</a>
+            <span> / </span>
+            <a onClick={() => navigate(`/violation/general/${violationId}`)}>
+              Violation Details
+            </a>
+          </>
+        )}
+  
+        {breadcrumbParam === "breadcrumbParam" && (
+          <>
+            <a onClick={() => navigate("/violations")}>Violations List</a>
+            <span> / </span>
+            <a onClick={() => navigate("/recklessdrivers")}>
+              Reckless Drivers List
+            </a>
+            <span> / </span>
+            <a onClick={() => navigate(`/drivers/${driverId}/violations`)}>
+              Driver Violations List
+            </a>
+            <span> / </span>
+            <a>Violation Details</a>
+          </>
+        )}
+  
+        {breadcrumbParam === "motorcycle" && (
+          <>
+            <a onClick={() => navigate('/motorcycleslist')}>Motorcycles List</a>
+            <span> / </span>
+            <a onClick={() => navigate(`/motorcycle-details/${motorcycleId}`)}>
+              Motorcycle Details
+            </a>
+            <span> / </span>
+            <a>Violations List</a>
+            <span> / </span>
+            <a>Violation Details</a>
+          </>
+        )}
+  
+        {from === "DriversList" && (
+          <>
+            <a onClick={() => navigate('/driverslist')}>Driver List</a>
+            <span> / </span>
+            <a onClick={() => navigate(`/driver-details/${driverId}`)}>
+              Drivers Details
+            </a>
+            <span> / </span>
+            <a
+              onClick={() =>
+                navigate(`/drivers/${driverId}/violations`, {
+                  state: { breadcrumbParam: "Driver Violations List" },
+                })
+              }
+            >
+              Driver Violations List
+            </a>
+            <span> / </span>
+            <a>Violation Details</a>
+          </>
+        )}
+        
+        {/* Add any additional breadcrumb paths as necessary */}
+      </>
+    );
   };
+
   return (
     <div>
 <Header

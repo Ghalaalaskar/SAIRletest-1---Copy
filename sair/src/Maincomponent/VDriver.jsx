@@ -57,6 +57,7 @@ const ViolationsTable = () => {
 
     fetchViolationsAndDriver();
   }, [driverId]);
+ 
   const activeHeader =
     type === "reckless-drivers" ? "violations" : "driverslist";
 
@@ -106,28 +107,28 @@ const ViolationsTable = () => {
       render: (text, record) => formatDate(record.time),
     },
     {
-  title: "Details",
-  key: "actions",
-  align: "center",
-  render: (_, record) => (
-<Link 
-            to={`/violation/detail/${record.id}`} 
-            state={{ 
-                driverId, 
-                breadcrumbParam: "breadcrumbParam", 
-                from: "RecklessDriversList" ? "RecklessDriversList" : "driverslist" 
-            }}
+      title: "Details",
+      key: "actions",
+      align: "center",
+      render: (_, record) => (
+        <Link 
+          to={`/violation/detail/${record.id}`} 
+          state={{ 
+            driverId, 
+            breadcrumbParam: type === "reckless-drivers" ? "breadcrumbParam" : "DriversList", 
+            from: type === "reckless-drivers" ? "RecklessDriversList" : "DriversList"
+          }}
         >
-            <FaEye
-                style={{
-                    cursor: "pointer",
-                    color: "#059855",
-                    fontSize: "24px",
-                }}
-            />
+          <FaEye
+            style={{
+              cursor: "pointer",
+              color: "#059855",
+              fontSize: "24px",
+            }}
+          />
         </Link>
-  ),
-}
+      ),
+    },
   ];
 
   if (error) {
@@ -161,6 +162,7 @@ const ViolationsTable = () => {
               Drivers Details
             </a>
             <span> / </span>
+            
           </>
         )}
         <a
