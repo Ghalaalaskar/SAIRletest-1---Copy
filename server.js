@@ -875,7 +875,7 @@ console.log('potentiaaaaaaaaaaaaaaaaaaaaaaal');
             const GPSserialnumber = unit.nm; // Get unit name as GPS serial number
             console.log('gpsnum:', GPSserialnumber);
 
-             const maxSpeed =  60; //await fetchMaxSpeed(pos.y, pos.x);  Fetch max speed   50;
+             const maxSpeed =  50; //await fetchMaxSpeed(pos.y, pos.x);  Fetch max speed   50;
             console.log('Max speed from API in process method:', maxSpeed);
 
             if (maxSpeed !== 0) {
