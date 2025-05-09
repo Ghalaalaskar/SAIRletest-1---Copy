@@ -16,7 +16,7 @@ const ComplaintGeneral = () => {
     const navigate = useNavigate();
     const from = location.state?.from; // Get the source of navigation
     const violationId = location.state?.violationId; // Get violationId from state
-
+    const { motorcycleId } = location.state || {};
 
     useEffect(() => {
         const fetchComplaintDetails = async () => {
@@ -100,6 +100,8 @@ const ComplaintGeneral = () => {
       activeHeader = 'violations'; // Set active to violations if coming from ViolationList
     } else if (from === 'driverslist') {
         activeHeader = 'driverslist'; // Set active to violations if coming from ViolationList
+    } else if (from === 'motorcycleslist') {
+    activeHeader = 'motorcycleslist';
   } else {
       activeHeader = 'complaints'; // Default case
   }
@@ -179,6 +181,21 @@ const ComplaintGeneral = () => {
             <span> / </span>
             <a onClick={() => navigate(`/complaint/general/${complaintId}`)}>Complaint Details</a>
         </>
+    )}
+            {from === 'motorcycleslist' && (
+        <>
+            <a onClick={() => navigate('/motorcycleslist')}>Motorcycles List</a>
+            <span> / </span>
+            <a onClick={() => navigate(`/motorcycle-details/${motorcycleId}`)}>
+              Motorcycle Details
+            </a>
+            <span> / </span>
+            <a>Violations List</a>
+            <span> / </span>
+            <a>Violation Details</a>
+            <span> / </span>
+            <a>Complaint Details</a>
+          </>
     )}
     {!from && (
         <>

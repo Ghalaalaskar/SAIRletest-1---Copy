@@ -1309,27 +1309,21 @@ const center = lastKnownLocations.length > 0
                         }}
                       >
                         <button
-                          onClick={() =>
-                            navigate(`/driver-details/${item.driverID}`)
-                          }
-                          style={{
-                            backgroundColor: '#059855',
-
-                            color: 'white',
-
-                            border: 'none',
-
-                            padding: '5px',
-
-                            width: '120px',
-
-                            cursor: 'pointer',
-
-                            marginBottom: '5px',
-                          }}
-                        >
-                          Full Information
-                        </button>
+  onClick={() =>
+    navigate(`/driver-details/${item.driverID}`, { state: { from: "Heatmap" } })
+  }
+  style={{
+    backgroundColor: '#059855',
+    color: 'white',
+    border: 'none',
+    padding: '5px',
+    width: '120px',
+    cursor: 'pointer',
+    marginBottom: '5px',
+  }}
+>
+  Full Information
+</button>
 
                         <button
                           onClick={() => {
@@ -1405,7 +1399,7 @@ const center = lastKnownLocations.length > 0
               style={{ marginRight: '8px' }}
             />
             <span style={{ color: '#059855', fontWeight: '500' }}>
-              Show Heatmap
+              Show Heatmap spots
             </span>
           </label>
         </div>
@@ -1506,7 +1500,7 @@ const center = lastKnownLocations.length > 0
                 </p>
                 <button
                   onClick={() =>
-                    navigate(`/driver-details/${driverDetails?.DriverID}`)
+                    navigate(`/driver-details/${driverDetails?.DriverID}`, { state: { from: "Heatmap" }})
                   }
                   style={{
                     backgroundColor: '#059855',

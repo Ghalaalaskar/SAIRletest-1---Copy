@@ -135,9 +135,9 @@ const MotorcycleList = () => {
         setIsSuccess(false);
         setNotificationMessage('Error deleting motorcycle. Please try again.');
     }
-
-    setIsNotificationVisible(true);
     setIsDeletePopupVisible(false);
+    setIsNotificationVisible(true);
+    
 };
 
 const handleAddMotorcycleSubmit = async (e) => {

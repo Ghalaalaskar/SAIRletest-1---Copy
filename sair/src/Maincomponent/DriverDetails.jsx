@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { collection, query, where, getDocs, getDoc, doc } from 'firebase/firestore';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { db, auth } from '../firebase'; 
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { Button, Dropdown, Menu, Modal } from 'antd'; 
@@ -19,7 +19,7 @@ const DriverDetails = () => {
   const [error, setError] = useState(null);
   const [currentEmployerCompanyName, setCurrentEmployerCompanyName] = useState('');
   const employerUID = sessionStorage.getItem('employerUID');
-
+  const location = useLocation();
 
   useEffect(() => {
     const fetchEmployerCompanyName = async () => {
@@ -100,6 +100,7 @@ const DriverDetails = () => {
   const goBack = () => {
     navigate(-1); // Navigate back to the previous page
   };
+  const fromHeatmap = location.state?.from === "Heatmap";
 
  
   return (
@@ -107,14 +108,24 @@ const DriverDetails = () => {
       
       <Header active={"driverslist"} />
 
+
       <div className="breadcrumb">
         <a onClick={() => navigate('/employer-home')}>Home</a>
         <span> / </span>
-        <a onClick={() => navigate('/driverslist')}>Drivers List</a>
-        <span> / </span>
-        <a onClick={() => navigate('/driver-details/:driverId')}>Drivers Details</a>
-
+        {fromHeatmap ? (
+          <>
+            <a onClick={() => navigate('/heat-map')}>Heat-Map</a>
+            <span> / </span>
+          </>
+        ) : (
+          <>
+            <a onClick={() => navigate('/driverslist')}>Drivers List</a>
+            <span> / </span>
+          </>
+        )}
+        <a onClick={() => navigate(`/driver-details/${driverId}`)}>Driver Details</a>
       </div>
+
 
       <main className={s.detail} >
         <h2 className="title">Driver Details</h2>

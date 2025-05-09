@@ -170,7 +170,7 @@ const EditMotorcycle = () => {
       showNotification('Motorcycle updated successfully!', true);
       setTimeout(() => {
         navigate('/motorcycleslist');
-      }, 2000);
+      }, 5000);
     } catch (error) {
       console.error('Error updating motorcycle:', error);
       showNotification(`Error updating motorcycle: ${error.message}`, false);
@@ -362,9 +362,6 @@ const EditMotorcycle = () => {
               </div>
 
               <div>
-                <button type='submit' className={s.editBtn}>
-                  Update Motorcycle
-                </button>
                 <button
                                 onClick={() => { navigate('/motorcycleslist');}}
                                 className={s.profileCancel}
@@ -372,6 +369,9 @@ const EditMotorcycle = () => {
                             >
                                 Cancel
                             </button>
+                <button type='submit' className={s.editBtn}>
+                  Update Motorcycle
+                </button>
               </div>
             </form>
           )}

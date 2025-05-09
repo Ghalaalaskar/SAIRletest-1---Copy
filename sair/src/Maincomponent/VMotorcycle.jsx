@@ -96,7 +96,7 @@ const VMotorcycle  = () => {
               to={`/violation/detail/${record.id}`} 
               state={{ 
                   from: 'motorcycle',  
-                  breadcrumbsParam: 'motorcycle', 
+                  breadcrumbParam: 'motorcycle', 
                   motorcycleId: motorcycleId 
               }}
           >
@@ -133,6 +133,8 @@ const VMotorcycle  = () => {
       <div className={s.container}>
         <h2 className={s.title}>Violations for Motorcycle ID: {motorcycleId}</h2>
         <Table dataSource={violations} columns={columns} rowKey="id" />
+        </div>
+        <div style={{marginLeft:'250px', marginTop:'-60px'}}>
         <Button
                           onClick={goBack}
                           style={{
