@@ -70,6 +70,7 @@ const CrashList = () => {
   const [searchQuery, setSearchQuery] = useState(""); // Single search input
   const gdtUID = sessionStorage.getItem("gdtUID");
   const [modalVisible, setModalVisible] = useState(false);
+  const [respondedByNames, setRespondedByNames] = useState({});
 
   const goBack = () => {
     navigate(-1);
@@ -355,45 +356,46 @@ const CrashList = () => {
     return `${month}/${day}/${year}`; // Format as MM/DD/YYYY
   };
 
-  const GDTResponse = (RespondedBy, setResponseByName) => {
+  const GDTResponse = async (respondedBy) => {
+    if (respondedByNames[respondedBy]) {
+      return respondedByNames[respondedBy];
+    }
+  
     try {
-      // Query the GDT collection based on RespondedBy ID
-      const gdtQuery = query(
-        collection(db, "GDT"),
-        where("ID", "==", RespondedBy)
-      );
-
-      // Set up a real-time listener
-      const unsubscribe = onSnapshot(gdtQuery, (snapshot) => {
-        if (!snapshot.empty) {
-          const gdtData = snapshot.docs[0].data();
-          setResponseByName(`${gdtData.Fname} ${gdtData.Lname}`);
-        } else {
-          console.error("No GDT document found with ID:", RespondedBy);
-          setResponseByName("Unknown");
-        }
-      });
-
-      // Cleanup function to remove listener when component unmounts
-      return unsubscribe;
+      const gdtQuery = query(collection(db, "GDT"), where("ID", "==", respondedBy));
+      const snapshot = await getDocs(gdtQuery);
+      if (!snapshot.empty) {
+        const gdtData = snapshot.docs[0].data();
+        const name = `${gdtData.Fname} ${gdtData.Lname}`;
+        setRespondedByNames((prev) => ({ ...prev, [respondedBy]: name }));
+        return name;
+      } else {
+        setRespondedByNames((prev) => ({ ...prev, [respondedBy]: "Unknown" }));
+        return "Unknown";
+      }
     } catch (error) {
       console.error("Error fetching GDT details:", error);
-      setResponseByName("Error");
+      return "Error";
     }
   };
+  
 
   const ResponseBy = ({ respondedBy }) => {
     const [responseByName, setResponseByName] = useState("");
-
+  
     useEffect(() => {
-      if (respondedBy) {
-        const unsubscribe = GDTResponse(respondedBy, setResponseByName);
-        return () => unsubscribe && unsubscribe(); // Cleanup listener on unmount
+      if (!respondedBy) return;
+  
+      // Check if already cached
+      if (respondedByNames[respondedBy]) {
+        setResponseByName(respondedByNames[respondedBy]);
+      } else {
+        GDTResponse(respondedBy).then(setResponseByName);
       }
     }, [respondedBy]);
-
+  
     return <span>{responseByName}</span>;
-  };
+  }; 
 
   const handleViewDetails = (record) => {
     setModalVisible(false);
