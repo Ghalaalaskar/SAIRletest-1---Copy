@@ -565,7 +565,7 @@ setSelectedGPSNumbers(selectedGPSNumbers);
   };
 
   const handleBatchUploadResults = (errorList) => {
-
+//
 
  const successfulCount = fileData.length - errorList.length;
     if (errorList.length > 0) {
@@ -621,12 +621,12 @@ setSelectedGPSNumbers(selectedGPSNumbers);
     const formattedDriverID = String(DriverID);
     const formattedGPSnumber = GPSnumber === 'None' ? null : GPSnumber;  
     const password = generateRandomPassword();
-    let user;
+    // let user;
     try {
       // Attempt to create user in Firebase Authentication
-      const userCredential = await createUserWithEmailAndPassword(auth, Email, password);
-      user = userCredential.user; // Store the user if creation succeeds
-   
+      // const userCredential = await createUserWithEmailAndPassword(auth, Email, password);
+      // user = userCredential.user; // Store the user if creation succeeds
+   await createUserWithEmailAndPassword(auth, Email, password);
 
       // Proceed to add to Firestore only if user creation was successful
       const addedDriver = await addDoc(collection(db, 'Driver'), {
@@ -639,7 +639,7 @@ setSelectedGPSNumbers(selectedGPSNumbers);
         GPSnumber: formattedGPSnumber,  
         available: formattedGPSnumber === null, 
         isDefaultPassword: true,
-        UID: user.uid // Using the user ID from Firebase Authentication
+        // UID: user.uid // Using the user ID from Firebase Authentication
       });
 
       if (GPSnumber) {
@@ -670,9 +670,9 @@ useEffect(() => {
    );
 
    // If there's valid data and no errors, enable the button
-   const isValidData = fileData.length === 1 && !hasErrors;
+  //  const isValidData = fileData.length === 1 && !hasErrors;
 
-   setIsButtonDisabled(!isValidData);
+   setIsButtonDisabled(hasErrors);
    setErrorMessage(
        hasErrors
            ? 'Please fix the errors in the table highlighted with red borders.'
