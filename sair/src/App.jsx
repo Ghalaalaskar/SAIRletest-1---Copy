@@ -191,7 +191,7 @@ function App() {
         <Route path="/notificationslist" element={<NotificationsList />} />
         <Route path="/gdtnotificationslist" element={<GDTNotificationsList />} />
         <Route path="/Adddriverbatch" element={<Adddriverbatch />} />
-        <Route path="/EmployerHeatMap" element={<EmployerHeatMap />} />
+        <Route path="/EmployerHeatMap" element={<EmployerHeatMap locations={locations} />}/>
         <Route path="/HeatMap" element={<HeatMap />} />
 
         

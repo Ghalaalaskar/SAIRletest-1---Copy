@@ -5,7 +5,7 @@ import '../css/CustomModal.css';
 import HeatMap from "./HeatMap"; 
 import { useNavigate } from "react-router-dom";
 
-const EmployerHeatMap = () => {
+const EmployerHeatMap = ({ locations })=> {
     const navigate = useNavigate();
   
   const pageStyles = {
@@ -22,7 +22,7 @@ const EmployerHeatMap = () => {
         <span> / </span>
         <a onClick={() => navigate('/EmployerHeatMap')}>Heat-Map</a>
       </div>
-      <HeatMap/>
+      <HeatMap locations={locations} />
     </div>
   );
 };
