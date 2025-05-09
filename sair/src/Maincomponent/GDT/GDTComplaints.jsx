@@ -59,6 +59,7 @@ const GDTComplaintList = () => {
     CompamyEmail: "",
     ComPhoneNumber: "",
   });
+  const [respondedByNames, setRespondedByNames] = useState({});
 
   //const employerUID = sessionStorage.getItem('employerUID');
   const gdtUID = sessionStorage.getItem("gdtUID");
@@ -277,48 +278,46 @@ const GDTComplaintList = () => {
     navigate(`/gdtcomplaints/general/${record.id}`);
   };
 
-  const GDTResponse = (RespondedBy, setResponseByName) => {
-    // console.log("GDTResponse called with RespondedBy:", RespondedBy); // Debugging line
-    // if (!RespondedBy) {
-    //   console.error("GDTResponse ERROR: RespondedBy is undefined or empty!");
-    //   setResponseByName("Unknown");
-    //   return;
-    // }
+  const GDTResponse = async (respondedBy) => {
+    if (respondedByNames[respondedBy]) {
+      return respondedByNames[respondedBy];
+    }
+  
     try {
-      const gdtQuery = query(
-        collection(db, "GDT"),
-        where("ID", "==", RespondedBy)
-      );
-  
-      const unsubscribe = onSnapshot(gdtQuery, (snapshot) => {
-        if (!snapshot.empty) {
-          const gdtData = snapshot.docs[0].data();
-          setResponseByName(`${gdtData.Fname} ${gdtData.Lname}`);
-        } else {
-          console.error("No GDT document found with ID:", RespondedBy);
-          setResponseByName("Unknown");
-        }
-      });
-  
-      return unsubscribe;
+      const gdtQuery = query(collection(db, "GDT"), where("ID", "==", respondedBy));
+      const snapshot = await getDocs(gdtQuery);
+      if (!snapshot.empty) {
+        const gdtData = snapshot.docs[0].data();
+        const name = `${gdtData.Fname} ${gdtData.Lname}`;
+        setRespondedByNames((prev) => ({ ...prev, [respondedBy]: name }));
+        return name;
+      } else {
+        setRespondedByNames((prev) => ({ ...prev, [respondedBy]: "Unknown" }));
+        return "Unknown";
+      }
     } catch (error) {
       console.error("Error fetching GDT details:", error);
-      setResponseByName("Error");
+      return "Error";
     }
-  };  
+  };
+  
 
   const ResponseBy = ({ respondedBy }) => {
     const [responseByName, setResponseByName] = useState("");
-
+  
     useEffect(() => {
-      if (respondedBy) {
-        const unsubscribe = GDTResponse(respondedBy, setResponseByName);
-        return () => unsubscribe && unsubscribe(); // Cleanup listener on unmount
+      if (!respondedBy) return;
+  
+      // Check if already cached
+      if (respondedByNames[respondedBy]) {
+        setResponseByName(respondedByNames[respondedBy]);
+      } else {
+        GDTResponse(respondedBy).then(setResponseByName);
       }
     }, [respondedBy]);
-
+  
     return <span>{responseByName}</span>;
-  };
+  };   
 
   const filteredComplaints = complaints
   .sort((a, b) => (b.DateTime?.seconds || 0) - (a.DateTime?.seconds || 0)) // Sort by DateTime in descending order
