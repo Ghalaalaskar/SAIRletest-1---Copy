@@ -239,7 +239,7 @@ const EditDriver = () => {
       // Redirect to Driver List after a short delay
       setTimeout(() => {
         navigate('/driverslist');
-      }, 2000);
+      }, 5000);
     } catch (error) {
       console.error('Error updating driver:', error);
       showNotification(`Error updating driver: ${error.message}`, false);
