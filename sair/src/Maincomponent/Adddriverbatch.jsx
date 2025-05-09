@@ -618,6 +618,7 @@ setSelectedGPSNumbers(selectedGPSNumbers);
       'Driver ID': DriverID,
 
     } = driver;
+    const formattedDriverID = String(DriverID);
     const formattedGPSnumber = GPSnumber === 'None' ? null : GPSnumber;  
     const password = generateRandomPassword();
     let user;
@@ -634,7 +635,7 @@ setSelectedGPSNumbers(selectedGPSNumbers);
         PhoneNumber,
         Email,
         CompanyName: Employer.CompanyName,
-        DriverID,
+        DriverID: formattedDriverID,
         GPSnumber: formattedGPSnumber,  
         available: formattedGPSnumber === null, 
         isDefaultPassword: true,
@@ -663,18 +664,21 @@ setSelectedGPSNumbers(selectedGPSNumbers);
     }
 };
 
-   useEffect(() => {
-      const hasErrors = errorData.some((staffErrors) =>
-        Object.values(staffErrors).some((error) => error)
-      );
-  
-      setIsButtonDisabled(hasErrors);
-      setErrorMessage(
-        hasErrors
-          ? 'Please fix the errors in the table highlighted with red borders.'
-          : ''
-      );
-    }, [errorData, fileData]);
+useEffect(() => {
+   const hasErrors = errorData.some((staffErrors) =>
+       Object.values(staffErrors).some((error) => error)
+   );
+
+   // If there's valid data and no errors, enable the button
+   const isValidData = fileData.length === 1 && !hasErrors;
+
+   setIsButtonDisabled(!isValidData);
+   setErrorMessage(
+       hasErrors
+           ? 'Please fix the errors in the table highlighted with red borders.'
+           : ''
+   );
+}, [errorData, fileData]);
 
     const getFilteredUniqueGPSNumbers = (selectedGPSNumbers) => {
       // Convert the object to an array, filter out 'None', and remove duplicates
