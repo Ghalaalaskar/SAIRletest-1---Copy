@@ -323,7 +323,7 @@ const HeatMap = ({ locations }) => {
     // Then keep fetching every 10 seconds
     const interval = setInterval(() => {
       fetchGpsState();
-    }, 3000); //  seconds
+    }, 1000); //  seconds
 
     // Cleanup the interval when component unmounts
     return () => clearInterval(interval);
@@ -714,6 +714,19 @@ const center = lastKnownLocations.length > 0
       LicensePlate: "123 XYZ",
       status: "Active",
     },
+    {
+    MotorcycleID: '5000000002',
+    gpsNumber: '1234555555555557',
+    lat: 24.7137,
+    lng: 46.6753,
+    driverName: 'Saad Al Askar',
+    driverID: '12358711183',
+    phoneNumber: '+966516666660',
+    shortCompanyName: 'Hungerstation',
+    Type: 'X',
+    LicensePlate: '155 XYZ',
+    status: 'Active',
+  },
     {
       MotorcycleID: "5000000003",
       gpsNumber: "123456789012347",
