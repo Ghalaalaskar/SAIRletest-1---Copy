@@ -20,7 +20,7 @@ const EmployerHeatMap = ({ locations })=> {
       <div className="breadcrumb" style={{ marginRight: '100px' }}>
         <a onClick={() => navigate('/employer-home')}>Home</a>
         <span> / </span>
-        <a onClick={() => navigate('/EmployerHeatMap')}>Heat-Map</a>
+        <a onClick={() => navigate('/EmployerHeatMap')}>Heat Map</a>
       </div>
       <HeatMap locations={locations} />
     </div>

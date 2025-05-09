@@ -47,6 +47,7 @@ const DriverDetails = () => {
           await fetchViolations(driverData.DriverID);
         } else {
           setError('No driver found with this ID.');
+          console.log("______________________________________________________________",DriverDetails);
         }
       } catch (error) {
         setError('Failed to fetch driver details.');
@@ -106,15 +107,14 @@ const DriverDetails = () => {
   return (
     <div>
       
-      <Header active={"driverslist"} />
-
+    <Header active={fromHeatmap ? "EmployerHeatMap" : "driverslist"} />
 
       <div className="breadcrumb">
         <a onClick={() => navigate('/employer-home')}>Home</a>
         <span> / </span>
         {fromHeatmap ? (
           <>
-            <a onClick={() => navigate('/heat-map')}>Heat-Map</a>
+            <a onClick={() => navigate('/heat-map')}>Heat Map</a>
             <span> / </span>
           </>
         ) : (
