@@ -1406,7 +1406,7 @@ if(crashDate >= oneMonthAgo){
     { path: 'complaints', label: 'Complaints List' },
     { path: 'driverslist', label: 'Drivers List' },
     { path: 'motorcycleslist', label: 'Motorcycles List' },
-    { path: 'EmployerHeatMap', label: 'Heat-Map' },
+    { path: 'EmployerHeatMap', label: 'Heat Map' },
 
   ];
 
