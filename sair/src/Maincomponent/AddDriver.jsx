@@ -753,7 +753,7 @@ const sendEmail = (email, driverName, password) => {
         templateParams,
         '6NEdVNsgOnsmX-H4s'
       );
-      sessionStorage.setItem(`driverr_${docRef.id}`, docRef.id);
+      sessionStorage.setItem(`driver_${docRef.id}`, docRef.id);
 
       if (response.status === 200) {
         setPopupMessage('Driver added successfully!');

@@ -463,7 +463,7 @@ const DriverList = () => {
           onRow={(record) => ({
             style: {
               backgroundColor:
-                sessionStorage.getItem(`driverr_${record.id}`) ?
+                sessionStorage.getItem(`driver_${record.id}`) ?
 "#d0e0d0" : "transparent",
             },
           })}
