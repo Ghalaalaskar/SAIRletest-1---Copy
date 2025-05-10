@@ -316,7 +316,7 @@ const validateStaffMember = async (staff, index, allStaff) => {
       console.log('Initial error data:', initialErrorData);
       setErrorData(initialErrorData);
 
-      validateAllFields(jsonData);
+      validateAllFields(dataRows);
     };
     reader.readAsBinaryString(file);
   };
