@@ -662,10 +662,15 @@ const validateStaffMember = async (staff, index, allStaff) => {
   disabled={isButtonDisabled}
   className={s.editBtn}
   style={{
-    marginBottom: '40px',
+                marginBottom: '40px',
+                borderRadius: '5px',
+                backgroundColor: '#059855',
+                border: 'none',
+                padding: '10px 20px',
+                fontSize: '16px',
   }}
 >
-  Add Staff List
+  Add to Staff List
 </button>
           </div>
         )}
