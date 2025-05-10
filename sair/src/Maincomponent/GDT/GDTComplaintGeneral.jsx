@@ -164,6 +164,12 @@ const GDTComplaintGeneral = () => {
     fetchComplaintDetails();
   }, [complaintId]);
 
+  useEffect(() => {
+  if (currentComplaint?.ViolationID) {
+    setViolationDocId(currentComplaint.ViolationID);
+  }
+}, [currentComplaint]);
+
   const fetchEmployerDetails = (companyName) => {
     const employerQuery = query(
       collection(db, "Employer"),
