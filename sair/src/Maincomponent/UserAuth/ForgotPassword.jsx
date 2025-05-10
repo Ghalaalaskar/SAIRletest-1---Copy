@@ -110,7 +110,7 @@ const ForgetPassword = () => {
   return (
     <div className={s.container}>
       <div className={s.inner}>
-        <h1 className={s.title}>Forgot Password? changes</h1>
+        <h1 className={s.title}>Forgot Password?</h1>
         <p className={s.info}>
           Don't worry! It occurs. Please enter your email that is linked with your account.
         </p>
