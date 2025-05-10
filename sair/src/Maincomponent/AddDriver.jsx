@@ -40,6 +40,7 @@ const AddDriver = () => {
     const [drivers, setDrivers] = useState([]); /// Store parsed driver data#
     const [fileData, setFileData] = useState([]); /// Store file data
     const [fileName, setFileName] = useState('');
+const [recentlyAdded, setRecentlyAdded] = useState([]);
 
 
   const [validationMessages, setValidationMessages] = useState({
@@ -722,7 +723,7 @@ const sendEmail = (email, driverName, password) => {
   
       // Add the driver to Firestore
       await addDoc(collection(db, 'Driver'), newDriver);
-  
+      sessionStorage.setItem(`driver_${newDriver.id}`, newDriver.id); // Store in sessionStorage
       // Update motorcycle availability if GPSnumber is assigned
       if (GPSnumber) {
         const q = query(
