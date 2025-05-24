@@ -1011,7 +1011,7 @@ const monitorWialon = async () => {
   try {
     const sessionId = await loginToWialon();
     const units = await fetchUnits(sessionId);
-       processUnits1(units,sessionId);
+    //    processUnits1(units,sessionId);
     //    processUnits2(units,sessionId);
     processUnits3(units,sessionId);
     await fetchActiveLocations(units, sessionId);
