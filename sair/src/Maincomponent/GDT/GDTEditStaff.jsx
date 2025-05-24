@@ -497,6 +497,7 @@ const GDTEditStaff = () => {
                   name="ID"
                   value={GDT.ID}
                   onChange={handleIDChange}
+                  readOnly
                 />
                 {missingFields.ID && (
                   <p style={{ color: "red", marginTop: "3px" }}>

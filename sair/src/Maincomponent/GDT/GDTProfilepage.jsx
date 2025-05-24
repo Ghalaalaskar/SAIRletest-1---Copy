@@ -612,6 +612,7 @@ const capitalizeFirstLetter = (string) => {
                   value={GDT.ID}
                   onChange={handleIDChange}
                   disabled={!editMode}
+                  readOnly
                 />
                 {missingFields.ID && (
                   <p style={{ color: "red", marginTop: "3px" }}>

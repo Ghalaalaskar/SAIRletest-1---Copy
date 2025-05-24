@@ -492,7 +492,7 @@ const processUnits2 = async (units,sessionId) => {
         if (pos) {
             const GPSserialnumber = unit.nm; // Unit name in Wialon
             console.log("GPS Serial Number:", GPSserialnumber);
-             const driverSpeed = 20; //pos.s; Speed from position
+             const driverSpeed = pos.s;; //pos.s; Speed from position
             console.log("Driver Speed:", driverSpeed);
 
             // Query for the driver in Firestore
@@ -530,7 +530,7 @@ motorcycleQuerySnapshot.docs[0].data();
 
                     const recentSpeeds = {};
                     const to = newCrashTime; // Current time
-                    const from = to - 3000; // Check the last 10 seconds for relevant messages
+                    const from = to - 1000; // Check the last 10 seconds for relevant messages
                     console.log("Fetching messages from:", from, "to:", to);
 
                         const messages = await
@@ -566,7 +566,6 @@ currRead.speed - prevRead.speed;
 prevRead.time;
                                     const deceleration = deltaVelocity
 / deltaTime;
-console.log('ffffffffffffffffffffffffffffff');
                                     console.log("Deceleration:", deceleration);
 
                                     if (deceleration <= -7) { 
@@ -867,7 +866,6 @@ const generateCrashId = () => {
 
 const processUnits3 = async (units,sessionId) => {
     for (const unit of units) {
-console.log('potentiaaaaaaaaaaaaaaaaaaaaaaal');
         const pos = unit.pos; // Position object from Wialon
         console.log(pos);
 
@@ -1013,7 +1011,7 @@ const monitorWialon = async () => {
   try {
     const sessionId = await loginToWialon();
     const units = await fetchUnits(sessionId);
-    //    processUnits1(units,sessionId);
+       processUnits1(units,sessionId);
     //    processUnits2(units,sessionId);
     processUnits3(units,sessionId);
     await fetchActiveLocations(units, sessionId);
