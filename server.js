@@ -187,7 +187,7 @@ motorcycleData.MotorcycleID;
                                 const Type = motorcycleData.Type;
 
                                 const ViolationID = generateViolationId();
-                                const newViolationTime = 1748098779; //unit.lmsg.rt; 
+                                const newViolationTime = 1748011111; //unit.lmsg.rt; 
 // Real-time timestamp of this violation
                                 console.log('viotime:', newViolationTime);
 
