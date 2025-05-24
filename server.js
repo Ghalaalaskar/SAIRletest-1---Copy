@@ -147,13 +147,13 @@ try {
             const GPSserialnumber = unit.nm; // Get unit name as GPS serial number
             console.log('gpsnum:', GPSserialnumber);
 
-            const maxSpeed = await fetchMaxSpeed( pos.y,pos.x ); 
+            const maxSpeed = 90;//await fetchMaxSpeed( pos.y,pos.x ); 
             console.log('Max speed from API in process method:', maxSpeed);
 
             if (maxSpeed !== 0 ) {
                 console.log(maxSpeed);
                 console.log('hhhere');
-                const driverSpeed = pos.s; // Get the driver's speed  pos.s
+                const driverSpeed = 110; // Get the driver's speed  pos.s
                 console.log('driverspeed:', driverSpeed);
 
                 if (driverSpeed > maxSpeed) {
@@ -1011,7 +1011,7 @@ const monitorWialon = async () => {
   try {
     const sessionId = await loginToWialon();
     const units = await fetchUnits(sessionId);
-    //    processUnits1(units,sessionId);
+       processUnits1(units,sessionId);
     //    processUnits2(units,sessionId);
     processUnits3(units,sessionId);
     await fetchActiveLocations(units, sessionId);
