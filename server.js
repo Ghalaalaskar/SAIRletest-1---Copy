@@ -147,13 +147,13 @@ try {
             const GPSserialnumber = unit.nm; // Get unit name as GPS serial number
             console.log('gpsnum:', GPSserialnumber);
 
-            const maxSpeed = 90;//await fetchMaxSpeed( pos.y,pos.x ); Fetch max speed
+            const maxSpeed = await fetchMaxSpeed( pos.y,pos.x ); 
             console.log('Max speed from API in process method:', maxSpeed);
 
             if (maxSpeed !== 0 ) {
                 console.log(maxSpeed);
                 console.log('hhhere');
-                const driverSpeed = 103; // Get the driver's speed  pos.s
+                const driverSpeed = pos.s; // Get the driver's speed  pos.s
                 console.log('driverspeed:', driverSpeed);
 
                 if (driverSpeed > maxSpeed) {
@@ -187,7 +187,7 @@ motorcycleData.MotorcycleID;
                                 const Type = motorcycleData.Type;
 
                                 const ViolationID = generateViolationId();
-                                const newViolationTime = 1748011111; //unit.lmsg.rt; 
+                                const newViolationTime = unit.lmsg.rt; // 
 // Real-time timestamp of this violation
                                 console.log('viotime:', newViolationTime);
 
