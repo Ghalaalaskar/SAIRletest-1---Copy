@@ -493,10 +493,10 @@ const NumberofCrashes = ({ dateType, companyName }) => {
             angle={-45}
             textAnchor="end"
             label={{
-              value: dateType === "week" ? "Date" : `Date        `,
+              value: `${dateType === "week" ? "Date" : "Date"} `,
               position: "insideBottom",
-              dy: 55,
-              dx: dateType != "week" ? -60 : 0,
+              dy: 54,
+              dx: dateType != "week" ? -94 : 0,
             }}
             tick={{ fontSize: 12 }}
           />

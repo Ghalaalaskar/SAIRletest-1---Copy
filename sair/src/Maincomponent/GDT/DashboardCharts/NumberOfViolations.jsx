@@ -486,19 +486,19 @@ const NumberofViolations = ({ dateType, companyName }) => {
               <stop offset="95%" stopColor="#82ca9d" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <XAxis
-            dataKey="date"
-            interval={0}
-            angle={-45}
-            textAnchor="end"
-            label={{
-              value: dateType === "week" ? "Date" : `Date        `,
-              position: "insideBottom",
-              dy: 55,
-              dx: dateType != "week" ? -60 : 0,
-            }}
-            tick={{ fontSize: 12 }}
-          />
+<XAxis
+  dataKey="date"
+  interval={0}
+  angle={-45}
+  textAnchor="end"
+  label={{
+    value: `${dateType === "week" ? "Date" : "Date"} `,
+    position: "insideBottom",
+    dy: 54, // Adjust if needed
+    dx: dateType !== "week" ? -94 : 0,
+  }}
+  tick={{ fontSize: 12 }}
+/>
           <YAxis
             allowDecimals={false}
             label={{
